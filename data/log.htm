@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Система автоматики Yss</title>
+    <meta name="description" content="Версия 0.1">
+    <meta name="author" content="Yss">
+    <link href="/css/bootstrap.min.css" type="text/css" rel="stylesheet" />
+    <script type="text/javascript" src="/js/jquery.min.js"></script>
+    <script type="text/javascript" src="/js/bootstrap.min.js"></script>
+</head>
+<body>
+	<div class="container-fluid">
+	<div class="col-md-12">
+		<a href="/" class="btn btn-info">Дом</a>
+	</div>
+	<div class="row">
+		<div class="col-md-offset-1 col-md-10">
+			<h3>Последние события</h3>
+			<div id="Textarea1"></div>		
+		</div>
+	</div>
+	</div>
+ </body>
+ <script type="text/javascript">
+	$(document).ready(function(){
+	process();
+	});
+	
+	function process(){
+		$.getJSON(
+		"/logdata",
+		function(data){
+		$('#Textarea1').html(data['logdata']);
+		});
+		setTimeout('process()',3000);
+	}
+	</script>
+</html>
