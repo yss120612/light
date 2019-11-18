@@ -9,7 +9,8 @@
 HttpHelper::HttpHelper()
 {
 	server = new AsyncWebServer(80);
-	SPIFFS.begin();
+	//SPIFFS.begin();
+	
 }
 
 HttpHelper::~HttpHelper()
@@ -17,12 +18,13 @@ HttpHelper::~HttpHelper()
 	//delete httpUpdater;
 	//delete httpSpiffsUpdater;
 	delete server;
-	SPIFFS.end();
+	//SPIFFS.end();
 }
 
-void HttpHelper::setup() {
+void HttpHelper::setup(IRreceiver * rcv) {
 	if (server == NULL) return;
 
+	irrc=rcv;
 	//WiFiconnect();
 			
 	//server->on("/", std::bind(&HttpHelper::handleRoot, this, std::placeholders::_1));
@@ -31,7 +33,9 @@ void HttpHelper::setup() {
 	//server->serveStatic("", SPIFFS, "/index.htm", NULL);
 	server->on("/", std::bind(&HttpHelper::handleRoot, this, std::placeholders::_1));
 
-	server->on("/logdata", std::bind(&HttpHelper::handleLog, this, std::placeholders::_1));
+	server->on("/test", std::bind(&HttpHelper::handleTest, this, std::placeholders::_1));
+
+	server->on("/logdata", std::bind(&HttpHelper::handleLogData, this, std::placeholders::_1));
 
     server->onNotFound(std::bind(&HttpHelper::handleNotFound, this, std::placeholders::_1));
 
@@ -65,14 +69,20 @@ server->on(
 	"/spiffs", 
 	HTTP_POST, 
 	[](AsyncWebServerRequest *request){
-      request->send(200);
+	    request->send(200);
     }, 
 	std::bind(&HttpHelper::handleSpiffs, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5, std::placeholders::_6)
 	);
 
+	server->on("/log", std::bind(&HttpHelper::handleLog, this, std::placeholders::_1));
+
+	server->on("/css/bootstrap.min.css", std::bind(&HttpHelper::handleBootstrapCss, this, std::placeholders::_1));
+	server->on("/js/bootstrap.min.js", std::bind(&HttpHelper::handleBootstrapJs, this, std::placeholders::_1));
+	server->on("/js/jquery.min.js", std::bind(&HttpHelper::handleJqueryJs, this, std::placeholders::_1));
+
 	//server->serveStatic("/heater",SPIFFS,"/heater.htm", NULL);
 
-	server->serveStatic("/log", SPIFFS, "/log.htm", NULL);
+	//server->serveStatic("/log", SPIFFS, "/log.htm", NULL);
 
 	//server->serveStatic("/distill", SPIFFS, "/distillation.htm", NULL);
 
@@ -82,18 +92,19 @@ server->on(
 
 	//server->serveStatic("/brewing", SPIFFS, "/brewing.htm", NULL);
 
-	server->serveStatic("/css/bootstrap.min.css", SPIFFS, "/css/bootstrap.min.css", NULL);
+	//server->serveStatic("/css/bootstrap.min.css", SPIFFS, "/css/bootstrap.min.css", NULL);
 
-	server->serveStatic("/js/bootstrap.min.js", SPIFFS, "/js/bootstrap.min.js", NULL);
+	//server->serveStatic("/js/bootstrap.min.js", SPIFFS, "/js/bootstrap.min.js", NULL);
 
-	server->serveStatic("/js/jquery.min.js", SPIFFS, "/js/jquery.min.js", NULL);
+	//server->serveStatic("/js/jquery.min.js", SPIFFS, "/js/jquery.min.js", NULL);
 
-	server->serveStatic("/js/export-data.js", SPIFFS, "/js/export-data.js", NULL);
+	//server->serveStatic("/js/export-data.js", SPIFFS, "/js/export-data.js", NULL);
 
-	server->serveStatic("/js/exporting.js", SPIFFS, "/js/exporting.js", NULL);
+	//server->serveStatic("/js/exporting.js", SPIFFS, "/js/exporting.js", NULL);
  
-	server->serveStatic("/js/highstock.js", SPIFFS, "/js/highstock.js", NULL);
-			
+	//server->serveStatic("/js/highstock.js", SPIFFS, "/js/highstock.js", NULL);
+
+	in_update=false;		
 	server->begin();
 
 //	httpSpiffsUpdater = new 
@@ -109,15 +120,13 @@ boolean HttpHelper::isConnected()
 void HttpHelper::handleRoot(AsyncWebServerRequest * request) {
 	if (!request->authenticate("Yss1", "bqt3"))
 		return request->requestAuthentication();
-	//if (!handleFileRead("/")) {
-	//	server->send(200, "text/plain", "NOT FOUND!!!");
-	//}
-	
-	File file = SPIFFS.open("/index.htm", "r");
-	
-	request->send(file,"/","text/html");
-	file.close();
-    //request->send(200,"text/plain", "ROOT");
+		handleFile("/index.htm","text/html", request);
+}
+
+void HttpHelper::handleLog(AsyncWebServerRequest * request) {
+	if (!request->authenticate("Yss1", "bqt3"))
+		return request->requestAuthentication();
+		handleFile("/log.htm","text/html",request);
 }
 
 void HttpHelper::handleNotFound(AsyncWebServerRequest * request) {
@@ -125,18 +134,38 @@ void HttpHelper::handleNotFound(AsyncWebServerRequest * request) {
 }
 
 
-void HttpHelper::handleLog(AsyncWebServerRequest * request)
+void HttpHelper::handleLogData(AsyncWebServerRequest * request)
 {
 	String str = "{\"logdata\":\"<ul>"+logg.getAll2Web()+"</ul>\"}";
 	request->send(200, "text/json",str); // Oтправляем ответ No Reset
 }
 
 
+void HttpHelper::handleJqueryJs(AsyncWebServerRequest * request) {
+    		handleFile("/js/jquery.min.js","application/javascript",request);
+}
+
+void HttpHelper::handleBootstrapCss(AsyncWebServerRequest * request) {
+		handleFile("/css/bootstrap.min.css","text/css",request);
+}
+
+void HttpHelper::handleBootstrapJs(AsyncWebServerRequest * request) {
+		handleFile("/js/bootstrap.min.js","application/javascript",request);
+}
+
+void HttpHelper::handleFile(String path,String type, AsyncWebServerRequest *request){
+	irrc->sleep_sometime(); 
+	//Serial.println(path);
+	request->send(SPIFFS,path,type);
+}
+
 void HttpHelper::handleUpdate(AsyncWebServerRequest *request, const String& filename, size_t index, uint8_t *data, size_t len, bool final){
  uint32_t free_space = (ESP.getFreeSketchSpace() - 0x1000) & 0xFFFFF000;
 // Serial.println(filename);
 
   if (!index){
+	irrc->sleep_sometime();
+	in_update=true;
 	request->redirect("/"); 
 	counter=0;
     Serial.println("Update");
@@ -147,12 +176,15 @@ void HttpHelper::handleUpdate(AsyncWebServerRequest *request, const String& file
 
   if (Update.write(data, len) != len) {
     Update.printError(Serial);
+	//irrc->enable();
+	in_update=false;
   }else{
 	  if (counter++==9) {Serial.print(".");counter=0;}
   }
 
   if (final) {
     if (!Update.end(true)){
+	  		
       Update.printError(Serial);
     } else {
 	  Serial.println("");
@@ -167,6 +199,8 @@ void HttpHelper::handleSpiffs(AsyncWebServerRequest *request, const String& file
  //uint32_t free_space = (ESP. - 0x1000) & 0xFFFFF000;
  //Serial.println(filename);
   if (!index){
+	irrc->sleep_sometime();
+	in_update=true;
 	request->redirect("/");
 	counter=0;
     Serial.println("Update SPIFFS");
@@ -177,6 +211,7 @@ void HttpHelper::handleSpiffs(AsyncWebServerRequest *request, const String& file
 
   if (Update.write(data, len) != len) {
     Update.printError(Serial);
+	in_update=false;
   }else{
 	  if (counter++==9) {Serial.print(".");counter=0;}
   }
@@ -263,8 +298,8 @@ void HttpHelper::handleSpiffs(AsyncWebServerRequest *request, const String& file
 // 	}
 // }
 
-void HttpHelper::WiFiconnect()
-{
+// void HttpHelper::WiFiconnect()
+// {
 	// WiFi.disconnect();
 	// //IPAddress apIP(192, 168, 0, 100);
 	// WiFi.mode(WIFI_STA);
@@ -305,10 +340,10 @@ void HttpHelper::WiFiconnect()
 	// 		}
 	// 	}
 	// }
-}
+// }
 
-void HttpHelper::WiFiReconnect()
-{
+// void HttpHelper::WiFiReconnect()
+// {
 	// if (isConnected()) {
 	// 	return;
 	// }
@@ -321,7 +356,7 @@ void HttpHelper::WiFiReconnect()
 	// WiFi.reconnect();
 	// Serial.println("reconnect");
 	// }*/
-}
+// }
 
 void HttpHelper::handleUpd(AsyncWebServerRequest * request) {
     if (!request->authenticate("Yss1", "bqt3"))
@@ -361,10 +396,36 @@ void HttpHelper::handleUpd(AsyncWebServerRequest * request) {
 	request->send(200, "text/html", resp);
 }
 
-void HttpHelper::clientHandle() {
+
+
+void HttpHelper::handleTest(AsyncWebServerRequest * request) {
+    if (!request->authenticate("Yss1", "bqt3"))
+		return request->requestAuthentication();
+	String resp = "<!DOCTYPE html>\n<html>\n<head>\n";
+	resp += "<meta charset = \"utf-8\">\n";
+	resp += "<title>YssLight Test</title>\n";
+	resp += "<meta name = \"description\" content = \"Версия 0.1\">\n";
+	resp += "<meta name = \"author\" content = \"Yss\">\n";
+	resp += "<link href = \"/css/bootstrapcss\" type = \"text/css\" rel = \"stylesheet\">\n";
+	resp += "<script type = \"text/javascript\" src = \"/js/bootstrapjs\"></script>\n";
+	resp += "</head>\n<body>\n";
+	resp += "<div>\n";
+	resp += "<a href = \"/\">Дом</a>\n";
+	resp += "</div>\n";
+	resp += "<div>";
+	resp += "<h3>Тест</h3>\n";
+	resp += "</div>\n";
+	resp += "</body>\n</html>\n";
+
+	request->send(200, "text/html", resp);
+}
+
+
+
+// void HttpHelper::clientHandle() {
 	//if (server!=NULL) server->handleClient();
 	//ArduinoOTA.handle();
-}
+// }
 
 // boolean HttpHelper::handleFileRead(String path) {
 

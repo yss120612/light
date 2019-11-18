@@ -1,6 +1,6 @@
 #include <Arduino.h>
 
-
+#include <SPIFFS.h>
 
 #include "Log.h"
 #include "IRreceiver.h"
@@ -34,7 +34,7 @@ void setup() {
    digitalWrite(RELAY4,HIGH);
    is_on=false;
    //ir.enable();
-    //SPIFFS.begin();
+    SPIFFS.begin();
 
    
 
@@ -79,7 +79,7 @@ void setup() {
       break;
       }
     }
-
+    
     if (cycles<=4)
     {
     Serial.println("");
@@ -89,9 +89,10 @@ void setup() {
     logg.logging("WiFi connected.IP address: "+WiFi.localIP().toString());
     Serial.println("Hello World, I'm connected to the internets!!");
     http_server = new HttpHelper();
-    http_server->setup();
+    http_server->setup(&ir);
     }
     ms=0;
+    ir.enable();
 }
  
 
@@ -157,8 +158,11 @@ void loop() {
         
     }
   }
-  is_on=digitalRead(RELAY1)==LOW||digitalRead(RELAY2)==LOW||digitalRead(RELAY3)==LOW||digitalRead(RELAY4)==LOW;
-  digitalWrite(LED,is_on?HIGH:LOW);  
+  if (!http_server || !http_server->isUpdate())
+  {
+    is_on=digitalRead(RELAY1)==LOW||digitalRead(RELAY2)==LOW||digitalRead(RELAY3)==LOW||digitalRead(RELAY4)==LOW;
+    digitalWrite(LED,is_on?HIGH:LOW);  
+  }
   //digitalWrite(LED,HIGH);
   //delay(100);
   //digitalWrite(LED,LOW);

@@ -15,6 +15,7 @@ class IRreceiver
     uint32_t checkIR(unsigned long ms);
     void enable();
     void disable();
+    void sleep_sometime(unsigned long time=24000);
     uint32_t getCommand();
     private:
     IRrecv * irrecv;
@@ -22,6 +23,7 @@ class IRreceiver
     decode_results dres;
     uint32_t last_command;
     unsigned long time_lc;
+    unsigned long sleeping_time;
 };
 
 #endif

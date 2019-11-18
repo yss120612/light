@@ -7,6 +7,8 @@ IRreceiver::IRreceiver(uint16_t port){
     irrecv = new IRrecv(_port);
     last_command=0;
     time_lc=0;
+    sleeping_time=0;
+    
 }
 
 IRreceiver::~IRreceiver(){
@@ -15,10 +17,16 @@ IRreceiver::~IRreceiver(){
 
 void IRreceiver::enable(){
     irrecv->enableIRIn();
+    sleeping_time=0;
 }
 
 void IRreceiver::disable(){
     irrecv->disableIRIn();
+}
+
+void IRreceiver::sleep_sometime(unsigned long time){
+    disable();
+    sleeping_time=millis()+time;
 }
 
 uint32_t IRreceiver::getCommand(){
@@ -26,6 +34,9 @@ uint32_t IRreceiver::getCommand(){
 }
 
 uint32_t IRreceiver::checkIR(unsigned long ms){
+  if (sleeping_time!=0 && ms>sleeping_time)  {
+      enable();
+  }
   if (irrecv->decode(&dres))
   {
       if (dres.command>0 && dres.address==IR_DEVICE){
@@ -33,7 +44,7 @@ uint32_t IRreceiver::checkIR(unsigned long ms){
         {  
         last_command=dres.command;
         time_lc=ms;
-        logg.logging("IR Command="+String(last_command,0));
+        logg.logging("IR Command="+String(last_command));
         return dres.command;
         }
       }
