@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Система автоматики Yss</title>
+    <meta name="description" content="Версия 0.1">
+    <meta name="author" content="Yss">
+    <link href="/css/bootstrap.min.css" type="text/css" rel="stylesheet" />
+    <script type="text/javascript" src="/js/jquery.min.js"></script>
+    <script type="text/javascript" src="/js/bootstrap.min.js"></script>
+</head>
+<body>
+	<div class="container-fluid">
+	<div class="row">
+		<div class="col-md-12">
+			<a href="/" class="btn btn-info">Дом</a>
+		</div>
+		<div class="col-md-offset-1 col-md-10">
+			<h3>Релейный блок</h3>
+		</div>
+		
+		<div class="panel panel-default col-md-offset-1 col-md-10">
+		<div class="panel-heading">Текущие параметры</div>
+		<div class="panel-body">		
+		<div class="col-md-offset-1 col-md-10">
+			<div id="TTSA"></div>		
+		</div>
+		<div class="col-md-offset-1 col-md-10">
+			<div id="TDEF"></div>		
+		</div>
+		<div class="col-md-offset-1 col-md-10">
+			<div id="TKUBE"></div>		
+		</div>
+		<div class="col-md-offset-1 col-md-10">
+			<div id="TTRIAK"></div>		
+		</div>
+		<div class="col-md-offset-1 col-md-10">
+			<div id="HPOWER"></div>		
+		</div>
+		<div class="col-md-offset-1 col-md-10">
+			<div id="KSTATE"></div>		
+		</div>
+		<div class="col-md-offset-1 col-md-10">
+			<div id="UROVEN"></div>		
+		</div>
+		<div class="col-md-offset-1 col-md-10">
+			<div id="FLOOD"></div>		
+		</div>
+		<div class="col-md-offset-1 col-md-10">
+			<div id="STA"></div>		
+		</div>
+		</div>
+		</div>
+		<div class="panel panel-default col-md-offset-1 col-md-10">
+		<div class="panel-heading">Настройки</div>
+		<div class="panel-body">		
+		<form action="/distillset" id="setTStop">
+				<div class="form-group">
+					<label for="TMPSTOP">Остановить при Т в кубе </label>
+					<input type="input" class="form-control setdata" id="TMPSTOP" aria-describedby="helpTmpStop">
+				</div>
+				<input type="hidden" id="lock">
+				<button type="submit" class="btn btn-primary">Установить</button>
+			</form>
+		</div>
+		</div>
+		
+
+	</div>
+	</div>
+ </body>
+ <script type="text/javascript">
+	$(document).ready(function(){
+	process();
+	
+	$('#setTStop').submit(function(){  
+			
+			$.ajax({  
+                    type: "POST",  
+                    url: "/distillset",  
+                    data: "TSTOP="+$("#TMPSTOP").val(),  
+                    success: function(html){  
+                    }  
+			}); 
+                return false;  
+            });  
+			
+	
+	});
+	
+	function process(){
+		$.getJSON(
+		"/distilldata",
+		function(data){
+		$('#TTSA').html('Температура TSA <b>'+data['tsa_data']+'&deg;C</b>');
+		$('#TDEF').html('Температура в дефлегматоре <b>'+data['def_data']+'&deg;C</b>');
+		$('#TKUBE').html('Температура в кубе <b>'+data['kube_data']+'&deg;C</b>');
+		$('#TTRIAK').html('Температура радиатора нагревателя <b>'+data['cooler_data']+'&deg;C</b>');
+		$('#HPOWER').html('Мощность нагревателя <b>'+data['heater_data']+'%</b>');
+		$('#KSTATE').html('Кран охладителя открыт на <b>'+data['kran_data']+'%</b>');
+		$('#UROVEN').html('Датчик уровня <b>'+data['wsu_data']+'%</b>');
+		$('#FLOOD').html('Датчик протечки <b>'+data['wsf_data']+'%</b>');
+		$('#STA').html('Состояние <b>'+data['state_data']+'</b>');
+		if (!$('#lock').hasClass('focus')){
+			$('#TMPSTOP').val(data['tstop_data']);
+			}
+				
+		});
+		setTimeout('process()',3000);
+	}
+	</script>
+</html>

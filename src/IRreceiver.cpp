@@ -48,6 +48,9 @@ uint32_t IRreceiver::checkIR(unsigned long ms){
         return dres.command;
         }
       }
+      else if(dres.command>0){
+          logg.logging("Not my device ("+String(IR_DEVICE)+")! Device="+String(dres.address)+";IR Command="+String(dres.command));
+      }
       irrecv->resume();
   }
   return 0;

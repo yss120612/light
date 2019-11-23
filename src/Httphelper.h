@@ -40,6 +40,12 @@ private:
 	void handleBootstrapCss(AsyncWebServerRequest * request);
 	void handleBootstrapJs(AsyncWebServerRequest * request);
 	void handleJqueryJs(AsyncWebServerRequest * request);
+
+	void handleMainFile(AsyncWebServerRequest * request);
+	void handleMainSetup(AsyncWebServerRequest * request);
+	void handleMainW2A(AsyncWebServerRequest * request);
+	void handleMainA2W(AsyncWebServerRequest * request);
+
 	//void handleDistillSet();
 	//void handleRectify();
 	//void handleRectifySet();
@@ -62,5 +68,8 @@ private:
 	uint8_t counter;
 	IRreceiver * irrc;
 	boolean in_update;
+
+	String text(String id, String label);
+	String checkbox(String id, String label);
 };
 #endif

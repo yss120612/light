@@ -20,6 +20,7 @@
 #define PULT_3      70
 #define PULT_4      9
 #define PULT_POWER  20
+#define PULT_SOUND  69
 
 
 #define PERIOD 1000

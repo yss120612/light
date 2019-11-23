@@ -35,6 +35,8 @@ void HttpHelper::setup(IRreceiver * rcv) {
 
 	server->on("/test", std::bind(&HttpHelper::handleTest, this, std::placeholders::_1));
 
+	server->on("/main", std::bind(&HttpHelper::handleMainFile, this, std::placeholders::_1));
+
 	server->on("/logdata", std::bind(&HttpHelper::handleLogData, this, std::placeholders::_1));
 
     server->onNotFound(std::bind(&HttpHelper::handleNotFound, this, std::placeholders::_1));
@@ -161,8 +163,6 @@ void HttpHelper::handleFile(String path,String type, AsyncWebServerRequest *requ
 
 void HttpHelper::handleUpdate(AsyncWebServerRequest *request, const String& filename, size_t index, uint8_t *data, size_t len, bool final){
  uint32_t free_space = (ESP.getFreeSketchSpace() - 0x1000) & 0xFFFFF000;
-// Serial.println(filename);
-
   if (!index){
 	irrc->sleep_sometime();
 	in_update=true;
@@ -196,8 +196,7 @@ void HttpHelper::handleUpdate(AsyncWebServerRequest *request, const String& file
 }
 
 void HttpHelper::handleSpiffs(AsyncWebServerRequest *request, const String& filename, size_t index, uint8_t *data, size_t len, bool final){
- //uint32_t free_space = (ESP. - 0x1000) & 0xFFFFF000;
- //Serial.println(filename);
+ 
   if (!index){
 	irrc->sleep_sometime();
 	in_update=true;
@@ -225,6 +224,54 @@ void HttpHelper::handleSpiffs(AsyncWebServerRequest *request, const String& file
 	  ESP.restart();
     }
   }
+}
+
+
+void HttpHelper::handleMainFile(AsyncWebServerRequest * request) {
+	if (!request->authenticate("Yss1", "bqt3"))
+		return request->requestAuthentication();
+		handleFile("/main.htm","text/html",request);
+}
+
+void HttpHelper::handleMainSetup(AsyncWebServerRequest * request)
+{
+	String str = "{\"logdata\":\"<ul>"+logg.getAll2Web()+"</ul>\"}";
+	request->send(200, "text/json",str); // Oтправляем ответ No Reset
+}
+
+void HttpHelper::handleMainW2A(AsyncWebServerRequest * request)
+{
+	String str = "{\"logdata\":\"<ul>"+logg.getAll2Web()+"</ul>\"}";
+	request->send(200, "text/json",str); // Oтправляем ответ No Reset
+}
+
+void HttpHelper::handleMainA2W(AsyncWebServerRequest * request)
+{
+	String str = "{\"logdata\":\"<ul>"+logg.getAll2Web()+"</ul>\"}";
+	request->send(200, "text/json",str); // Oтправляем ответ No Reset
+}
+
+
+String HttpHelper::text(String id, String label){
+	String buf;
+    buf = F("{\"html\":\"input\",");
+    buf += String(F("\"id\":\"")) + id + "\",";
+    buf += F("\"type\":\"text\",");
+   // buf += String(F("\"value\":\"")) + param(id) + "\",";
+    buf += String(F("\"label\":\"")) + label + "\"";
+    buf += F("},");
+	return buf;
+}
+
+
+String HttpHelper::checkbox(String id, String label){
+    String buf = F("{\"html\":\"input\",");
+    buf += F("\"type\":\"checkbox\",");
+    buf += String(F("\"id\":\"")) + id + "\",";
+   // buf += String(F("\"value\":\"")) + param(id) + "\",";
+    buf += String(F("\"label\":\"")) + label + "\"";
+    buf += F("},");
+	return buf;
 }
 
 // void HttpHelper::handleDistill()
