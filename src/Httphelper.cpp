@@ -21,10 +21,11 @@ HttpHelper::~HttpHelper()
 	//SPIFFS.end();
 }
 
-void HttpHelper::setup(IRreceiver * rcv) {
+void HttpHelper::setup(IRreceiver * rcv, AppData *ad) {
 	if (server == NULL) return;
 
 	irrc=rcv;
+	data = ad;
 	//WiFiconnect();
 			
 	//server->on("/", std::bind(&HttpHelper::handleRoot, this, std::placeholders::_1));
@@ -37,7 +38,7 @@ void HttpHelper::setup(IRreceiver * rcv) {
 
 	server->on("/main", std::bind(&HttpHelper::handleMainFile, this, std::placeholders::_1));
 
-	server->on("/logdata", std::bind(&HttpHelper::handleLogData, this, std::placeholders::_1));
+	//server->on("/logdata", std::bind(&HttpHelper::handleLogData, this, std::placeholders::_1));
 
     server->onNotFound(std::bind(&HttpHelper::handleNotFound, this, std::placeholders::_1));
 
@@ -82,6 +83,11 @@ server->on(
 	server->on("/js/bootstrap.min.js", std::bind(&HttpHelper::handleBootstrapJs, this, std::placeholders::_1));
 	server->on("/js/jquery.min.js", std::bind(&HttpHelper::handleJqueryJs, this, std::placeholders::_1));
 
+
+ 	server->on("/post", HTTP_ANY, std::bind(&HttpHelper::handleW2A, this, std::placeholders::_1));
+
+	 server->on("/getdata", HTTP_ANY, std::bind(&HttpHelper::handleA2W, this, std::placeholders::_1));
+
 	//server->serveStatic("/heater",SPIFFS,"/heater.htm", NULL);
 
 	//server->serveStatic("/log", SPIFFS, "/log.htm", NULL);
@@ -113,6 +119,26 @@ server->on(
 //	httpSpiffsUpdater->setup(server);
 }
 
+void HttpHelper::var(String n,String v){
+if (n.equals("REL1")){
+logg.logging("n="+n+", v="+v);
+} else if (n.equals("REL2"))
+{
+logg.logging("n="+n+", v="+v);
+}else if (n.equals("REL3"))
+{
+logg.logging("n="+n+", v="+v);	
+}
+}
+
+void HttpHelper::var_log(String n,String v){
+if (n.equals("ACTION")&&v.equals("clear")){
+logg.clear();
+logg.logging("n="+n+", v="+v);	
+}
+}
+
+
 boolean HttpHelper::isConnected()
 {
 	//return WiFi.status() == WL_CONNECTED;
@@ -125,6 +151,8 @@ void HttpHelper::handleRoot(AsyncWebServerRequest * request) {
 		handleFile("/index.htm","text/html", request);
 }
 
+
+
 void HttpHelper::handleLog(AsyncWebServerRequest * request) {
 	if (!request->authenticate("Yss1", "bqt3"))
 		return request->requestAuthentication();
@@ -136,11 +164,11 @@ void HttpHelper::handleNotFound(AsyncWebServerRequest * request) {
 }
 
 
-void HttpHelper::handleLogData(AsyncWebServerRequest * request)
-{
-	String str = "{\"logdata\":\"<ul>"+logg.getAll2Web()+"</ul>\"}";
-	request->send(200, "text/json",str); // Oтправляем ответ No Reset
-}
+// void HttpHelper::handleLogData(AsyncWebServerRequest * request)
+// {
+// 	String str = "{\"logdata\":\"<ul>"+logg.getAll2Web()+"</ul>\"}";
+// 	request->send(200, "text/json",str); // Oтправляем ответ No Reset
+// }
 
 
 void HttpHelper::handleJqueryJs(AsyncWebServerRequest * request) {
@@ -239,40 +267,77 @@ void HttpHelper::handleMainSetup(AsyncWebServerRequest * request)
 	request->send(200, "text/json",str); // Oтправляем ответ No Reset
 }
 
-void HttpHelper::handleMainW2A(AsyncWebServerRequest * request)
+void HttpHelper::handleW2A(AsyncWebServerRequest * request)
 {
-	String str = "{\"logdata\":\"<ul>"+logg.getAll2Web()+"</ul>\"}";
-	request->send(200, "text/json",str); // Oтправляем ответ No Reset
+	
+	uint8_t params = request->params();
+	if (params<1 || !(request->getParam(0)->name()).equals(F("page"))){
+			request->send(500, "text/plain",F("ERROR PAGE PARAMETR")); // Oтправляем ответ No Reset
+			return;
+	}
+
+    if (request->getParam(0)->value().equals(F("main"))){  
+    	for (uint8_t i = 1; i < params; i++)
+    	{
+        	var(request->getParam(i)->name(), request->getParam(i)->value());
+    	}
+	} else if (request->getParam(0)->value().equals(F("log"))){  
+    	for (uint8_t i = 1; i < params; i++)
+    	{
+        	var_log(request->getParam(i)->name(), request->getParam(i)->value());
+    	}
+	}
+    request->send(200, F("text/plain"), F("OK"));
 }
 
-void HttpHelper::handleMainA2W(AsyncWebServerRequest * request)
+void HttpHelper::handleA2W(AsyncWebServerRequest * request)
 {
-	String str = "{\"logdata\":\"<ul>"+logg.getAll2Web()+"</ul>\"}";
-	request->send(200, "text/json",str); // Oтправляем ответ No Reset
+	if (request->params()<1 || !(request->getParam(0)->name()).equals("page")){
+			request->send(500, "text/plain",F("ERROR PAGE PARAMETR")); // Oтправляем ответ No Reset
+			return;
+	}
+	if (request->getParam(0)->value().equals(F("log"))){
+		String str = F("{\"logdata\":\"<ul>"+logg.getAll2Web()+"</ul>\"}");
+		request->send(200, "text/json",str); // Oтправляем ответ No Reset
+	}else if (request->getParam(0)->value().equals(F("main"))){
+		String str = F("{");
+		for (uint8_t i=0;i<4;i++)
+		{
+			str+=F("REL");
+			str+=String(i+1);
+			str+=F("=");
+			str+=String(data->isOn(i)?1:0);
+			str+=i==3?F(""):F(",");
+		}
+		str += F("}");
+		request->send(200, "text/json",str); // Oтправляем ответ No Reset
+	}
 }
 
 
 String HttpHelper::text(String id, String label){
 	String buf;
-    buf = F("{\"html\":\"input\",");
-    buf += String(F("\"id\":\"")) + id + "\",";
-    buf += F("\"type\":\"text\",");
-   // buf += String(F("\"value\":\"")) + param(id) + "\",";
-    buf += String(F("\"label\":\"")) + label + "\"";
-    buf += F("},");
+//     buf = F("{\"html\":\"input\",");
+//     buf += String(F("\"id\":\"")) + id + "\",";
+//     buf += F("\"type\":\"text\",");
+//    // buf += String(F("\"value\":\"")) + param(id) + "\",";
+//     buf += String(F("\"label\":\"")) + label + "\"";
+//     buf += F("},");
 	return buf;
 }
 
 
 String HttpHelper::checkbox(String id, String label){
     String buf = F("{\"html\":\"input\",");
-    buf += F("\"type\":\"checkbox\",");
-    buf += String(F("\"id\":\"")) + id + "\",";
-   // buf += String(F("\"value\":\"")) + param(id) + "\",";
-    buf += String(F("\"label\":\"")) + label + "\"";
-    buf += F("},");
+//     buf += F("\"type\":\"checkbox\",");
+//     buf += String(F("\"id\":\"")) + id + "\",";
+//    // buf += String(F("\"value\":\"")) + param(id) + "\",";
+//     buf += String(F("\"label\":\"")) + label + "\"";
+//     buf += F("},");
 	return buf;
 }
+
+
 
 // void HttpHelper::handleDistill()
 // {

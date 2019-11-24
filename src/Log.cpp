@@ -39,6 +39,10 @@ int Logg::length()
 	return _log.length();
 }
 
+void Logg::clear(){
+	_log.clear();
+	}
+
 void Logg::logging(String s)
 {
 #ifdef _SERIAL

@@ -7,7 +7,7 @@
 #include <AsyncTCP.h>
 #include <ESPAsyncWebServer.h>
 #include "IRreceiver.h"
-
+#include "Data.h"
 
 class HttpHelper
 {
@@ -17,7 +17,7 @@ public:
 
 	// void clientHandle();
 	//boolean handleFileRead(String path);
-	void setup(IRreceiver * rcv);
+	void setup(IRreceiver * rcv, AppData * ad);
 	//void setDataSource(DataSrc * d) { ds = d; };
 	boolean isConnected();
 	
@@ -32,7 +32,7 @@ private:
 	// void WiFiconnect();
 	// void WiFiReconnect();
 	void handleLog(AsyncWebServerRequest * request);
-	void handleLogData(AsyncWebServerRequest * request);
+	//void handleLogData(AsyncWebServerRequest * request);
 	//void handleDistill();
 	void handleNotFound(AsyncWebServerRequest * request);
 	void handleUpdate(AsyncWebServerRequest *request, const String& filename, size_t index, uint8_t *data, size_t len, bool final);
@@ -43,8 +43,11 @@ private:
 
 	void handleMainFile(AsyncWebServerRequest * request);
 	void handleMainSetup(AsyncWebServerRequest * request);
-	void handleMainW2A(AsyncWebServerRequest * request);
-	void handleMainA2W(AsyncWebServerRequest * request);
+	void handleW2A(AsyncWebServerRequest * request);
+	void handleA2W(AsyncWebServerRequest * request);
+
+	
+
 
 	//void handleDistillSet();
 	//void handleRectify();
@@ -67,8 +70,10 @@ private:
 	//boolean handleFileRead(String path);
 	uint8_t counter;
 	IRreceiver * irrc;
+	AppData * data;
 	boolean in_update;
-
+	void var(String n,String v);
+	void var_log(String n,String v);
 	String text(String id, String label);
 	String checkbox(String id, String label);
 };

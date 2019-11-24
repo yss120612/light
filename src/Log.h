@@ -13,6 +13,7 @@ public:
 	String getAll(String divider = "");
 	String getAll2Web(String divider = "li");
 	int length();
+	void clear();
 private:
 	uint16_t maxCount;
 	QList<String> _log;

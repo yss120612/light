@@ -15,6 +15,10 @@
 		<a href="/" class="btn btn-info">Дом</a>
 	</div>
 	<div class="row">
+			<div class="col-md-offset-1 col-md-10">
+			<input type="submit" class="btn btn-success" value="clear" onclick="clearlog()">
+			</div>
+
 		<div class="col-md-offset-1 col-md-10">
 			<h3>Последние события</h3>
 			<div id="Textarea1"></div>		
@@ -29,11 +33,23 @@
 	
 	function process(){
 		$.getJSON(
-		"/logdata",
+		"/getdata",
+		{page:'log'},
 		function(data){
 		$('#Textarea1').html(data['logdata']);
 		});
 		setTimeout('process()',3000);
 	}
+	function clearlog(){
+		$.ajax({  
+                    type: "POST",  
+                    url: "/post",  
+                    data: "page=log&ACTION=clear",  
+                    success: function(html){  
+                    }  
+			}); 
+		process();
+	}
+
 	</script>
 </html>

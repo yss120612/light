@@ -31,9 +31,9 @@ void setup() {
    digitalWrite(RELAY2,HIGH);
    digitalWrite(RELAY3,HIGH);
    digitalWrite(RELAY4,HIGH);
-   data.relay1=false;
-   data.relay2=false;
-   data.relay3=false;
+   //data.relay1=false;
+   //data.relay2=false;
+   //data.relay3=false;
    
    is_on=false;
    //ir.enable();
@@ -92,7 +92,7 @@ void setup() {
     logg.logging("WiFi connected.IP address: "+WiFi.localIP().toString());
     Serial.println("Hello World, I'm connected to the internets!!");
     http_server = new HttpHelper();
-    http_server->setup(&ir);
+    http_server->setup(&ir,&data);
     }
     ms=0;
     ir.enable();
@@ -117,57 +117,29 @@ void loop() {
     
     //1
     if (ir.getCommand()==PULT_1){
-      if (digitalRead(RELAY2)==HIGH){
-        digitalWrite(RELAY2,LOW);
-      }
-      else{
-        digitalWrite(RELAY2,HIGH);
-      }
-      data.relay1=digitalRead(RELAY2)==LOW;
+      data.relaySwitch(0);
     }
     //2
     if (ir.getCommand()==PULT_2){
-      if (digitalRead(RELAY1)==HIGH){
-        digitalWrite(RELAY1,LOW);
-      }
-      else{
-        digitalWrite(RELAY1,HIGH);
-      }
-      data.relay2=digitalRead(RELAY1)==LOW;
+      data.relaySwitch(1);
     }
     //3
     if (ir.getCommand()==PULT_3){
-      if (digitalRead(RELAY3)==HIGH){
-        digitalWrite(RELAY3,LOW);
-      }
-      else{
-        digitalWrite(RELAY3,HIGH);
-      }
-      data.relay3=digitalRead(RELAY3)==LOW;
+      data.relaySwitch(2);
     }
     //4
     if (ir.getCommand()==PULT_4){
-      if (digitalRead(RELAY4)==HIGH){
         digitalWrite(RELAY4,LOW);
         delay(300);
-        digitalWrite(RELAY4,HIGH);
-       }
-      
+        digitalWrite(RELAY4,HIGH); 
     }
     
     //POWER OFF
      if (ir.getCommand()==PULT_POWER){
-        digitalWrite(RELAY1,HIGH);
-        digitalWrite(RELAY2,HIGH);
-        digitalWrite(RELAY3,HIGH);
-        data.relayOff();
-      //  digitalWrite(RELAY4,HIGH);
+          data.relayOff();
     }
     //SOUND OFF
      if (ir.getCommand()==PULT_SOUND){
-        digitalWrite(RELAY1,HIGH);
-        digitalWrite(RELAY2,HIGH);
-        digitalWrite(RELAY3,HIGH);
         data.relayOff();
         digitalWrite(RELAY4,LOW);
         delay(300);
@@ -181,8 +153,6 @@ void loop() {
     is_on=digitalRead(RELAY1)==LOW||digitalRead(RELAY2)==LOW||digitalRead(RELAY3)==LOW;
     digitalWrite(LED,!is_on?HIGH:LOW);  
   }
-  //digitalWrite(LED,HIGH);
-  //delay(100);
-  //digitalWrite(LED,LOW);
+ 
 }
 
