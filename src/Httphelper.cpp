@@ -263,8 +263,8 @@ void HttpHelper::handleMainFile(AsyncWebServerRequest * request) {
 
 void HttpHelper::handleMainSetup(AsyncWebServerRequest * request)
 {
-	String str = "{\"logdata\":\"<ul>"+logg.getAll2Web()+"</ul>\"}";
-	request->send(200, "text/json",str); // Oтправляем ответ No Reset
+	// String str = "{\"logdata\":\"<ul>"+logg.getAll2Web()+"</ul>\"}";
+	// request->send(200, "text/json",str); // Oтправляем ответ No Reset
 }
 
 void HttpHelper::handleW2A(AsyncWebServerRequest * request)
@@ -272,7 +272,7 @@ void HttpHelper::handleW2A(AsyncWebServerRequest * request)
 	
 	uint8_t params = request->params();
 	if (params<1 || !(request->getParam(0)->name()).equals(F("page"))){
-			request->send(500, "text/plain",F("ERROR PAGE PARAMETR")); // Oтправляем ответ No Reset
+			request->send(500, F("text/plain"),F("ERROR PAGE PARAMETR")); // Oтправляем ответ No Reset
 			return;
 	}
 
@@ -293,13 +293,17 @@ void HttpHelper::handleW2A(AsyncWebServerRequest * request)
 void HttpHelper::handleA2W(AsyncWebServerRequest * request)
 {
 	if (request->params()<1 || !(request->getParam(0)->name()).equals("page")){
-			request->send(500, "text/plain",F("ERROR PAGE PARAMETR")); // Oтправляем ответ No Reset
+			request->send(500, F("text/plain"),F("ERROR PAGE PARAMETR")); // Oтправляем ответ No Reset
 			return;
 	}
 	if (request->getParam(0)->value().equals(F("log"))){
-		String str = F("{\"logdata\":\"<ul>"+logg.getAll2Web()+"</ul>\"}");
+		//String str = F("{\"logdata\":\"<ul>")+logg.getAll2Web()+F("</ul>\"}");
+		String str = F("{\"logdata\":\"<ul>");
+		str+=logg.getAll2Web();
+		str+=F("</ul>\"}");
 		request->send(200, "text/json",str); // Oтправляем ответ No Reset
 	}else if (request->getParam(0)->value().equals(F("main"))){
+		
 		String str = F("{");
 		for (uint8_t i=0;i<4;i++)
 		{
