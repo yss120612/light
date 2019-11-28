@@ -81,7 +81,7 @@ server->on(
 
 	server->on("/css/bootstrap.min.css", std::bind(&HttpHelper::handleBootstrapCss, this, std::placeholders::_1));
 	server->on("/css/radio.css", std::bind(&HttpHelper::handleRadioCss, this, std::placeholders::_1));
-	server->on("/css/font-awersome.min.css", std::bind(&HttpHelper::handleFontAwersomeCss, this, std::placeholders::_1));
+	server->on("/css/font-awesome.min.css", std::bind(&HttpHelper::handleFontAwesomeCss, this, std::placeholders::_1));
 	server->on("/js/bootstrap.min.js", std::bind(&HttpHelper::handleBootstrapJs, this, std::placeholders::_1));
 	server->on("/js/jquery.min.js", std::bind(&HttpHelper::handleJqueryJs, this, std::placeholders::_1));
 
@@ -183,8 +183,8 @@ void HttpHelper::handleBootstrapCss(AsyncWebServerRequest * request) {
 void HttpHelper::handleRadioCss(AsyncWebServerRequest * request) {
 		handleFile("/css/radio.css","text/css",request);
 }
-void HttpHelper::handleFontAwersomeCss(AsyncWebServerRequest * request) {
-		handleFile("/css/fontAwersome.min.css","text/css",request);
+void HttpHelper::handleFontAwesomeCss(AsyncWebServerRequest * request) {
+		handleFile("/css/font-awesome.min.css","text/css",request);
 }
 
 void HttpHelper::handleJqueryJs(AsyncWebServerRequest * request) {
