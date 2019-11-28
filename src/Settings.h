@@ -22,8 +22,13 @@
 #define PULT_POWER  20
 #define PULT_SOUND  69
 
-
+#define PRESS_DURATION 300//держим реле (имитация нажатия) 
 #define PERIOD 1000
 #define CHECKPERIOD 100
+#define CHECKWIFI 300000
+
+#define RELTYPE_SWICH 0
+#define RELTYPE_BUTTON 1
+
 
 #endif

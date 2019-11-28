@@ -80,6 +80,8 @@ server->on(
 	server->on("/log", std::bind(&HttpHelper::handleLog, this, std::placeholders::_1));
 
 	server->on("/css/bootstrap.min.css", std::bind(&HttpHelper::handleBootstrapCss, this, std::placeholders::_1));
+	server->on("/css/radio.css", std::bind(&HttpHelper::handleRadioCss, this, std::placeholders::_1));
+	server->on("/css/font-awersome.min.css", std::bind(&HttpHelper::handleFontAwersomeCss, this, std::placeholders::_1));
 	server->on("/js/bootstrap.min.js", std::bind(&HttpHelper::handleBootstrapJs, this, std::placeholders::_1));
 	server->on("/js/jquery.min.js", std::bind(&HttpHelper::handleJqueryJs, this, std::placeholders::_1));
 
@@ -119,31 +121,35 @@ server->on(
 //	httpSpiffsUpdater->setup(server);
 }
 
-void HttpHelper::var(String n,String v){
-if (n.equals("REL1")){
-logg.logging("n="+n+", v="+v);
-} else if (n.equals("REL2"))
+void HttpHelper::var(String n, String v)
 {
-logg.logging("n="+n+", v="+v);
-}else if (n.equals("REL3"))
-{
-logg.logging("n="+n+", v="+v);	
-}
+	if (n.equals("REL1"))
+	{
+		logg.logging("n=" + n + ", v=" + v);
+		data->relaySet(0, v.equals(F("true")));
+	}
+	else if (n.equals("REL2"))
+	{
+		logg.logging("n=" + n + ", v=" + v);
+		data->relaySet(1, v.equals(F("true")));
+	}
+	else if (n.equals("REL3"))
+	{
+		logg.logging("n=" + n + ", v=" + v);
+		data->relaySet(2, v.equals(F("true")));
+	}
 }
 
-void HttpHelper::var_log(String n,String v){
-if (n.equals("ACTION")&&v.equals("clear")){
-logg.clear();
-logg.logging("n="+n+", v="+v);	
-}
-}
-
-
-boolean HttpHelper::isConnected()
+void HttpHelper::var_log(String n, String v)
 {
-	//return WiFi.status() == WL_CONNECTED;
-	return true;
+	if (n.equals("ACTION") && v.equals("clear"))
+	{
+		logg.clear();
+		logg.logging("n=" + n + ", v=" + v);
+	}
 }
+
+
 
 void HttpHelper::handleRoot(AsyncWebServerRequest * request) {
 	if (!request->authenticate("Yss1", "bqt3"))
@@ -170,13 +176,19 @@ void HttpHelper::handleNotFound(AsyncWebServerRequest * request) {
 // 	request->send(200, "text/json",str); // Oтправляем ответ No Reset
 // }
 
+void HttpHelper::handleBootstrapCss(AsyncWebServerRequest * request) {
+		handleFile("/css/bootstrap.min.css","text/css",request);
+}
+
+void HttpHelper::handleRadioCss(AsyncWebServerRequest * request) {
+		handleFile("/css/radio.css","text/css",request);
+}
+void HttpHelper::handleFontAwersomeCss(AsyncWebServerRequest * request) {
+		handleFile("/css/fontAwersome.min.css","text/css",request);
+}
 
 void HttpHelper::handleJqueryJs(AsyncWebServerRequest * request) {
     		handleFile("/js/jquery.min.js","application/javascript",request);
-}
-
-void HttpHelper::handleBootstrapCss(AsyncWebServerRequest * request) {
-		handleFile("/css/bootstrap.min.css","text/css",request);
 }
 
 void HttpHelper::handleBootstrapJs(AsyncWebServerRequest * request) {
@@ -311,9 +323,8 @@ void HttpHelper::handleA2W(AsyncWebServerRequest * request)
 			str+=String(i+1);
 			str+=F("=");
 			str+=String(data->isOn(i)?1:0);
-			str+=i==3?F(""):F(",");
+			str+=i==3?F("}"):F(",");
 		}
-		str += F("}");
 		request->send(200, "text/json",str); // Oтправляем ответ No Reset
 	}
 }
@@ -342,172 +353,40 @@ String HttpHelper::checkbox(String id, String label){
 }
 
 
-
-// void HttpHelper::handleDistill()
-// {
-// 	String str =  "AAA";
-// 	server->send(200, "text/json", str); // Oтправляем ответ No Reset
-// }
-
-// void HttpHelper::handleDistillSet()
-// {
-// 	//ds->setData(SET_DISTILLTSTOP, server->arg("TSTOP"));
-// 	//logg.logging("Temperature (cube) end of distill set on " + server->arg("TSTOP"));
-// 	//server->send(200, "text/plain", "OK");
-// }
-
-// void HttpHelper::handleRectify()
-// {
-	
-// 	String str =   "BBB";
-// 	server->send(200, "text/json", str); // Oтправляем ответ No Reset
-// }
-
-// void HttpHelper::handleRectifySet()
-// {
-// 	//ds->setData(SET_RECTTSTOP, server->arg("TSTOPSET"));
-// 	//logg.logging("Temperature (def) end of rectify sett on " + server->arg("TSTOPSET"));
-// 	//server->send(200, "text/plain", "OK");
-// }
-
-//void HttpHelper::handleSuvid(){
-//	String str = "{\"kube_data\":" + ds->getData(DS_TKUBE) 
-//		      + ", \"cooler_data\":" + ds->getData(DS_TTRIAK) 
-//		      + ", \"heater_data\":" + ds->getData(DS_HPOWER) 
-//		      + ", \"ttarget_data\":\"" + ds->getData(DS_SUVIDTARGET)
-//			  + "\", \"timetarget_data\":\"" + ds->getData(DS_SUVIDTIME)
-//		      + "\", \"state_data\":\"" + ds->getData(DS_SUVIDSTATE) 
-//		      + "\", \"time_data\":\"" + ds->getData(DS_SUVIDTIMELEFT) + "\" }";
-//	server->send(200, "text/json", str); // Oтправляем ответ No Reset
-//}
-//
-//void HttpHelper::handleSuvidSet()
-//{
-//	ds->setData(SET_SUVIDTEMP, server->arg("TMP"));
-//	logg.logging("SUVID Temperature set on " + server->arg("TMP"));
-//	ds->setData(SET_SUVIDTIME, server->arg("TIME"));
-//	logg.logging("SUVID Time set on " + server->arg("TIME"));
-//}
-
-// void HttpHelper::handleBrewing() {
-// 	String str = "WWW";
-// 	server->send(200, "text/json", str); // Oтправляем ответ No Reset
-// }
-
-// void HttpHelper::handleBrewingSet()
-// {
-// 	uint8_t part = (server->arg("PART")).toInt();
-// 	switch (part) {
-// 	case 1:
-// 	case 2:
-// 	case 3:
-// 	case 4:
-// 		//ds->setData(SET_BREWINGTMP1+(part-1)*2, server->arg("TMP"));
-// 		//logg.logging("BREWING Temperature " + String(part) +" set on " + server->arg("TMP"));
-// 		//ds->setData(SET_BREWINGTIME1 + (part - 1) * 2, server->arg("TIME"));
-// 		//logg.logging("BREWING Time " + String(part) + " set on " + server->arg("TIME"));
-// 		break;
-// 	case 5:
-// 		//ds->setData(SET_BREWINGCHILLER, server->arg("CHILLER"));
-// 		break;
-
-// 	}
-// }
-
-// void HttpHelper::WiFiconnect()
-// {
-	// WiFi.disconnect();
-	// //IPAddress apIP(192, 168, 0, 100);
-	// WiFi.mode(WIFI_STA);
-	// //WiFi.softAPConfig(apIP, apIP, IPAddress(255, 255, 255, 0));
-	// //WiFi.softAP(conf->getWiFiN().c_str(), conf->getWiFiP().c_str());
-	// uint8_t modeWiFi = 0;
-	// int n_network = WiFi.scanNetworks(); // запрос количества доступных сетей
-	// for (int i = 0; i < n_network; ++i) {
-	// 	//logg.logging("network " + WiFi.SSID(i) + " present");
-	// 	//if (WiFi.SSID(i).equals(CONF.getWiFiN()))
-	// 	//{
-	// //		modeWiFi = 1; // наша сеть присутствует
-	// //		break;
-	// //	}
-
-	// }
-
-	// if (modeWiFi == 1) {
-	// 	// пробуем подключиться
-
-	// 	//logg.logging("Connecting to " + CONF.getWiFiN());
-
-	// 	WiFi.disconnect(true);
-	// 	WiFi.begin(CONF.getWiFiN().c_str(), CONF.getWiFiP().c_str());
-	// 	// ждем N кол-во попыток, если нет, то AP Mode
-	// 	byte tmp_while = 0;
-	// 	while (WiFi.waitForConnectResult() != WL_CONNECTED) {
-	// 		delay(1000);
-
-	// 		logg.logging("Connecting to " + CONF.getWiFiN());
-
-	// 		if (tmp_while < 5) tmp_while++;
-	// 		else {
-	// 			modeWiFi = 0;
-	// 			logg.logging("Connection to " + CONF.getWiFiN() + " failed!");
-
-	// 			break;
-	// 		}
-	// 	}
-	// }
-// }
-
-// void HttpHelper::WiFiReconnect()
-// {
-	// if (isConnected()) {
-	// 	return;
-	// }
-
-	// WiFi.reconnect();
-	// //logg.logging("Reconnect...");
-
-	// // При потери связи с базовой станцией переходим в режим точки доступа и пробуем переподключиться
-	// /*if (conf->getWiFiN().length() && tCnt >= setRestartWiFi && !WiFi.softAPgetStationNum()) {
-	// WiFi.reconnect();
-	// Serial.println("reconnect");
-	// }*/
-// }
-
 void HttpHelper::handleUpd(AsyncWebServerRequest * request) {
     if (!request->authenticate("Yss1", "bqt3"))
 		return request->requestAuthentication();
-	String resp = "<!DOCTYPE html>\n<html>\n<head>\n";
-	resp += "<meta charset = \"utf-8\">\n";
-	resp += "<title>YssSM прошивка</title>\n";
-	resp += "<meta name = \"description\" content = \"Версия 0.1\">\n";
-	resp += "<meta name = \"author\" content = \"Yss\">\n";
-	resp += "<link href = \"/css/bootstrap.min.css\" type = \"text/css\" rel = \"stylesheet\">\n";
-	resp += "<script type = \"text/javascript\" src = \"/js/jquery.min.js\"></script>\n";
-	resp += "<script type = \"text/javascript\" src = \"/js/bootstrap.min.js\"></script>\n";
-	resp += "</head>\n<body>\n";
-	resp += "<div class = \"col-md-12\">\n";
-	resp += "<a href = \"/\"class = \"btn btn-info\">Дом</a>\n";
-	resp += "</div>\n";
-	resp += "<div class = \"alert alert-info\" role = \"alert\">";
-	resp += "<h3>Прошивка</h3>\n";
-	resp += "<form method = \"POST\" action = \"/update\" enctype = \"multipart/form-data\" class=\"form-inline\">\n";
-	resp += "<div class = \"btn-group\">\n";
-	resp += "<input type = \"file\" class = \"btn\" name = \"update\">\n";
-	resp += "<input type = \"submit\" class = \"btn\" value = \"Прошить\" onclick = \"this.value = 'Подождите...';\">\n";
-	resp += "</div>\n";
-	resp += "</form>\n";
-	resp += "</div>\n";
-	resp += "<div class = \"alert alert-success\" role = \"alert\">";
-	resp += "<h3>WEB сервер</h3>\n";
-	resp += "<form method = \"POST\" action = \"/spiffs\" enctype = \"multipart/form-data\" class=\"form-inline\">";
-	resp += "<div class = \"btn-group\">\n";
-	resp += "<input type = \"file\" class = \"btn\" name = \"spiffs\">\n";
-	resp += "<input type = \"submit\" class = \"btn\" value = \"Прошить\" onclick = \"this.value = 'Подождите...';\">\n";
-	resp += "</div>\n";
-	resp += "</form>\n";
-	resp += "</div>\n";
-	resp += "</body>\n</html>\n";
+	String resp = F("<!DOCTYPE html>\n<html>\n<head>\n");
+	resp += F("<meta charset = \"utf-8\">\n");
+	resp += F("<title>YssSM прошивка</title>\n");
+	resp += F("<meta name = \"description\" content = \"Версия 0.1\">\n");
+	resp += F("<meta name = \"author\" content = \"Yss\">\n");
+	resp += F("<link href = \"/css/bootstrap.min.css\" type = \"text/css\" rel = \"stylesheet\">\n");
+	resp += F("<script type = \"text/javascript\" src = \"/js/jquery.min.js\"></script>\n");
+	resp += F("<script type = \"text/javascript\" src = \"/js/bootstrap.min.js\"></script>\n");
+	resp += F("</head>\n<body>\n");
+	resp += F("<div class = \"col-md-12\">\n");
+	resp += F("<a href = \"/\"class = \"btn btn-info\">Дом</a>\n");
+	resp += F("</div>\n");
+	resp += F("<div class = \"alert alert-info\" role = \"alert\">");
+	resp += F("<h3>Прошивка</h3>\n");
+	resp += F("<form method = \"POST\" action = \"/update\" enctype = \"multipart/form-data\" class=\"form-inline\">\n");
+	resp += F("<div class = \"btn-group\">\n");
+	resp += F("<input type = \"file\" class = \"btn\" name = \"update\">\n");
+	resp += F("<input type = \"submit\" class = \"btn\" value = \"Прошить\" onclick = \"this.value = 'Подождите...';\">\n");
+	resp += F("</div>\n");
+	resp += F("</form>\n");
+	resp += F("</div>\n");
+	resp += F("<div class = \"alert alert-success\" role = \"alert\">");
+	resp += F("<h3>WEB сервер</h3>\n");
+	resp += F("<form method = \"POST\" action = \"/spiffs\" enctype = \"multipart/form-data\" class=\"form-inline\">");
+	resp += F("<div class = \"btn-group\">\n");
+	resp += F("<input type = \"file\" class = \"btn\" name = \"spiffs\">\n");
+	resp += F("<input type = \"submit\" class = \"btn\" value = \"Прошить\" onclick = \"this.value = 'Подождите...';\">\n");
+	resp += F("</div>\n");
+	resp += F("</form>\n");
+	resp += F("</div>\n");
+	resp += F("</body>\n</html>\n");
 
 	request->send(200, "text/html", resp);
 }

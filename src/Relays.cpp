@@ -5,10 +5,12 @@ Relay::Relay(uint8_t p){
     tm=0;
 }
 
-void Relay::Setup(){
+void Relay::setup(uint8_t tp){
     pinMode(pin,OUTPUT_OPEN_DRAIN);
     digitalWrite(pin,HIGH);
     state=false;
+    type=tp;
+    if (type==RELTYPE_SWICH) dur=PRESS_DURATION;
 }
 
 boolean Relay::isOn(){
@@ -19,6 +21,7 @@ void Relay::setOn(){
     if (!state){
         digitalWrite(pin,LOW);
         state=true;
+        dur=0;
     }
 }
     void Relay::setOff(){
@@ -38,11 +41,11 @@ void Relay::setOn(){
 
 void Relay::arm(unsigned long t){
     tm=t;
-    //if (tm>0)
+    setOn();
 }
 
 void Relay::loop(unsigned long t){
-    if (tm>0 && t>tm){
+    if (tm>0 && dur>0 && t-tm>dur){
         tm=0;
         setOff();
     }

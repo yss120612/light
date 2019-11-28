@@ -5,9 +5,13 @@
     <title>Система автоматики Yss</title>
     <meta name="description" content="Версия 0.1">
     <meta name="author" content="Yss">
-    <link href="/css/bootstrap.min.css" type="text/css" rel="stylesheet" />
+	<link href="/css/bootstrap.min.css" type="text/css" rel="stylesheet" />
+	<link href="/css/font-awersome.min.css" type="text/css" rel="stylesheet" />
+	<link href="/css/radio.css" type="text/css" rel="stylesheet" />
+	<script type="text/javascript" src="/js/bootstrap.min.js"></script>
     <script type="text/javascript" src="/js/jquery.min.js"></script>
-    <script type="text/javascript" src="/js/bootstrap.min.js"></script>
+	
+	
 </head>
 <body>
 	<div class="container-fluid">
@@ -22,16 +26,81 @@
 		<div class="panel panel-default col-md-offset-1 col-md-10">
 			<div class="panel-heading">Текущие параметры</div>
 			<div class="panel-body">		
-				<div class="col-md-offset-1 col-md-10">
-					<div class="form-check">
-						<label for="form-check-label"><input type="checkbox" class="form-check-input" id="REL1">Реле 1</label>
-					</div>
-					<div class="form-check">
-						<label for="form-check-label"><input type="checkbox" class="form-check-input" id="REL2">Реле 2</label>
-					</div>
-					<div class="form-check">
-						<label for="form-check-label"><input type="checkbox" class="form-check-input" id="REL3">Реле 3</label>
-					</div>
+				<div class="col-md-4">
+					<form>
+						<h2>1. Релейный блок</h2>
+						<div class="form-check">
+							<label>
+								<input type="checkbox" name="check" id="REL1"> <span class="label-text">Рэле 1</span>
+							</label>
+						</div>
+						<div class="form-check">
+							<label>
+								<input type="checkbox" name="check" id="REL2"> <span class="label-text">Рэле 2</span>
+							</label>
+						</div>
+						<div class="form-check">
+							<label>
+								<input type="checkbox" name="check" id="REL3"> <span class="label-text">Рэле 3</span>
+							</label>
+						</div>
+						<div class="form-check">
+							<label>
+								<input type="checkbox" name="check" disabled> <span class="label-text">Option 04</span>
+							</label>
+						</div>
+					</form>
+		
+				</div>
+				<div class="col-md-4">
+					<form>
+						<h2>2. Customs Radios</h2>
+						<div class="form-check">
+							<label>
+								<input type="radio" name="radio" checked> <span class="label-text">Option 01</span>
+							</label>
+						</div>
+						<div class="form-check">
+							<label>
+								<input type="radio" name="radio"> <span class="label-text">Option 02</span>
+							</label>
+						</div>
+						<div class="form-check">
+							<label>
+								<input type="radio" name="radio"> <span class="label-text">Option 03</span>
+							</label>
+						</div>
+						<div class="form-check">
+							<label>
+								<input type="radio" name="radio" disabled> <span class="label-text">Option 04</span>
+							</label>
+						</div>
+					</form>
+				</div>
+				<div class="col-md-4">
+					<form>
+						<h2>3.Radios Toggles</h2>
+						<div class="form-check">
+							<label class="toggle">
+								<input type="radio" name="toggle" checked> <span class="label-text">Option 01</span>
+							</label>
+						</div>
+						<div class="form-check">
+							<label class="toggle">
+								<input type="radio" name="toggle"> <span class="label-text">Option 02</span>
+							</label>
+						</div>
+						<div class="form-check">
+							<label class="toggle">
+								<input type="radio" name="toggle"> <span class="label-text">Option 03</span>
+							</label>
+						</div>
+						<div class="form-check">
+							<label class="toggle">
+								<input type="radio" name="toggle" disabled> <span class="label-text">Option 04</span>
+							</label>
+						</div>
+					</form>
 				</div>
 			</div>
 		</div>
@@ -87,7 +156,9 @@
 		"/getdata",
 		{page:"main"},
 		function(data){
-				
+			$('#REL1').prop('checked', data['REL1']==1);
+			$('#REL2').prop('checked', data['REL2']==1);
+			$('#REL3').prop('checked', data['REL3']==1);
 		});
 		setTimeout('process()',30000);
 	}

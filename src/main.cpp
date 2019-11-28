@@ -12,33 +12,36 @@ AppData data;
 
 const char* WIFI_SSID = "Yss_GIGA";
 const char* WIFI_PASS = "bqt3bqt3";
- 
-bool is_on;
+const char* fw = "Running firmware v. 2.0";
+
 HttpHelper * http_server;
 unsigned long ms;
+unsigned long msWiFi;
+boolean forceWiFi;//если не задалось с первого раза повторять каждые Х минут или нет
 IRreceiver  ir(IRPIN);
+
+extern boolean connect2WiFi();
 
 void setup() {
   // put your setup code here, to run once:
    pinMode(LED,OUTPUT);
   
 
-   pinMode(RELAY1,OUTPUT_OPEN_DRAIN);
-   pinMode(RELAY2,OUTPUT_OPEN_DRAIN);
-   pinMode(RELAY3,OUTPUT_OPEN_DRAIN);
-   pinMode(RELAY4,OUTPUT_OPEN_DRAIN);
-   digitalWrite(RELAY1,HIGH);
-   digitalWrite(RELAY2,HIGH);
-   digitalWrite(RELAY3,HIGH);
-   digitalWrite(RELAY4,HIGH);
+  //  pinMode(RELAY1,OUTPUT_OPEN_DRAIN);
+  //  pinMode(RELAY2,OUTPUT_OPEN_DRAIN);
+  //  pinMode(RELAY3,OUTPUT_OPEN_DRAIN);
+  //  pinMode(RELAY4,OUTPUT_OPEN_DRAIN);
+  //  digitalWrite(RELAY1,HIGH);
+  //  digitalWrite(RELAY2,HIGH);
+  //  digitalWrite(RELAY3,HIGH);
+  //  digitalWrite(RELAY4,HIGH);
    //data.relay1=false;
    //data.relay2=false;
    //data.relay3=false;
    
-   is_on=false;
-   //ir.enable();
-   SPIFFS.begin();
 
+   SPIFFS.begin();
+   data.setup(); 
    
 
 // WiFi credentials.
@@ -49,9 +52,69 @@ void setup() {
     delay(2000);
 
     Serial.println();
-    Serial.println("Running Firmware. v1.05");
-    logg.logging("Running Firmware. v1.05");
+    Serial.print(fw);
+    logg.logging(fw);
     // Connect to Wifi.
+    
+    forceWiFi=true;
+    
+    if (connect2WiFi())
+    {
+      http_server = new HttpHelper();
+      http_server->setup(&ir,&data);
+      msWiFi=0;
+    }
+    ms=0;
+    ir.enable();
+}
+
+
+
+void loop()
+{
+
+  if (millis() - ms < CHECKPERIOD)
+    return;
+  ms = millis();
+  if (msWiFi==0) msWiFi=ms;
+  if (ir.checkIR(ms) > 0)
+  {
+    switch (ir.getCommand())
+    {
+    case PULT_1:
+      data.relaySwitch(0, ms);
+      break;
+    case PULT_2:
+      data.relaySwitch(1, ms);
+      break;
+    case PULT_3:
+      data.relaySwitch(2, ms);
+      break;
+    case PULT_4:
+      data.relaySwitch(3, ms);
+      break;
+    case PULT_POWER:
+      data.relayOff(ms);
+      break;
+    case PULT_SOUND:
+      data.relaySwitchOff(ms);
+      break;
+    }
+  }
+  if (!http_server || !http_server->isUpdate())
+  {
+    digitalWrite(LED, data.isOn() ? LOW : HIGH);
+  }
+
+  if (ms-msWiFi>CHECKWIFI){
+    msWiFi=ms;
+    if (forceWiFi && WiFi.status()!=WL_CONNECTED){
+      connect2WiFi();
+    }
+  }
+}
+
+boolean connect2WiFi(){
     Serial.print("Connecting to ");
     Serial.println(WIFI_SSID);
     logg.logging("Connecting to "+String(WIFI_SSID));
@@ -59,7 +122,7 @@ void setup() {
     WiFi.mode(WIFI_STA);
     //WiFi.disconnect();
    // delay(100);
-
+    WiFi.disconnect();
     WiFi.begin(WIFI_SSID, WIFI_PASS);
     Serial.println("Connecting...");
     uint8_t cycles=0;
@@ -79,80 +142,15 @@ void setup() {
       if (cycles>4) 
       {
       Serial.println("Working witout WiFi :(");  
+      return false;
       break;
       }
     }
-    
-    if (cycles<=4)
-    {
     Serial.println("");
     Serial.println("WiFi connected");
     Serial.println("IP address: ");
     Serial.println(WiFi.localIP());
     logg.logging("WiFi connected.IP address: "+WiFi.localIP().toString());
-    Serial.println("Hello World, I'm connected to the internets!!");
-    http_server = new HttpHelper();
-    http_server->setup(&ir,&data);
-    }
-    ms=0;
-    ir.enable();
+    Serial.println("I'm connected to the internets!!");
+    return true;
 }
- 
-
-void loop() {
-
-  
-  if (millis()-ms<CHECKPERIOD) return;
-  ms=millis();
-  if (ir.checkIR(ms)>0)
-  {
-    //serialPrintUint64(dres.value,HEX);
-    //Serial.println("");
-    //Serial.print("Command:");
-    //Serial.println(dres.command);
-    //Serial.print("Address:");
-    //Serial.println(dres.address);
-    //irrecv.resume();
-
-    
-    //1
-    if (ir.getCommand()==PULT_1){
-      data.relaySwitch(0);
-    }
-    //2
-    if (ir.getCommand()==PULT_2){
-      data.relaySwitch(1);
-    }
-    //3
-    if (ir.getCommand()==PULT_3){
-      data.relaySwitch(2);
-    }
-    //4
-    if (ir.getCommand()==PULT_4){
-        digitalWrite(RELAY4,LOW);
-        delay(300);
-        digitalWrite(RELAY4,HIGH); 
-    }
-    
-    //POWER OFF
-     if (ir.getCommand()==PULT_POWER){
-          data.relayOff();
-    }
-    //SOUND OFF
-     if (ir.getCommand()==PULT_SOUND){
-        data.relayOff();
-        digitalWrite(RELAY4,LOW);
-        delay(300);
-        digitalWrite(RELAY4,HIGH);
-        
-    }
-
-  }
-  if (!http_server || !http_server->isUpdate())
-  {
-    is_on=digitalRead(RELAY1)==LOW||digitalRead(RELAY2)==LOW||digitalRead(RELAY3)==LOW;
-    digitalWrite(LED,!is_on?HIGH:LOW);  
-  }
- 
-}
-

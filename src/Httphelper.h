@@ -19,7 +19,7 @@ public:
 	//boolean handleFileRead(String path);
 	void setup(IRreceiver * rcv, AppData * ad);
 	//void setDataSource(DataSrc * d) { ds = d; };
-	boolean isConnected();
+	
 	
 	/*void setMode(Mode * m);
 	Mode * getMode();*/
@@ -38,6 +38,8 @@ private:
 	void handleUpdate(AsyncWebServerRequest *request, const String& filename, size_t index, uint8_t *data, size_t len, bool final);
 	void handleSpiffs(AsyncWebServerRequest *request, const String& filename, size_t index, uint8_t *data, size_t len, bool final);
 	void handleBootstrapCss(AsyncWebServerRequest * request);
+	void handleFontAwersomeCss(AsyncWebServerRequest * request);
+	void handleRadioCss(AsyncWebServerRequest * request);
 	void handleBootstrapJs(AsyncWebServerRequest * request);
 	void handleJqueryJs(AsyncWebServerRequest * request);
 
