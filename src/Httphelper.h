@@ -23,7 +23,7 @@ public:
 	
 	/*void setMode(Mode * m);
 	Mode * getMode();*/
-boolean isUpdate(){return in_update;}
+	boolean isUpdate();
 private:
 	void handleFile(String path,String type, AsyncWebServerRequest *request);
 	void handleRoot(AsyncWebServerRequest * request);
@@ -40,8 +40,10 @@ private:
 	void handleBootstrapCss(AsyncWebServerRequest * request);
 	void handleFontAwesomeCss(AsyncWebServerRequest * request);
 	void handleRadioCss(AsyncWebServerRequest * request);
+	void handleProgressCss(AsyncWebServerRequest * request);
 	void handleBootstrapJs(AsyncWebServerRequest * request);
 	void handleJqueryJs(AsyncWebServerRequest * request);
+	void handleProgressJs(AsyncWebServerRequest * request);
 
 	void handleMainFile(AsyncWebServerRequest * request);
 	void handleMainSetup(AsyncWebServerRequest * request);
@@ -73,7 +75,7 @@ private:
 	uint8_t counter;
 	IRreceiver * irrc;
 	AppData * data;
-	boolean in_update;
+	//boolean in_update;
 	void var(String n,String v);
 	void var_log(String n,String v);
 	String text(String id, String label);

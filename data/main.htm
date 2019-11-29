@@ -6,7 +6,7 @@
     <meta name="description" content="Версия 0.1">
     <meta name="author" content="Yss">
 	<link href="/css/bootstrap.min.css" type="text/css" rel="stylesheet" />
-	<link href="/css/font-awersome.min.css" type="text/css" rel="stylesheet" />
+	<link href="/css/font-awesome.min.css" type="text/css" rel="stylesheet" />
 	<link href="/css/radio.css" type="text/css" rel="stylesheet" />
 	<script type="text/javascript" src="/js/bootstrap.min.js"></script>
     <script type="text/javascript" src="/js/jquery.min.js"></script>
@@ -49,6 +49,11 @@
 								<input type="checkbox" name="check" disabled> <span class="label-text">Option 04</span>
 							</label>
 						</div>
+
+						<div class="form-button">
+							<a type="button" class="btn btn-lg btn-success" id="REL4"><i class="fa fa-bed fa-2x pull-left"> Sleep</i></a>
+						</div>
+
 					</form>
 		
 				</div>
@@ -100,6 +105,7 @@
 								<input type="radio" name="toggle" disabled> <span class="label-text">Option 04</span>
 							</label>
 						</div>
+						
 					</form>
 				</div>
 			</div>
@@ -144,8 +150,18 @@
                     }  
 			}); 
                 return false;  
+			});  
+			
+			$('#REL4').on('click',function(){  
+			$.ajax({  
+                    type: "POST",  
+                    url: "/post",  
+                    data: "page=main&REL4=true",  
+                    success: function(html){  
+                    }  
+			}); 
+                return false;  
             });  
-	
 	});
 	
 	

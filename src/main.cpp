@@ -101,6 +101,9 @@ void loop()
       break;
     }
   }
+
+  data.loop(ms);
+  
   if (!http_server || !http_server->isUpdate())
   {
     digitalWrite(LED, data.isOn() ? LOW : HIGH);

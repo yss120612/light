@@ -82,8 +82,10 @@ server->on(
 	server->on("/css/bootstrap.min.css", std::bind(&HttpHelper::handleBootstrapCss, this, std::placeholders::_1));
 	server->on("/css/radio.css", std::bind(&HttpHelper::handleRadioCss, this, std::placeholders::_1));
 	server->on("/css/font-awesome.min.css", std::bind(&HttpHelper::handleFontAwesomeCss, this, std::placeholders::_1));
+	server->on("/css/progress.css", std::bind(&HttpHelper::handleProgressCss, this, std::placeholders::_1));
 	server->on("/js/bootstrap.min.js", std::bind(&HttpHelper::handleBootstrapJs, this, std::placeholders::_1));
 	server->on("/js/jquery.min.js", std::bind(&HttpHelper::handleJqueryJs, this, std::placeholders::_1));
+	server->on("/js/progress.js", std::bind(&HttpHelper::handleProgressJs, this, std::placeholders::_1));
 
 
  	server->on("/post", HTTP_ANY, std::bind(&HttpHelper::handleW2A, this, std::placeholders::_1));
@@ -114,7 +116,7 @@ server->on(
  
 	//server->serveStatic("/js/highstock.js", SPIFFS, "/js/highstock.js", NULL);
 
-	in_update=false;		
+		
 	server->begin();
 
 //	httpSpiffsUpdater = new 
@@ -187,6 +189,10 @@ void HttpHelper::handleFontAwesomeCss(AsyncWebServerRequest * request) {
 		handleFile("/css/font-awesome.min.css","text/css",request);
 }
 
+void HttpHelper::handleProgressCss(AsyncWebServerRequest * request) {
+		handleFile("/css/progress.css","text/css",request);
+}
+
 void HttpHelper::handleJqueryJs(AsyncWebServerRequest * request) {
     		handleFile("/js/jquery.min.js","application/javascript",request);
 }
@@ -195,42 +201,47 @@ void HttpHelper::handleBootstrapJs(AsyncWebServerRequest * request) {
 		handleFile("/js/bootstrap.min.js","application/javascript",request);
 }
 
+void HttpHelper::handleProgressJs(AsyncWebServerRequest * request) {
+		handleFile("/js/progress.js","application/javascript",request);
+}
+
 void HttpHelper::handleFile(String path,String type, AsyncWebServerRequest *request){
 	irrc->sleep_sometime(); 
 	//Serial.println(path);
 	request->send(SPIFFS,path,type);
 }
 
+boolean HttpHelper::isUpdate(){
+	return Update.isRunning();
+}
+
 void HttpHelper::handleUpdate(AsyncWebServerRequest *request, const String& filename, size_t index, uint8_t *data, size_t len, bool final){
  uint32_t free_space = (ESP.getFreeSketchSpace() - 0x1000) & 0xFFFFF000;
   if (!index){
 	irrc->sleep_sometime();
-	in_update=true;
-	request->redirect("/"); 
 	counter=0;
-    Serial.println("Update");
+    //Serial.println("Update");
     if (!Update.begin(free_space,U_FLASH)) {
       Update.printError(Serial);
     }
   }
 
   if (Update.write(data, len) != len) {
-    Update.printError(Serial);
-	//irrc->enable();
-	in_update=false;
+	logg.logging("Update Error");
+	logg.logging(Update.errorString());
   }else{
-	  if (counter++==9) {Serial.print(".");counter=0;}
+	  if (counter++==9) {
+		  counter=0;
+		  }
   }
 
   if (final) {
     if (!Update.end(true)){
-	  		
-      Update.printError(Serial);
+	  	logg.logging("Update Error");
+	  	logg.logging(Update.errorString());
     } else {
-	  Serial.println("");
-      Serial.println("Update complete. Rebooting...");
-	//  request->send()
-	  ESP.restart();
+		request->redirect("/"); 
+		ESP.restart();
     }
   }
 }
@@ -239,7 +250,7 @@ void HttpHelper::handleSpiffs(AsyncWebServerRequest *request, const String& file
  
   if (!index){
 	irrc->sleep_sometime();
-	in_update=true;
+	
 	request->redirect("/");
 	counter=0;
     Serial.println("Update SPIFFS");
@@ -250,7 +261,7 @@ void HttpHelper::handleSpiffs(AsyncWebServerRequest *request, const String& file
 
   if (Update.write(data, len) != len) {
     Update.printError(Serial);
-	in_update=false;
+	
   }else{
 	  if (counter++==9) {Serial.print(".");counter=0;}
   }
@@ -326,6 +337,30 @@ void HttpHelper::handleA2W(AsyncWebServerRequest * request)
 			str+=i==3?F("}"):F(",");
 		}
 		request->send(200, "text/json",str); // Oтправляем ответ No Reset
+	}else if (request->getParam(0)->value().equals(F("update"))){
+		
+		String str = F("{");
+		str+=F("ALL=");
+		if (Update.isRunning()){
+			str+=String(Update.size());
+			str+=F(",PROGRESS=");
+			str+=String(Update.progress());
+			str+=F(",WORK=1,ERROR=");
+		}
+		else
+		{
+			str+=F("0,PROGRESS=0,WORK=0,ERROR=");
+		}
+
+		if (Update.hasError())
+		{
+			str+=Update.errorString();
+		}
+		else{
+			str+="OK";
+		}
+		str+=F("}");
+		request->send(200, "text/json",str); // Oтправляем ответ No Reset
 	}
 }
 
@@ -358,12 +393,14 @@ void HttpHelper::handleUpd(AsyncWebServerRequest * request) {
 		return request->requestAuthentication();
 	String resp = F("<!DOCTYPE html>\n<html>\n<head>\n");
 	resp += F("<meta charset = \"utf-8\">\n");
-	resp += F("<title>YssSM прошивка</title>\n");
+	resp += F("<title>Yss desktop прошивка</title>\n");
 	resp += F("<meta name = \"description\" content = \"Версия 0.1\">\n");
 	resp += F("<meta name = \"author\" content = \"Yss\">\n");
 	resp += F("<link href = \"/css/bootstrap.min.css\" type = \"text/css\" rel = \"stylesheet\">\n");
+	resp += F("<link href = \"/css/progress.css\" type = \"text/css\" rel = \"stylesheet\">\n");
 	resp += F("<script type = \"text/javascript\" src = \"/js/jquery.min.js\"></script>\n");
 	resp += F("<script type = \"text/javascript\" src = \"/js/bootstrap.min.js\"></script>\n");
+	resp += F("<script type = \"text/javascript\" src = \"/js/progress.js\"></script>\n");
 	resp += F("</head>\n<body>\n");
 	resp += F("<div class = \"col-md-12\">\n");
 	resp += F("<a href = \"/\"class = \"btn btn-info\">Дом</a>\n");
@@ -385,7 +422,17 @@ void HttpHelper::handleUpd(AsyncWebServerRequest * request) {
 	resp += F("<input type = \"submit\" class = \"btn\" value = \"Прошить\" onclick = \"this.value = 'Подождите...';\">\n");
 	resp += F("</div>\n");
 	resp += F("</form>\n");
+
+	resp += F("<div class = \"alert alert-warning\" role = \"alert\">");
+	resp += F("<h3 class=\"progress-title\" id=\"PRGTITLE\"></h3>");
+	resp += F("<div class=\"progress\">");
+	resp += F("<div class=\"progress-bar\" style=\"width:0%; background:#97c513;\" id=\"PRG\">");
+	resp += F("<div class=\"progress-value\" id=\"PRGVAL\">0%</div>");
 	resp += F("</div>\n");
+	resp += F("</div>\n");
+	resp += F("</div>\n");
+	resp += F("</div>\n");
+
 	resp += F("</body>\n</html>\n");
 
 	request->send(200, "text/html", resp);
