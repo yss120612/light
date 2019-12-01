@@ -82,7 +82,7 @@ server->on(
 	server->on("/css/bootstrap.min.css", std::bind(&HttpHelper::handleBootstrapCss, this, std::placeholders::_1));
 	server->on("/css/radio.css", std::bind(&HttpHelper::handleRadioCss, this, std::placeholders::_1));
 	server->on("/css/font-awesome.min.css", std::bind(&HttpHelper::handleFontAwesomeCss, this, std::placeholders::_1));
-	server->on("/fonts/fontawesome-webfont.woff", std::bind(&HttpHelper::handleFontAwesomeFontsWoff, this, std::placeholders::_1));
+	server->on("/fonts/fontawesome-webfont.woff2", std::bind(&HttpHelper::handleFontAwesomeFontsWoff, this, std::placeholders::_1));
 	server->on("/css/progress.css", std::bind(&HttpHelper::handleProgressCss, this, std::placeholders::_1));
 	server->on("/js/bootstrap.min.js", std::bind(&HttpHelper::handleBootstrapJs, this, std::placeholders::_1));
 	server->on("/js/jquery.min.js", std::bind(&HttpHelper::handleJqueryJs, this, std::placeholders::_1));
@@ -195,7 +195,8 @@ void HttpHelper::handleFontAwesomeCss(AsyncWebServerRequest * request) {
 		handleFile("/css/font-awesome.min.css","text/css",request);
 }
 void  HttpHelper::handleFontAwesomeFontsWoff(AsyncWebServerRequest * request){
-	handleFile("/fonts/fontawesome-webfont.woff","application/x-font-woff",request);
+	//handleFile("/fonts/fontawesome-webfont.woff2","application/x-font-woff2",request);
+	handleFile("/fonts/fontawesome-webfont.woff","font/woff",request);
 }
 void HttpHelper::handleProgressCss(AsyncWebServerRequest * request) {
 		handleFile("/css/progress.css","text/css",request);
