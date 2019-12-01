@@ -82,6 +82,7 @@ server->on(
 	server->on("/css/bootstrap.min.css", std::bind(&HttpHelper::handleBootstrapCss, this, std::placeholders::_1));
 	server->on("/css/radio.css", std::bind(&HttpHelper::handleRadioCss, this, std::placeholders::_1));
 	server->on("/css/font-awesome.min.css", std::bind(&HttpHelper::handleFontAwesomeCss, this, std::placeholders::_1));
+	server->on("/fonts/fontawesome-webfont.woff", std::bind(&HttpHelper::handleFontAwesomeFontsWoff, this, std::placeholders::_1));
 	server->on("/css/progress.css", std::bind(&HttpHelper::handleProgressCss, this, std::placeholders::_1));
 	server->on("/js/bootstrap.min.js", std::bind(&HttpHelper::handleBootstrapJs, this, std::placeholders::_1));
 	server->on("/js/jquery.min.js", std::bind(&HttpHelper::handleJqueryJs, this, std::placeholders::_1));
@@ -140,6 +141,11 @@ void HttpHelper::var(String n, String v)
 		logg.logging("n=" + n + ", v=" + v);
 		data->relaySet(2, v.equals(F("true")));
 	}
+	else if (n.equals("REL4"))
+	{
+		logg.logging("n=" + n + ", v=" + v);
+		data->relaySwitch(3,millis());
+	}
 }
 
 void HttpHelper::var_log(String n, String v)
@@ -188,7 +194,9 @@ void HttpHelper::handleRadioCss(AsyncWebServerRequest * request) {
 void HttpHelper::handleFontAwesomeCss(AsyncWebServerRequest * request) {
 		handleFile("/css/font-awesome.min.css","text/css",request);
 }
-
+void  HttpHelper::handleFontAwesomeFontsWoff(AsyncWebServerRequest * request){
+	handleFile("/fonts/fontawesome-webfont.woff","application/x-font-woff",request);
+}
 void HttpHelper::handleProgressCss(AsyncWebServerRequest * request) {
 		handleFile("/css/progress.css","text/css",request);
 }
@@ -222,7 +230,8 @@ void HttpHelper::handleUpdate(AsyncWebServerRequest *request, const String& file
 	counter=0;
     //Serial.println("Update");
     if (!Update.begin(free_space,U_FLASH)) {
-      Update.printError(Serial);
+      	logg.logging("Update Error");
+		logg.logging(Update.errorString());
     }
   }
 
@@ -403,7 +412,7 @@ void HttpHelper::handleUpd(AsyncWebServerRequest * request) {
 	resp += F("<script type = \"text/javascript\" src = \"/js/progress.js\"></script>\n");
 	resp += F("</head>\n<body>\n");
 	resp += F("<div class = \"col-md-12\">\n");
-	resp += F("<a href = \"/\"class = \"btn btn-info\">Дом</a>\n");
+	resp += F("<a href = \"/\" class = \"btn btn-info\">Дом</a>\n");
 	resp += F("</div>\n");
 	resp += F("<div class = \"alert alert-info\" role = \"alert\">");
 	resp += F("<h3>Прошивка</h3>\n");

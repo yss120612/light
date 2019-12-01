@@ -44,6 +44,8 @@ private:
 	void handleBootstrapJs(AsyncWebServerRequest * request);
 	void handleJqueryJs(AsyncWebServerRequest * request);
 	void handleProgressJs(AsyncWebServerRequest * request);
+	void handleFontAwesomeFontsWoff(AsyncWebServerRequest * request);
+
 
 	void handleMainFile(AsyncWebServerRequest * request);
 	void handleMainSetup(AsyncWebServerRequest * request);

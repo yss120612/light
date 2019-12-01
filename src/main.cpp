@@ -66,6 +66,7 @@ void setup() {
     }
     ms=0;
     ir.enable();
+    
 }
 
 

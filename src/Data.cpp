@@ -1,5 +1,5 @@
 #include "Data.h"
-
+#include "Log.h"
 AppData::AppData()
 {
 }
@@ -79,7 +79,6 @@ boolean AppData::isOn()
 
 void AppData::loop(unsigned long t)
 {
-
     for (uint8_t i = 0; i < lgh; i++)
         relays[i].loop(t);
 }

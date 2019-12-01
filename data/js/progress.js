@@ -5,6 +5,7 @@ process();
 $('.form-inline').on('submit',function()
         {  
           duration=1000;
+          return true;
         });
 });
 
