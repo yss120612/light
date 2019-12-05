@@ -30,5 +30,15 @@
 #define RELTYPE_SWICH 0
 #define RELTYPE_BUTTON 1
 
+//PWM
+#define RESOLUTION  8
+#define FREQ        5000
+#define CANNEL_CW   0
+#define CANNEL_NW   1
+#define CANNEL_WW   2
+#define PIN_CW   0
+#define PIN_NW   1
+#define PIN_WW   2
+
 
 #endif
