@@ -2,7 +2,9 @@
 #define _DATA_h
 #include <Arduino.h>
 #include "Relays.h"
+#include "BandLED.h"
 #include "Settings.h"
+#include "Config.h"
 
 class AppData
 {
@@ -16,10 +18,14 @@ public:
     boolean isOn();                                 //хоть одно (не кнопка)
     void setup();
     void loop(unsigned long);
-
+    uint8_t getCW();
+    uint8_t getNW();
+    uint8_t getWW();
 private:
     Relay relays[4] = {Relay(RELAY1), Relay(RELAY2), Relay(RELAY3), Relay(RELAY4)};
     const uint8_t lgh = sizeof(relays) / sizeof(Relay);
+    BandLED lamp;
+    
 };
 
 #endif

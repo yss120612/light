@@ -1,16 +1,26 @@
 #include "Data.h"
 #include "Log.h"
+
+
 AppData::AppData()
 {
 }
 
 void AppData::setup()
 {
+    conf.load();
     relays[0].setup();
     relays[1].setup();
     relays[2].setup();
     relays[3].setup(RELTYPE_BUTTON);
+    lamp.setup();
 }
+
+
+uint8_t AppData::getCW(){return conf.cw;}
+    uint8_t AppData::getNW(){return conf.nw;}
+    uint8_t AppData::getWW(){return conf.ww;}
+
 
 void AppData::relaySwitchOff(unsigned long t)
 {

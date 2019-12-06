@@ -1,4 +1,6 @@
-#include "BandLCD.h"
+#include "BandLED.h"
+#include "BandLED.h"
+
 BandLED::BandLED()
 {
 }
@@ -11,56 +13,66 @@ void BandLED::setup()
     ledcAttachPin(PIN_CW, CANNEL_CW);
     ledcAttachPin(PIN_NW, CANNEL_NW);
     ledcAttachPin(PIN_WW, CANNEL_WW);
+    ledcWrite(PIN_CW, 0);
+    ledcWrite(PIN_NW, 0);
+    ledcWrite(PIN_WW, 0);
+    refresh();
+}
+
+void BandLED::swc()
+{
+if (conf.lamp_on){
     off();
 }
+else{
+    on();
+}
+}
+
 
 void BandLED::on()
 {
-    cw=128;
-    ww=128;
-    nw=128;
+    conf.lamp_on=true;
+    conf.save();
     refresh();
 }
 
 
 void BandLED::off()
 {
-    cw=0;
-    ww=0;
-    nw=0;
+    ledcWrite(PIN_CW, 0);
+    ledcWrite(PIN_NW, 0);
+    ledcWrite(PIN_WW, 0);
+    conf.lamp_on=false;
+    conf.save();
     refresh();
 }
 
-uint8_t BandLED::getCW(){
-    return cw;
-}
-
-uint8_t BandLED::getNW(){
-    return nw;
-}
-
-uint8_t BandLED::getWW(){
-    return ww;
-}
-
 void BandLED::refresh(){
-    ledcWrite(PIN_CW, cw);
-    ledcWrite(PIN_NW, nw);
-    ledcWrite(PIN_WW, ww);
+    if (conf.lamp_on){
+     ledcWrite(PIN_CW, conf.cw);
+     ledcWrite(PIN_NW, conf.nw);
+     ledcWrite(PIN_WW, conf.ww);
+    }
+    
 }
+
+
 
 void BandLED::setOne(uint8_t cannel, uint8_t value)
 {
     switch (cannel){
         case CANNEL_CW:
-            cw=value;
+            conf.cw=value;
         break;
         case CANNEL_NW:
-            nw=value;
+            conf.nw=value;
         break;
         case CANNEL_WW:
-            ww=value;
+            conf.ww=value;
         break;
     }
+    //conf.save();
+    //выкл или вкл для записи состояния
     refresh();
 }
