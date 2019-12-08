@@ -251,7 +251,7 @@ void HttpHelper::handleUpdate(AsyncWebServerRequest *request, const String& file
 	  	logg.logging(Update.errorString());
     } else {
 		request->redirect("/"); 
-		ESP.restart();
+		//ESP.restart();
     }
   }
 }
@@ -329,47 +329,48 @@ void HttpHelper::handleA2W(AsyncWebServerRequest * request)
 			request->send(500, F("text/plain"),F("ERROR PAGE PARAMETR")); // Oтправляем ответ No Reset
 			return;
 	}
+	String str = F("{");
 	if (request->getParam(0)->value().equals(F("log"))){
 		//String str = F("{\"logdata\":\"<ul>")+logg.getAll2Web()+F("</ul>\"}");
-		String str = F("{\"logdata\":\"<ul>");
+		str+=F("\"logdata\":\"<ul>");
 		str+=logg.getAll2Web();
 		str+=F("</ul>\"}");
 		request->send(200, "text/json",str); // Oтправляем ответ No Reset
 	}else if (request->getParam(0)->value().equals(F("main"))){
-		
-		String str = F("{");
 		for (uint8_t i=0;i<4;i++)
 		{
-			str+=F("REL");
+			str+=F("\"REL");
 			str+=String(i+1);
-			str+=F("=");
+			str+=F("\":");
 			str+=String(data->isOn(i)?1:0);
 			str+=i==3?F("}"):F(",");
 		}
+		
 		request->send(200, "text/json",str); // Oтправляем ответ No Reset
 	}else if (request->getParam(0)->value().equals(F("update"))){
 		
-		String str = F("{");
-		str+=F("ALL=");
+		str+=F("\"ALL\":");
+		
 		if (Update.isRunning()){
 			str+=String(Update.size());
-			str+=F(",PROGRESS=");
+			str+=F(",\"PROGRESS\":");
 			str+=String(Update.progress());
-			str+=F(",WORK=1,ERROR=");
+			str+=F(",\"WORK\":1,\"ERROR\":\"");
 		}
 		else
 		{
-			str+=F("0,PROGRESS=0,WORK=0,ERROR=");
+			str+=F("0,\"PROGRESS\":0,\"WORK\":0,\"ERROR\":\"");
 		}
-
+		
 		if (Update.hasError())
 		{
 			str+=Update.errorString();
 		}
 		else{
-			str+="OK";
+			str+=F("OK");
 		}
 		str+=F("}");
+		logg.logging(str);
 		request->send(200, "text/json",str); // Oтправляем ответ No Reset
 	}
 }

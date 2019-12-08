@@ -13,7 +13,7 @@ File file = SPIFFS.open("/config.txt");
     return;
   }
   while(file.available()){
-        Serial.write(file.read();
+       // Serial.write(file.read();
     }
 }
 

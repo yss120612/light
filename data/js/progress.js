@@ -17,16 +17,16 @@ function process(){
         var ps=0;
         if (data['WORK']==1){
             if (data['ALL']>0) ps=Math.round(data['PROGRESS']/data['ALL']);
-            $('PRG').css('width',ps+'%');
-            $('PRGVAL').innerhtml(ps);
+            $('#PRG').css('width',ps+'%');
+            $('#PRGVAL').innerhtml(ps);
             duration=1;
         }
         else{
-            $('PRG').css('width',ps+'%');
-            $('PRGVAL').innerhtml(ps);
+            $('#PRG').css('width',ps+'%');
+            $('#PRGVAL').innerhtml(ps);
             duration=30000;
         }
-        $('PRGTITLE').innerhtml(data['ERROR']);
+        $('#PRGTITLE').innerhtml(data['ERROR']);
     });
     
     setTimeout('process()',duration);

@@ -83,6 +83,7 @@ boolean AppData::isOn()
 {
     boolean ison = false;
     for (uint8_t i = 0; i < lgh; i++)
+    if (relays[i].type==RELTYPE_SWICH)
         ison |= relays[i].isOn();
     return ison;
 }
