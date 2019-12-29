@@ -36,9 +36,9 @@
 #define CANNEL_CW   0
 #define CANNEL_NW   1
 #define CANNEL_WW   2
-#define PIN_CW   15
+#define PIN_CW   23
 #define PIN_NW   22
-#define PIN_WW   23
+#define PIN_WW   15
 
 
 #endif

@@ -93,3 +93,8 @@ void AppData::loop(unsigned long t)
     for (uint8_t i = 0; i < lgh; i++)
         relays[i].loop(t);
 }
+
+void AppData::setOneBand(uint8_t cannel, uint8_t val){
+    if (val>0) lamp.on();
+    lamp.setOne(cannel,val);
+}

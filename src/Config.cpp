@@ -3,7 +3,7 @@
 #include "Log.h"
 
 Config::Config(){
-
+loadDefaults();
 }
 
 void Config::load(){

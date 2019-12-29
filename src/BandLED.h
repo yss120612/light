@@ -11,8 +11,11 @@ void setup();
 void off();
 void on();
 void swc();
+void colorUp();
+void colorDown();
 void setOne(uint8_t cannel, uint8_t value);
 private:
 void refresh();
+
 };
 #endif

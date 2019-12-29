@@ -146,6 +146,21 @@ void HttpHelper::var(String n, String v)
 		logg.logging("n=" + n + ", v=" + v);
 		data->relaySwitch(3,millis());
 	}
+	else if (n.equals("BAND_CW"))
+	{
+		logg.logging("BAND=" + n + ", v=" + v);
+		data->setOneBand(CANNEL_CW,v.equals(F("true"))?255:0);
+	}
+	else if (n.equals("BAND_NW"))
+	{
+		logg.logging("BAND=" + n + ", v=" + v);
+		data->setOneBand(CANNEL_NW,v.equals(F("true"))?255:0);
+	}
+	else if (n.equals("BAND_WW"))
+	{
+		logg.logging("BAND=" + n + ", v=" + v);
+		data->setOneBand(CANNEL_WW,v.equals(F("true"))?255:0);
+	}
 }
 
 void HttpHelper::var_log(String n, String v)
@@ -251,7 +266,7 @@ void HttpHelper::handleUpdate(AsyncWebServerRequest *request, const String& file
 	  	logg.logging(Update.errorString());
     } else {
 		request->redirect("/"); 
-		//ESP.restart();
+		ESP.restart();
     }
   }
 }
@@ -343,9 +358,18 @@ void HttpHelper::handleA2W(AsyncWebServerRequest * request)
 			str+=String(i+1);
 			str+=F("\":");
 			str+=String(data->isOn(i)?1:0);
-			str+=i==3?F("}"):F(",");
+			str+=F(",");
 		}
-		
+		str+=F("\"BAND_CW\":");
+		str+=String(data->getCW());
+		str+=F(",");
+		str+=F("\"BAND_NW\":");
+		str+=String(data->getNW());
+		str+=F(",");
+		str+=F("\"BAND_WW\":");
+		str+=String(data->getWW());
+		str+=F("}");
+
 		request->send(200, "text/json",str); // Oтправляем ответ No Reset
 	}else if (request->getParam(0)->value().equals(F("update"))){
 		

@@ -57,6 +57,30 @@
 					</form>
 		
 				</div>
+
+				<div class="col-md-4">
+					<form>
+						<h2>2. Лампа</h2>
+						<div class="form-check">
+							<label>
+								<input type="checkbox" name="check" id="BAND_CW"> <span class="label-text">Cool</span>
+							</label>
+						</div>
+						<div class="form-check">
+							<label>
+								<input type="checkbox" name="check" id="BAND_NW"> <span class="label-text">Normal</span>
+							</label>
+						</div>
+						<div class="form-check">
+							<label>
+								<input type="checkbox" name="check" id="BAND_WW"> <span class="label-text">Warm</span>
+							</label>
+						</div>
+
+					</form>
+		
+				</div>
+
 				<div class="col-md-4">
 					<form>
 						<h2>2. Customs Radios</h2>
@@ -161,7 +185,41 @@
                     }  
 			}); 
                 return false;  
-            });  
+			});  
+			
+			$('#BAND_CW').on('input',function(){  
+			$.ajax({  
+                    type: "POST",  
+                    url: "/post",  
+                    data: "page=main&BAND_CW="+$('#BAND_CW').prop("checked"),  
+                    success: function(html){  
+                    }  
+			}); 
+                return false;  
+			});  
+
+			$('#BAND_NW').on('input',function(){  
+			$.ajax({  
+                    type: "POST",  
+                    url: "/post",  
+                    data: "page=main&BAND_NW="+$('#BAND_NW').prop("checked"),  
+                    success: function(html){  
+                    }  
+			}); 
+                return false;  
+			});  
+
+			$('#BAND_WW').on('input',function(){  
+			$.ajax({  
+                    type: "POST",  
+                    url: "/post",  
+                    data: "page=main&BAND_WW="+$('#BAND_WW').prop("checked"),  
+                    success: function(html){  
+                    }  
+			}); 
+                return false;  
+			});  
+
 	});
 	
 	
@@ -175,6 +233,10 @@
 			$('#REL1').prop('checked', data['REL1']==1);
 			$('#REL2').prop('checked', data['REL2']==1);
 			$('#REL3').prop('checked', data['REL3']==1);
+			$('#BAND_CW').prop('checked', data['BAND_CW']>0);
+			$('#BAND_NW').prop('checked', data['BAND_NW']>0);
+			$('#BAND_WW').prop('checked', data['BAND_WW']>0);
+
 		});
 		setTimeout('process()',2000);
 	}

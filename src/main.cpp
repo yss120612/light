@@ -12,14 +12,14 @@ AppData data;
 
 const char* WIFI_SSID = "Yss_GIGA";
 const char* WIFI_PASS = "bqt3bqt3";
-const char* fw = "Running firmware v. 2.0";
+const char* fw = "Running firmware v. 2.1";
 
 HttpHelper * http_server;
 unsigned long ms;
 unsigned long msWiFi;
 boolean forceWiFi;//если не задалось с первого раза повторять каждые Х минут или нет
 IRreceiver  ir(IRPIN);
-
+//BandLED band;
 extern boolean connect2WiFi();
 
 void setup() {
@@ -66,7 +66,7 @@ void setup() {
     }
     ms=0;
     ir.enable();
-    
+  //  band.setup();
 }
 
 
@@ -100,6 +100,13 @@ void loop()
     case PULT_SOUND:
       data.relaySwitchOff(ms);
       break;
+    case 10:
+      //data.on();
+      break;
+    case 30:
+      //data.off();
+      break;
+
     }
   }
 
@@ -107,7 +114,7 @@ void loop()
   
   if (!http_server || !http_server->isUpdate())
   {
-    digitalWrite(LED, data.isOn() ? LOW : HIGH);
+    digitalWrite(LED, data.isOn() ? HIGH : LOW);
   }
 
   if (ms-msWiFi>CHECKWIFI){

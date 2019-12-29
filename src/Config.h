@@ -10,6 +10,7 @@ void load();
 uint8_t cw;
 uint8_t nw;
 uint8_t ww;
+uint16_t cycle;
 
 boolean lamp_on;
 private:
