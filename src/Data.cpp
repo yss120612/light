@@ -95,6 +95,16 @@ void AppData::loop(unsigned long t)
 }
 
 void AppData::setOneBand(uint8_t cannel, uint8_t val){
-    if (val>0) lamp.on();
+    //if (val>0) lamp.on();
     lamp.setOne(cannel,val);
+}
+
+void AppData::swcLight(boolean state){
+    if (state) lamp.on();
+    else lamp.off();
+}
+
+void AppData::tuneLight(boolean dir,uint8_t cannel){
+  if (dir) lamp.colorUp(cannel);
+  else lamp.colorDown(cannel);
 }

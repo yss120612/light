@@ -21,6 +21,16 @@
 #define PULT_4      9
 #define PULT_POWER  20
 #define PULT_SOUND  69
+#define PULT_VOLUP  68
+#define PULT_VOLDOWN  24
+#define PULT_FASTBACK 10
+#define PULT_FASTFORWARD  30
+#define PULT_NEXT 82
+#define PULT_PREV  83
+#define PULT_SLOW  64
+#define PULT_ZOOM  15
+#define PULT_STOP  14
+#define PULT_PAUSE  1
 
 #define PRESS_DURATION 300//держим реле (имитация нажатия) 
 #define PERIOD 1000

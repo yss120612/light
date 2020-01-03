@@ -49,12 +49,12 @@ void BandLED::off()
     refresh();
 }
 
-void BandLED::colorUp()
+void BandLED::colorUp(uint8_t cannel)
 {
-    conf.lamp_on=true;
-    switch (conf.cycle)
+    if (!conf.lamp_on) return;
+    switch (cannel)
     {
-    case 0:
+    case CANNEL_CW:
     if (conf.cw==0){
         conf.cw=64;
     }else if (conf.cw==64)    {
@@ -63,11 +63,10 @@ void BandLED::colorUp()
         conf.cw=192;
     }else if (conf.cw==192)    {
         conf.cw=255;
-        conf.cycle=1;
-    };
+    }
     break;
 
-    case 1:
+    case CANNEL_NW:
     if (conf.nw==0){
         conf.nw=64;
     }else if (conf.nw==64)    {
@@ -76,11 +75,10 @@ void BandLED::colorUp()
         conf.nw=192;
     }else if (conf.nw==192)    {
         conf.nw=255;
-        conf.cycle=2;
     }
     break;
 
-    case 2:
+    case CANNEL_WW:
     if (conf.ww==0){
         conf.ww=64;
     }else if (conf.ww==64)    {
@@ -89,7 +87,6 @@ void BandLED::colorUp()
         conf.ww=192;
     }else if (conf.ww==192)    {
         conf.ww=255;
-        conf.cycle=0;
     }
     break;
     }
@@ -97,12 +94,47 @@ void BandLED::colorUp()
     refresh();
 }
 
-void BandLED::colorDown()
+void BandLED::colorDown(uint8_t cannel)
 {
-    ledcWrite(PIN_CW, 0);
-    ledcWrite(PIN_NW, 0);
-    ledcWrite(PIN_WW, 0);
-    conf.lamp_on=false;
+    if (!conf.lamp_on) return;
+    switch (cannel)
+    {
+    case CANNEL_CW:
+    if (conf.cw==255){
+        conf.cw=192;
+    }else if (conf.cw==192)    {
+        conf.cw=128;
+    }else if (conf.cw==128)    {
+        conf.cw=64;
+    }else if (conf.cw==64)    {
+        conf.cw=0;
+    }
+    break;
+
+    case CANNEL_NW:
+    if (conf.nw==255){
+        conf.nw=192;
+    }else if (conf.nw==192)    {
+        conf.nw=128;
+    }else if (conf.nw==128)    {
+        conf.nw=64;
+    }else if (conf.nw==64)    {
+        conf.nw=0;
+    }
+    break;
+
+    case CANNEL_WW:
+    if (conf.ww==255){
+        conf.ww=192;
+    }else if (conf.ww==192)    {
+        conf.ww=128;
+    }else if (conf.ww==128)    {
+        conf.ww=64;
+    }else if (conf.ww==64)    {
+        conf.ww=0;
+    }
+    break;
+    }
     conf.save();
     refresh();
 }
@@ -121,6 +153,7 @@ void BandLED::refresh(){
 
 void BandLED::setOne(uint8_t cannel, uint8_t value)
 {
+    if (!conf.lamp_on) return;
     switch (cannel){
         case CANNEL_CW:
             conf.cw=value;
@@ -132,7 +165,7 @@ void BandLED::setOne(uint8_t cannel, uint8_t value)
             conf.ww=value;
         break;
     }
-    //conf.save();
+    conf.save();
     //выкл или вкл для записи состояния
     refresh();
 }

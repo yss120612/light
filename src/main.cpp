@@ -90,6 +90,7 @@ void loop()
       break;
     case PULT_3:
       data.relaySwitch(2, ms);
+      data.swcLight(data.isOn(2));
       break;
     case PULT_4:
       data.relaySwitch(3, ms);
@@ -100,13 +101,44 @@ void loop()
     case PULT_SOUND:
       data.relaySwitchOff(ms);
       break;
-    case 10:
-      //data.on();
+    case PULT_VOLDOWN:
+      data.tuneLight(false,CANNEL_CW);
       break;
-    case 30:
-      //data.off();
+    case PULT_VOLUP:
+      data.tuneLight(true,CANNEL_CW);
       break;
-
+case PULT_FASTBACK:
+      data.tuneLight(false,CANNEL_NW);
+      break;
+    case PULT_FASTFORWARD:
+      data.tuneLight(true,CANNEL_NW);
+      break;
+      case PULT_PREV:
+      data.tuneLight(false,CANNEL_WW);
+      break;
+    case PULT_NEXT:
+      data.tuneLight(true,CANNEL_WW);
+      break;
+    case PULT_SLOW://ultra low
+      data.setOneBand(CANNEL_CW,0);
+      data.setOneBand(CANNEL_NW,0);
+      data.setOneBand(CANNEL_WW,64);
+      break;
+    case PULT_ZOOM://low
+      data.setOneBand(CANNEL_CW,64);
+      data.setOneBand(CANNEL_NW,64);
+      data.setOneBand(CANNEL_WW,64);
+      break;
+    case PULT_STOP://middle
+      data.setOneBand(CANNEL_CW,128);
+      data.setOneBand(CANNEL_NW,128);
+      data.setOneBand(CANNEL_WW,128);
+      break;
+    case PULT_PAUSE://full
+      data.setOneBand(CANNEL_CW,255);
+      data.setOneBand(CANNEL_NW,255);
+      data.setOneBand(CANNEL_WW,255);
+      break;
     }
   }
 

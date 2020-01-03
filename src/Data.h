@@ -22,6 +22,8 @@ public:
     uint8_t getNW();
     uint8_t getWW();
     void setOneBand(uint8_t cannel, uint8_t val);
+    void swcLight(boolean state);
+    void tuneLight(boolean dir,uint8_t cannel);
 private:
     Relay relays[4] = {Relay(RELAY1), Relay(RELAY2), Relay(RELAY3), Relay(RELAY4)};
     const uint8_t lgh = sizeof(relays) / sizeof(Relay);
