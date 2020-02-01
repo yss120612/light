@@ -108,3 +108,7 @@ void AppData::tuneLight(boolean dir,uint8_t cannel){
   if (dir) lamp.colorUp(cannel);
   else lamp.colorDown(cannel);
 }
+
+void AppData::logConf(){
+    conf.print();
+}

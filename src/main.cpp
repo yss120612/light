@@ -8,11 +8,14 @@
 #include "Settings.h"
 #include "Data.h"
 
+
+
 AppData data;
 
 const char* WIFI_SSID = "Yss_GIGA";
 const char* WIFI_PASS = "bqt3bqt3";
 const char* fw = "Running firmware v. 2.1";
+
 
 HttpHelper * http_server;
 unsigned long ms;

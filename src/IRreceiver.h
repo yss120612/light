@@ -25,5 +25,4 @@ class IRreceiver
     unsigned long time_lc;
     unsigned long sleeping_time;
 };
-
 #endif

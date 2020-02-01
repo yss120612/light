@@ -16,7 +16,7 @@ void BandLED::setup()
     ledcWrite(CANNEL_CW, 0);
     ledcWrite(CANNEL_NW, 0);
     ledcWrite(CANNEL_WW, 0);
-    conf.cycle=0;
+    //conf.cycle=0;
     refresh();
 }
 
@@ -34,7 +34,7 @@ else{
 void BandLED::on()
 {
     conf.lamp_on=true;
-    conf.save();
+    //conf.save();
     refresh();
 }
 
@@ -45,7 +45,7 @@ void BandLED::off()
     ledcWrite(CANNEL_NW, 0);
     ledcWrite(CANNEL_WW, 0);
     conf.lamp_on=false;
-    conf.save();
+    //conf.save();
     refresh();
 }
 

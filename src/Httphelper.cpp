@@ -169,6 +169,7 @@ void HttpHelper::var_log(String n, String v)
 	{
 		logg.clear();
 		logg.logging("n=" + n + ", v=" + v);
+		data->logConf();
 	}
 }
 
@@ -243,6 +244,7 @@ void HttpHelper::handleUpdate(AsyncWebServerRequest *request, const String& file
  uint32_t free_space = (ESP.getFreeSketchSpace() - 0x1000) & 0xFFFFF000;
   if (!index){
 	irrc->sleep_sometime();
+	request->redirect("/");
 	counter=0;
     //Serial.println("Update");
     if (!Update.begin(free_space,U_FLASH)) {
@@ -265,7 +267,6 @@ void HttpHelper::handleUpdate(AsyncWebServerRequest *request, const String& file
 	  	logg.logging("Update Error");
 	  	logg.logging(Update.errorString());
     } else {
-		request->redirect("/"); 
 		ESP.restart();
     }
   }
@@ -278,25 +279,24 @@ void HttpHelper::handleSpiffs(AsyncWebServerRequest *request, const String& file
 	
 	request->redirect("/");
 	counter=0;
-    Serial.println("Update SPIFFS");
+    logg.logging("Update SPIFFS");
     if (!Update.begin(UPDATE_SIZE_UNKNOWN,U_SPIFFS,LED)) {
-      Update.printError(Serial);
+      logg.logging(Update.errorString());
     }
   }
 
   if (Update.write(data, len) != len) {
-    Update.printError(Serial);
+    logg.logging(Update.errorString());
 	
   }else{
-	  if (counter++==9) {Serial.print(".");counter=0;}
+	//  if (counter++==9) {Serial.print(".");counter=0;}
   }
 
   if (final) {
     if (!Update.end(true)){
-      Update.printError(Serial);
+      logg.logging(Update.errorString());
     } else {
-	  Serial.println("");
-      Serial.println("Update SPIFF complete. Rebooting...");
+      logg.logging("Update SPIFF complete. Rebooting...");
 	  ESP.restart();
     }
   }
