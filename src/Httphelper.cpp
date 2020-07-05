@@ -140,6 +140,7 @@ void HttpHelper::var(String n, String v)
 	{
 		logg.logging("n=" + n + ", v=" + v);
 		data->relaySet(2, v.equals(F("true")));
+		data->swcLight(data->isOn(2));
 	}
 	else if (n.equals("REL4"))
 	{
