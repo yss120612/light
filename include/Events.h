@@ -19,7 +19,7 @@ struct event_t {
 class Events{
 public:    
 
-Events();    
+Events(){};    
 bool have_event(){return _events.size()>0;};
 bool count_event(){return _events.size();};
 bool getEvent(event_t * e, long ms);

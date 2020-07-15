@@ -71,7 +71,7 @@ void setup() {
       msWiFi=0;
     }
     ms=0;
-    ir.enable();
+    //ir.enable();
   //  band.setup();
 }
 

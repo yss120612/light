@@ -29,7 +29,7 @@ public:
     void tuneLight(boolean dir,uint8_t cannel);
     void logConf();
     void ProcessEvents(unsigned long t);
-    void sleep_sometime(unsigned long time=24000);
+    void ir_sleep();
     void putWebEvent(uint8_t n, uint8_t nn){evts.putWebEvent(n,nn);};
 private:
     Events evts;

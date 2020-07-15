@@ -231,7 +231,7 @@ void HttpHelper::handleProgressJs(AsyncWebServerRequest * request) {
 }
 
 void HttpHelper::handleFile(String path,String type, AsyncWebServerRequest *request){
-	data->sleep_sometime(); 
+	data->ir_sleep(); 
 	//Serial.println(path);
 	request->send(SPIFFS,path,type);
 }
@@ -243,7 +243,8 @@ boolean HttpHelper::isUpdate(){
 void HttpHelper::handleUpdate(AsyncWebServerRequest *request, const String& filename, size_t index, uint8_t *data, size_t len, bool final){
  uint32_t free_space = (ESP.getFreeSketchSpace() - 0x1000) & 0xFFFFF000;
   if (!index){
-	data->sleep_sometime();
+	  
+	this->data->ir_sleep(); 
 	request->redirect("/");
 	counter=0;
     //Serial.println("Update");
@@ -275,7 +276,7 @@ void HttpHelper::handleUpdate(AsyncWebServerRequest *request, const String& file
 void HttpHelper::handleSpiffs(AsyncWebServerRequest *request, const String& filename, size_t index, uint8_t *data, size_t len, bool final){
  
   if (!index){
-	data->sleep_sometime();
+	this->data->ir_sleep(); 
 	
 	request->redirect("/");
 	counter=0;

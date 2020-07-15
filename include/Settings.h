@@ -50,9 +50,9 @@
 #define PIN_NW   22
 #define PIN_WW   15
 
-#define CLICK_TIME = 20; // 20 ms.
-#define LONGCLICK_TIME = 1000; // 1 sec.
-#define DBLCLICK_TIME = 500; // 0.5 sec.
+#define CLICK_TIME 20           // 20 ms.
+#define LONGCLICK_TIME 1000     // 1 sec.
+#define DBLCLICK_TIME 500       // 0.5 sec.
 
 
 #endif

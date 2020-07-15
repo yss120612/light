@@ -79,7 +79,7 @@ void ICACHE_RAM_ATTR Buttons::_isr(Buttons *_this) {
   if (_this->_btns.length()>0) {
     long ms=millis();
     uint32_t time = ms - _this->_isrtime;
-    uint32_t inputs = GPI;
+    //uint32_t inputs = GPI;
     for (uint8_t i = 0; i < _this->_btns.length(); ++i) {
       if (_this->_btns[i].paused)
         continue;
@@ -91,7 +91,8 @@ void ICACHE_RAM_ATTR Buttons::_isr(Buttons *_this) {
 
       //logg.logging("State="+String((inputs >> _this->_btns[i].pin) & 0x01));
 
-      if (((inputs >> _this->_btns[i].pin) & 0x01) == _this->_btns[i].level) { // Button pressed
+     // if (((inputs >> _this->_btns[i].pin) & 0x01) == _this->_btns[i].level) { // Button pressed
+      if ( (digitalRead(_this->_btns[i].pin) & 0x01) == _this->_btns[i].level) { // Button pressed
         if (! _this->_btns[i].pressed) {
           if (_this->_btns[i].duration > DBLCLICK_TIME) 
           {

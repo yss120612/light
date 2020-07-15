@@ -16,7 +16,7 @@ void AppData::setup()
     lamp.setup();
     btns.setEvents(&evts);
     btns.add(1,HIGH);
-    
+    ir.enable();
 }
 
 void AppData::loop(unsigned long t)
@@ -32,8 +32,8 @@ void AppData::loop(unsigned long t)
 }
 
 
-void AppData::sleep_sometime(unsigned long time){
-    ir.sleep_sometime(time);
+void AppData::ir_sleep(){
+    ir.sleep_sometime();
 }
 
 uint8_t AppData::getCW(){return conf.cw;}
