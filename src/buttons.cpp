@@ -3,6 +3,7 @@
 #include <FunctionalInterrupt.h>
 #endif
 #include "buttons.h"
+#include "Events.h"
 #include "Log.h"
 
 uint8_t Buttons::add(uint8_t pin, bool level) {
@@ -132,37 +133,17 @@ evt.count=cnt;
 evt.wait_time=m;
 int idx=-1;
 if (cnt>1){
-  for (int k=0;k<_events.length();k++){
-    if (_events[k].button==button && _events[k].state==BTN_CLICK && _events[k].count==(cnt-1)) idx=k;
+  for (int k=0;k<_evptr->count_event();k++){
+    if (_evptr->getEvent(k)->button==button && _evptr->getEvent(k)->state==BTN_CLICK && _evptr->getEvent(k)->count==(cnt-1)) idx=k;
   }
   if (idx>=0) {
-  _events[idx]=evt;
+  _evptr->putEvent(idx,&evt);
   return;
   }
 }
-_events.push_back(evt);
+_evptr->putEvent(&evt);
 }
 
-bool Buttons::getEvent(event_t * e,long ms){
-  
-  if (have_event())
-  {
-    *e   = _events.front();
-    _events.pop_front();
-    if (e->state==BTN_CLICK && ms-e->wait_time<DBLCLICK_TIME){
-    _events.push_back(*e);    
-    return false;
-    }
-    return   true;
-  }
-  
-  return   false;
-}
-
-void Buttons::putEvent(event_t *e){
-  
-  _events.push_back(*e);
-}
 
 
 void Buttons::cleanup(void *ptr) {

@@ -21,10 +21,10 @@ HttpHelper::~HttpHelper()
 	//SPIFFS.end();
 }
 
-void HttpHelper::setup(IRreceiver * rcv, AppData *ad) {
+void HttpHelper::setup(AppData *ad) {
 	if (server == NULL) return;
 
-	irrc=rcv;
+	//irrc=rcv;
 	data = ad;
 	//WiFiconnect();
 			
@@ -128,39 +128,38 @@ void HttpHelper::var(String n, String v)
 {
 	if (n.equals("REL1"))
 	{
-		logg.logging("n=" + n + ", v=" + v);
-		data->relaySet(0, v.equals(F("true")));
+		data->putWebEvent(PULT_1,v.equals(F("true")));
+		//logg.logging("n=" + n + ", v=" + v);
 	}
 	else if (n.equals("REL2"))
 	{
-		logg.logging("n=" + n + ", v=" + v);
-		data->relaySet(1, v.equals(F("true")));
+		data->putWebEvent(PULT_2,v.equals(F("true")));
+		//logg.logging("n=" + n + ", v=" + v);
 	}
 	else if (n.equals("REL3"))
 	{
-		logg.logging("n=" + n + ", v=" + v);
-		data->relaySet(2, v.equals(F("true")));
-		data->swcLight(data->isOn(2));
+		data->putWebEvent(PULT_3,v.equals(F("true")));
+		//logg.logging("n=" + n + ", v=" + v);
 	}
 	else if (n.equals("REL4"))
 	{
-		logg.logging("n=" + n + ", v=" + v);
-		data->relaySwitch(3,millis());
+		data->putWebEvent(PULT_4,v.equals(F("true")));
+		//logg.logging("n=" + n + ", v=" + v);
 	}
 	else if (n.equals("BAND_CW"))
 	{
-		logg.logging("BAND=" + n + ", v=" + v);
-		data->setOneBand(CANNEL_CW,v.equals(F("true"))?255:0);
+		data->putWebEvent(CANNEL_CW,v.equals(F("true"))?255:0);
+		//logg.logging("BAND=" + n + ", v=" + v);
 	}
 	else if (n.equals("BAND_NW"))
 	{
-		logg.logging("BAND=" + n + ", v=" + v);
-		data->setOneBand(CANNEL_NW,v.equals(F("true"))?255:0);
+		data->putWebEvent(CANNEL_NW,v.equals(F("true"))?255:0);
+		//logg.logging("BAND=" + n + ", v=" + v);
 	}
 	else if (n.equals("BAND_WW"))
 	{
-		logg.logging("BAND=" + n + ", v=" + v);
-		data->setOneBand(CANNEL_WW,v.equals(F("true"))?255:0);
+		data->putWebEvent(CANNEL_WW,v.equals(F("true"))?255:0);
+		//logg.logging("BAND=" + n + ", v=" + v);
 	}
 }
 
@@ -232,7 +231,7 @@ void HttpHelper::handleProgressJs(AsyncWebServerRequest * request) {
 }
 
 void HttpHelper::handleFile(String path,String type, AsyncWebServerRequest *request){
-	irrc->sleep_sometime(); 
+	data->sleep_sometime(); 
 	//Serial.println(path);
 	request->send(SPIFFS,path,type);
 }
@@ -244,7 +243,7 @@ boolean HttpHelper::isUpdate(){
 void HttpHelper::handleUpdate(AsyncWebServerRequest *request, const String& filename, size_t index, uint8_t *data, size_t len, bool final){
  uint32_t free_space = (ESP.getFreeSketchSpace() - 0x1000) & 0xFFFFF000;
   if (!index){
-	irrc->sleep_sometime();
+	data->sleep_sometime();
 	request->redirect("/");
 	counter=0;
     //Serial.println("Update");
@@ -276,7 +275,7 @@ void HttpHelper::handleUpdate(AsyncWebServerRequest *request, const String& file
 void HttpHelper::handleSpiffs(AsyncWebServerRequest *request, const String& filename, size_t index, uint8_t *data, size_t len, bool final){
  
   if (!index){
-	irrc->sleep_sometime();
+	data->sleep_sometime();
 	
 	request->redirect("/");
 	counter=0;

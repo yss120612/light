@@ -5,6 +5,9 @@
 #include "BandLED.h"
 #include "Settings.h"
 #include "Config.h"
+#include "IRreceiver.h"
+#include "buttons.h"
+#include "Events.h"
 
 class AppData
 {
@@ -25,7 +28,13 @@ public:
     void swcLight(boolean state);
     void tuneLight(boolean dir,uint8_t cannel);
     void logConf();
+    void ProcessEvents(unsigned long t);
+    void sleep_sometime(unsigned long time=24000);
+    void putWebEvent(uint8_t n, uint8_t nn){evts.putWebEvent(n,nn);};
 private:
+    Events evts;
+    Buttons btns;
+    IRreceiver  ir=IRreceiver(IRPIN);
     Relay relays[4] = {Relay(RELAY1), Relay(RELAY2), Relay(RELAY3), Relay(RELAY4)};
     const uint8_t lgh = sizeof(relays) / sizeof(Relay);
     BandLED lamp;

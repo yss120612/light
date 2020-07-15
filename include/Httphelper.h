@@ -17,7 +17,7 @@ public:
 
 	// void clientHandle();
 	//boolean handleFileRead(String path);
-	void setup(IRreceiver * rcv, AppData * ad);
+	void setup(AppData * ad);
 	//void setDataSource(DataSrc * d) { ds = d; };
 	
 	

@@ -3,7 +3,6 @@
 #include <SPIFFS.h>
 
 #include "Log.h"
-#include "IRreceiver.h"
 #include "Httphelper.h"
 #include "Settings.h"
 #include "Data.h"
@@ -21,53 +20,12 @@ HttpHelper * http_server;
 unsigned long ms;
 unsigned long msWiFi;
 boolean forceWiFi;//если не задалось с первого раза повторять каждые Х минут или нет
-IRreceiver  ir(IRPIN);
 //BandLED band;
 extern boolean connect2WiFi();
 
-Buttons btns;
 
-void processButtons(long ms){
-event_t ev;
-if (btns.getEvent(&ev,ms)){
-  switch (ev.state)
-  {
-  case BTN_CLICK:
-    logg.logging("CLICK "+ String(ev.button)+" count="+String(ev.count)+" wait="+String(ms-ev.wait_time)+ " millis="+String(ms));
-    if (ev.count==1)  if (true)
-    {
-      //logg.logging(rtc.timestring());
-    }else{
-      
-    }
-    if (ev.count==2) {
-      //logg.logging("Success= "+ String(rtc.isSuccess()));
-      //+" time="+rtc.timestring());
-      //logg.logging(rtc.test());
-      // pinMode(D0,OUTPUT);
-      // pinMode(D1,OUTPUT);
-      // pinMode(D2,OUTPUT);
-      // digitalWrite(D0,HIGH);
-      // digitalWrite(D1,HIGH);
-      // digitalWrite(D2,HIGH);
-    }
-    break;
-  case BTN_LONGCLICK:
-    logg.logging("LONGCLICK "+ String(ev.button)+" count="+String(ev.count));
-    
-    break;
-    case BTN_RELEASED:
-    //logg.logging("RELEASED "+ String(ev.button));
-    break;
-    case BTN_DBLCLICK:
-    logg.logging("XCLICK "+ String(ev.button));
-    break;
-    case BTN_PRESSED:
-      //logg.logging("PRESSED "+ String(ev.button));
-    break;
-  }
-}
-}
+
+
 
 
 void setup() {
@@ -90,7 +48,7 @@ void setup() {
 
    SPIFFS.begin();
    data.setup(); 
-   btns.add(1,HIGH);
+   
 
 // WiFi credentials.
    Serial.begin(9600);
@@ -109,7 +67,7 @@ void setup() {
     if (connect2WiFi())
     {
       http_server = new HttpHelper();
-      http_server->setup(&ir,&data);
+      http_server->setup(&data);
       msWiFi=0;
     }
     ms=0;
@@ -126,70 +84,7 @@ void loop()
     return;
   ms = millis();
   if (msWiFi==0) msWiFi=ms;
-  processButtons(ms);
-  if (ir.checkIR(ms) > 0)
-  {
-    switch (ir.getCommand())
-    {
-    case PULT_1:
-      data.relaySwitch(0, ms);
-      break;
-    case PULT_2:
-      data.relaySwitch(1, ms);
-      break;
-    case PULT_3:
-      data.relaySwitch(2, ms);
-      data.swcLight(data.isOn(2));
-      break;
-    case PULT_4:
-      data.relaySwitch(3, ms);
-      break;
-    case PULT_POWER:
-      data.relayOff(ms);
-      break;
-    case PULT_SOUND:
-      data.relaySwitchOff(ms);
-      break;
-    case PULT_VOLDOWN:
-      data.tuneLight(false,CANNEL_CW);
-      break;
-    case PULT_VOLUP:
-      data.tuneLight(true,CANNEL_CW);
-      break;
-case PULT_FASTBACK:
-      data.tuneLight(false,CANNEL_NW);
-      break;
-    case PULT_FASTFORWARD:
-      data.tuneLight(true,CANNEL_NW);
-      break;
-      case PULT_PREV:
-      data.tuneLight(false,CANNEL_WW);
-      break;
-    case PULT_NEXT:
-      data.tuneLight(true,CANNEL_WW);
-      break;
-    case PULT_SLOW://ultra low
-      data.setOneBand(CANNEL_CW,0);
-      data.setOneBand(CANNEL_NW,0);
-      data.setOneBand(CANNEL_WW,64);
-      break;
-    case PULT_ZOOM://low
-      data.setOneBand(CANNEL_CW,64);
-      data.setOneBand(CANNEL_NW,64);
-      data.setOneBand(CANNEL_WW,64);
-      break;
-    case PULT_STOP://middle
-      data.setOneBand(CANNEL_CW,128);
-      data.setOneBand(CANNEL_NW,128);
-      data.setOneBand(CANNEL_WW,128);
-      break;
-    case PULT_PAUSE://full
-      data.setOneBand(CANNEL_CW,255);
-      data.setOneBand(CANNEL_NW,255);
-      data.setOneBand(CANNEL_WW,255);
-      break;
-    }
-  }
+  
 
   data.loop(ms);
   
