@@ -16,8 +16,11 @@ void colorUp(uint8_t cannel);
 void colorDown(uint8_t cannel);
 
 void setOne(uint8_t cannel, uint8_t value);
+void force_refresh();
+
 private:
 void refresh();
+
 
 };
 #endif

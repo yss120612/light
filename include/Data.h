@@ -1,6 +1,11 @@
 #ifndef _DATA_h
 #define _DATA_h
 #include <Arduino.h>
+#include <Wire.h>
+#include <WiFiUdp.h>
+#include <NtpClient.h>
+
+#include "RTClib.h"
 #include "Relays.h"
 #include "BandLED.h"
 #include "Settings.h"
@@ -8,6 +13,9 @@
 #include "IRreceiver.h"
 #include "buttons.h"
 #include "Events.h"
+#include "Config.h"
+
+
 
 class AppData
 {
@@ -32,13 +40,17 @@ public:
     void ir_sleep();
     void putWebEvent(uint8_t n, uint8_t nn){evts.putWebEvent(n,nn);};
 private:
+    const char * ntpServer = "pool.ntp.org";
+    boolean update_time_from_inet();
     Events evts;
     Buttons btns;
     IRreceiver  ir=IRreceiver(IRPIN);
     Relay relays[4] = {Relay(RELAY1), Relay(RELAY2), Relay(RELAY3), Relay(RELAY4)};
     const uint8_t lgh = sizeof(relays) / sizeof(Relay);
     BandLED lamp;
-    
+    RTC_DS3231 rtc;
+    boolean fast_time_interval;
+    unsigned long last_tsync;
 };
 
 #endif

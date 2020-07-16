@@ -9,10 +9,53 @@ Config::Config(){
 
 }
 
+void Config::setup(){
+  at24.begin();
+}
 
+uint16_t Config::calcLength()
+{
+	uint16_t length = sizeof(uint8_t)*3+sizeof(boolean)*1;
+      	// sizeof(int) * 6 + 
+				// sizeof(float) * 6 + 
+				// sizeof(uint8_t) * 19 + 
+				// wifi_ssid.length() + 1 + 
+				// wifi_password.length() + 1 + 
+				// www_username.length() + 1 + 
+				// www_password.length() + 1;
+	return length;
+}
 
+void Config::upload(){
+uint8_t	length = calcLength();
+uint8_t * buff = new uint8_t[length];
+at24.read(0, buff, length);
+uint16_t idx = 0;
+memcpy(&cw,(buff + idx),  sizeof(cw)); idx += sizeof(cw);
+memcpy(&nw, (buff + idx),  sizeof(nw)); idx += sizeof(nw);
+memcpy(&ww, (buff + idx),  sizeof(ww)); idx += sizeof(ww);
+memcpy(&lamp_on, (buff + idx),  sizeof(lamp_on)); idx += sizeof(lamp_on);
+delete buff;
+chg=false;
+}
 
+void Config::story(){
+if (!chg) return;
 
+	uint8_t	length = calcLength();
+	uint8_t * buff = new uint8_t [length];
+	uint16_t idx = 0;
+
+	memcpy((buff + idx), &cw,		sizeof(cw)); idx += sizeof(cw);
+	memcpy((buff + idx), &nw,	sizeof(nw)); idx += sizeof(nw);
+	memcpy((buff + idx), &ww,	sizeof(ww)); idx += sizeof(ww);
+  memcpy((buff + idx), &lamp_on,	sizeof(lamp_on)); idx += sizeof(lamp_on);
+
+  at24.write(0, buff, length);
+	logg.logging("CONFIG saved ("+String(idx)+" bytes)!");
+	chg = false;
+	delete buff;
+}
 
 void Config::load() {
   // Open file for reading

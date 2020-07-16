@@ -54,5 +54,14 @@
 #define LONGCLICK_TIME 1000     // 1 sec.
 #define DBLCLICK_TIME 500       // 0.5 sec.
 
+#define  AT24C32_ADDRESS 0x57
+#define  EEPROM_PAGE_SIZE  32
+#define  EEPROM_WORK_SIZE  EEPROM_PAGE_SIZE / 2
+#define  EEPROM_WRITE_TIMEOUT  10
+
+#define  TIME_OFFSET 8
+
+#define LONG_TIME  60000*60*24 //one per day
+#define SHORT_TIME  60000*5 //one per 5 min
 
 #endif

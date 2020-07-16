@@ -90,7 +90,8 @@ void BandLED::colorUp(uint8_t cannel)
     }
     break;
     }
-    conf.save();
+    conf.changed();
+    conf.story();
     refresh();
 }
 
@@ -142,11 +143,16 @@ void BandLED::colorDown(uint8_t cannel)
 
 void BandLED::refresh(){
     if (conf.lamp_on){
+     force_refresh();
+    }
+    
+}
+
+
+void BandLED::force_refresh(){
      ledcWrite(CANNEL_CW, conf.cw);
      ledcWrite(CANNEL_NW, conf.nw);
      ledcWrite(CANNEL_WW, conf.ww);
-    }
-    
 }
 
 
@@ -165,7 +171,8 @@ void BandLED::setOne(uint8_t cannel, uint8_t value)
             conf.ww=value;
         break;
     }
-    conf.save();
+    conf.changed();
+    conf.story();
     //выкл или вкл для записи состояния
     refresh();
 }
