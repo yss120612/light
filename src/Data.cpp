@@ -23,6 +23,7 @@ void AppData::setup()
     evts.putPultEvent(PULT_3);
   fast_time_interval = true;
   last_tsync = 0;
+  
 }
 
 void AppData::loop(unsigned long t)
@@ -34,8 +35,8 @@ void AppData::loop(unsigned long t)
 
   ProcessEvents(t);
 
-  if (last_tsync == 0)
-    last_tsync = t;
+  if (last_tsync == 0)  last_tsync = t;
+  
   if (t - last_tsync > (fast_time_interval ? SHORT_TIME : LONG_TIME))
   {
     last_tsync = t;
@@ -44,7 +45,13 @@ void AppData::loop(unsigned long t)
 
   for (uint8_t i = 0; i < lgh; i++)
     relays[i].loop(t);
+
+  display.loop(t);  
 }
+
+
+
+
 
 void AppData::ir_sleep()
 {

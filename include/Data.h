@@ -5,6 +5,7 @@
 #include <WiFiUdp.h>
 #include <NtpClient.h>
 
+
 #include "RTClib.h"
 #include "Relays.h"
 #include "BandLED.h"
@@ -14,7 +15,7 @@
 #include "buttons.h"
 #include "Events.h"
 #include "Config.h"
-
+#include "display.h"
 
 
 class AppData
@@ -51,6 +52,7 @@ private:
     RTC_DS3231 rtc;
     boolean fast_time_interval;
     unsigned long last_tsync;
+    Display display;
 };
 
 #endif

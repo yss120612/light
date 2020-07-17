@@ -64,4 +64,6 @@
 #define LONG_TIME  60000*60*24 //one per day
 #define SHORT_TIME  60000*5 //one per 5 min
 
+#define DISPLAY_ON_TIME 1000*5 //5 sec!!
+
 #endif
