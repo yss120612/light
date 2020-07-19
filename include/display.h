@@ -15,12 +15,15 @@ class Display{
     Display();
     void setup();
     void drawText();
+    void test(String txt);
     void loop(unsigned long t);
-
+    void showString(String s,String s1="",String s2="");
     private:
-    U8G2_SH1106_128X64_NONAME_1_HW_I2C u8g2=U8G2_SH1106_128X64_NONAME_1_HW_I2C(U8G2_R0,U8X8_PIN_NONE);
+    U8G2_SH1106_128X64_VCOMH0_1_HW_I2C u8g2=U8G2_SH1106_128X64_VCOMH0_1_HW_I2C(U8G2_R2,U8X8_PIN_NONE);
     boolean display_on;
     unsigned long display_timer;
+    String toShow,toShow1,toShow2;
+    //int counter;
 };
 
 #endif

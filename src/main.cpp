@@ -71,6 +71,7 @@ void setup() {
       msWiFi=0;
     }
     ms=0;
+    
     //ir.enable();
   //  band.setup();
 }
@@ -140,4 +141,5 @@ boolean connect2WiFi(){
     logg.logging("WiFi connected.IP address: "+WiFi.localIP().toString());
     Serial.println("I'm connected to the internets!!");
     return true;
+    
 }

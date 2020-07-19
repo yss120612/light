@@ -1,5 +1,6 @@
 #include "Data.h"
 #include "Log.h"
+#include "Settings.h"
 
 AppData::AppData()
 {
@@ -7,20 +8,26 @@ AppData::AppData()
 
 void AppData::setup()
 {
-  conf.load();
+  
   relays[0].setup();
   relays[1].setup();
   relays[2].setup();
   relays[3].setup(RELTYPE_BUTTON);
   lamp.setup();
   btns.setEvents(&evts);
-  btns.add(1, HIGH);
+  if (btns.add(BUTTON_1, HIGH)==0xFF)
+  {
+    logg.logging("error add button");
+  }
+  
   ir.enable();
   conf.setup();
   conf.upload();
   lamp.force_refresh();
   if (conf.lamp_on)
     evts.putPultEvent(PULT_3);
+    
+  display.setup();  
   fast_time_interval = true;
   last_tsync = 0;
   
@@ -35,9 +42,7 @@ void AppData::loop(unsigned long t)
 
   ProcessEvents(t);
 
-  if (last_tsync == 0)  last_tsync = t;
-  
-  if (t - last_tsync > (fast_time_interval ? SHORT_TIME : LONG_TIME))
+  if (last_tsync==0 || t - last_tsync > (fast_time_interval ? SHORT_TIME : LONG_TIME))
   {
     last_tsync = t;
     update_time_from_inet();
@@ -139,11 +144,13 @@ void AppData::ProcessEvents(unsigned long t)
       //logg.logging("CLICK "+ String(ev.button)+" count="+String(ev.count)+" wait="+String(t-ev.wait_time)+ " millis="+String(t));
       if (ev.count == 1)
       {
+        logg.logging(rtc.now().timestamp());
         //logg.logging(rtc.timestring());
       }
       else if (ev.count == 2)
       {
-        logg.logging("Time is= "+ rtc.now().timestamp());
+        display.showString(rtc.now().timestamp(DateTime::TIMESTAMP_DATE), rtc.now().timestamp(DateTime::TIMESTAMP_TIME),String(rtc.getTemperature())+"C");
+        //logg.logging("Time is= "+ rtc.now().timestamp());
         //+" time="+rtc.timestring());
         //logg.logging(rtc.test());
         // pinMode(D0,OUTPUT);
@@ -153,9 +160,23 @@ void AppData::ProcessEvents(unsigned long t)
         // digitalWrite(D1,HIGH);
         // digitalWrite(D2,HIGH);
       }
+      else if (ev.count == 3){
+        int error;
+        for (int address = 1; address < 127; address++ )  {
+    Wire.beginTransmission(address);
+    error = Wire.endTransmission();
+    if (error == 0)    {
+      logg.logging("I2C device found at address "+String(address));
+      
+    }
+    else if (error == 4)    {
+      Serial.print("Unknow error at address "+String(address));
+    }
+  }
+      }
       break;
     case BTN_LONGCLICK:
-      logg.logging("LONGCLICK " + String(ev.button) + " count=" + String(ev.count));
+      if (ev.count==3) ESP.restart();
       break;
     case PULT_BUTTON:
       switch (ev.button)
@@ -172,6 +193,9 @@ void AppData::ProcessEvents(unsigned long t)
         break;
       case PULT_4:
         relaySwitch(3, t);
+        break;
+      case DISPLAY_1:
+        display.test("Hiii");
         break;
       case PULT_POWER:
         relayOff(t);
@@ -230,10 +254,12 @@ void AppData::ProcessEvents(unsigned long t)
         relaySet(1, ev.count > 0);
         break;
       case PULT_3:
+        logg.logging("here");
         relaySet(2, ev.count > 0);
         swcLight(ev.count > 0);
         break;
       case PULT_4:
+        display.showString("Hiii++");
         relaySwitch(3, t);
         break;
       case CANNEL_CW:
@@ -264,6 +290,7 @@ void AppData::swcLight(boolean state)
     lamp.on();
   else
     lamp.off();
+  
 }
 
 void AppData::tuneLight(boolean dir, uint8_t cannel)
