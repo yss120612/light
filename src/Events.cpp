@@ -21,10 +21,11 @@ void Events::putEvent(event_t *e){
   _events.push_back(*e);
 }
 
-void Events::putPultEvent(uint8_t n){
+void Events::putPultEvent(uint8_t p, uint8_t n){
 event_t e;
 e.state=PULT_BUTTON;
 e.button=n;
+e.count=p;
 _events.push_back(e);
 }
 

@@ -52,6 +52,7 @@ private:
     RTC_DS3231 rtc;
     boolean fast_time_interval;
     unsigned long last_tsync;
+    unsigned long learn_commang;//10 минут отображаем комманды с пульта
     Display display;
 };
 

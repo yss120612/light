@@ -25,23 +25,28 @@ void AppData::setup()
   conf.upload();
   lamp.force_refresh();
   if (conf.lamp_on)
-    evts.putPultEvent(PULT_3);
+    evts.putPultEvent((uint8_t)IR_DEVICE,PULT_3);
     
   display.setup();  
   fast_time_interval = true;
   last_tsync = 0;
-  
+  learn_commang=0;
 }
 
 void AppData::loop(unsigned long t)
 {
   if (ir.checkIR(t) > 0)
   {
-    evts.putPultEvent((uint8_t)ir.getCommand());
+    evts.putPultEvent((uint8_t)ir.getDevice(), (uint8_t)ir.getCommand());
   }
 
   ProcessEvents(t);
 
+  if (learn_commang>0 && t-learn_commang>60000)//10 min
+  {
+    learn_commang=0;
+    display.showString("Learn mode","OFF","");
+  }
   if (last_tsync==0 || t - last_tsync > (fast_time_interval ? SHORT_TIME : LONG_TIME))
   {
     last_tsync = t;
@@ -144,12 +149,14 @@ void AppData::ProcessEvents(unsigned long t)
       //logg.logging("CLICK "+ String(ev.button)+" count="+String(ev.count)+" wait="+String(t-ev.wait_time)+ " millis="+String(t));
       if (ev.count == 1)
       {
-        logg.logging(rtc.now().timestamp());
+        display.showString(rtc.now().timestamp(DateTime::TIMESTAMP_DATE), rtc.now().timestamp(DateTime::TIMESTAMP_TIME),String(rtc.getTemperature())+"C");
+        //logg.logging(rtc.now().timestamp());
         //logg.logging(rtc.timestring());
       }
       else if (ev.count == 2)
       {
-        display.showString(rtc.now().timestamp(DateTime::TIMESTAMP_DATE), rtc.now().timestamp(DateTime::TIMESTAMP_TIME),String(rtc.getTemperature())+"C");
+        learn_commang=t;
+        display.showString("Learn mode","ON","");
         //logg.logging("Time is= "+ rtc.now().timestamp());
         //+" time="+rtc.timestring());
         //logg.logging(rtc.test());
@@ -169,9 +176,9 @@ void AppData::ProcessEvents(unsigned long t)
       logg.logging("I2C device found at address "+String(address));
       
     }
-    else if (error == 4)    {
-      Serial.print("Unknow error at address "+String(address));
-    }
+    //else if (error == 4)    {
+      //Serial.print("Unknow error at address "+String(address));
+    //}
   }
       }
       break;
@@ -179,6 +186,10 @@ void AppData::ProcessEvents(unsigned long t)
       if (ev.count==3) ESP.restart();
       break;
     case PULT_BUTTON:
+      if (learn_commang>0){
+        display.showString("Dev."+String(ev.count)+(ev.count==IR_DEVICE?" MY":" ALIEN"),"Code "+String(ev.button),"pult`");
+      }
+      if (ev.count!=IR_DEVICE) break;
       switch (ev.button)
       {
       case PULT_1:
@@ -225,6 +236,7 @@ void AppData::ProcessEvents(unsigned long t)
         setOneBand(CANNEL_CW, 0);
         setOneBand(CANNEL_NW, 0);
         setOneBand(CANNEL_WW, 64);
+        //logg.logging("SLOW");
         break;
       case PULT_ZOOM: //low
         setOneBand(CANNEL_CW, 64);
@@ -254,21 +266,21 @@ void AppData::ProcessEvents(unsigned long t)
         relaySet(1, ev.count > 0);
         break;
       case PULT_3:
-        logg.logging("here");
+        //logg.logging("here");
         relaySet(2, ev.count > 0);
         swcLight(ev.count > 0);
         break;
       case PULT_4:
-        display.showString("Hiii++");
+        display.showString("Comp. OFF");
         relaySwitch(3, t);
         break;
-      case CANNEL_CW:
+      case WEB_CANNEL_CW:
         setOneBand(CANNEL_CW, ev.count);
         break;
-      case CANNEL_NW:
+      case WEB_CANNEL_NW:
         setOneBand(CANNEL_NW, ev.count);
         break;
-      case CANNEL_WW:
+      case WEB_CANNEL_WW:
         setOneBand(CANNEL_WW, ev.count);
         break;
       }

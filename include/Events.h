@@ -23,7 +23,7 @@ Events(){};
 bool have_event(){return _events.size()>0;};
 bool count_event(){return _events.size();};
 bool getEvent(event_t * e, long ms);
-void putPultEvent(uint8_t n);
+void putPultEvent(uint8_t p, uint8_t n);
 void putWebEvent(uint8_t n, uint8_t nn);
 void putEvent(event_t * e);
 void putEvent(uint8_t idx, event_t * e);
