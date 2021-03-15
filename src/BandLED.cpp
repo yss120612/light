@@ -1,5 +1,6 @@
 #include "BandLED.h"
 #include "BandLED.h"
+#include "Log.h"
 
 BandLED::BandLED()
 {
@@ -147,6 +148,7 @@ void BandLED::colorDown(uint8_t cannel)
 void BandLED::refresh(){
     if (conf.lamp_on){
      force_refresh();
+
     }
     
 }
@@ -163,6 +165,7 @@ void BandLED::force_refresh(){
 void BandLED::setOne(uint8_t cannel, uint8_t value)
 {
     if (!conf.lamp_on) return;
+   // logg.logging("CHANNEL="+String(cannel)+ "Value="+String(value));
     switch (cannel){
         case CANNEL_CW:
             conf.cw=value;

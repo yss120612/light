@@ -148,17 +148,17 @@ void HttpHelper::var(String n, String v)
 	}
 	else if (n.equals("BAND_CW"))
 	{
-		data->putWebEvent(CANNEL_CW,v.equals(F("true"))?255:0);
+		data->putWebEvent(WEB_CANNEL_CW,v.equals(F("true"))?255:0);
 		//logg.logging("BAND=" + n + ", v=" + v);
 	}
 	else if (n.equals("BAND_NW"))
 	{
-		data->putWebEvent(CANNEL_NW,v.equals(F("true"))?255:0);
+		data->putWebEvent(WEB_CANNEL_NW,v.equals(F("true"))?255:0);
 		//logg.logging("BAND=" + n + ", v=" + v);
 	}
 	else if (n.equals("BAND_WW"))
 	{
-		data->putWebEvent(CANNEL_WW,v.equals(F("true"))?255:0);
+		data->putWebEvent(WEB_CANNEL_WW,v.equals(F("true"))?255:0);
 		//logg.logging("BAND=" + n + ", v=" + v);
 	}
 }
@@ -169,7 +169,7 @@ void HttpHelper::var_log(String n, String v)
 	{
 		logg.clear();
 		logg.logging("n=" + n + ", v=" + v);
-		data->logConf();
+		//data->logConf();
 	}
 }
 
@@ -400,7 +400,6 @@ void HttpHelper::handleA2W(AsyncWebServerRequest * request)
 	}
 }
 
-
 String HttpHelper::text(String id, String label){
 	String buf;
 //     buf = F("{\"html\":\"input\",");
@@ -473,8 +472,6 @@ void HttpHelper::handleUpd(AsyncWebServerRequest * request) {
 
 	request->send(200, "text/html", resp);
 }
-
-
 
 void HttpHelper::handleTest(AsyncWebServerRequest * request) {
     if (!request->authenticate("Yss1", "bqt3"))

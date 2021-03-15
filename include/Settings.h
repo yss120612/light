@@ -16,26 +16,30 @@
 // #define PULT_4      0x58A7906F
 // #define PULT_POWER  0x58A728D7
 
-#define IR_DEVICE 14
-#define DISPLAY_1   10
+#define IR_DEVICE 162
+#define DISPLAY_1   67
 
 
-#define PULT_1      50
-#define PULT_2      49
-#define PULT_3      57
-#define PULT_4      58
-#define PULT_POWER  12
+#define PULT_1      1
+#define PULT_2      2
+#define PULT_3      3
+#define PULT_4      4
+#define PULT_POWER  74
 #define PULT_SOUND  69
-#define PULT_VOLUP  68
-#define PULT_VOLDOWN  24
+#define PULT_VOLUP  14
+#define PULT_VOLDOWN  15
 #define PULT_FASTBACK 110
 #define PULT_FASTFORWARD  30
 #define PULT_NEXT 82
 #define PULT_PREV  83
-#define PULT_SLOW  1
-#define PULT_ZOOM  2
-#define PULT_STOP  3
-#define PULT_PAUSE  4
+#define PULT_SLOW  17
+#define PULT_ZOOM  24
+#define PULT_STOP  22
+#define PULT_PAUSE  16
+
+#define WEB_CANNEL_CW   100
+#define WEB_CANNEL_NW   101
+#define WEB_CANNEL_WW   102
 
 #define PRESS_DURATION 300//держим реле (имитация нажатия) 
 #define PERIOD 1000
@@ -51,6 +55,8 @@
 #define CANNEL_CW   0
 #define CANNEL_NW   1
 #define CANNEL_WW   2
+
+
 #define PIN_CW   23
 #define PIN_NW   16
 #define PIN_WW   15

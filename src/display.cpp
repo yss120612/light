@@ -33,20 +33,20 @@ else  if (t-display_timer>DISPLAY_ON_TIME){
 void Display::drawText(){
   
   u8g2.sleepOff();
-  u8g2.setFont(u8g2_font_helvB12_tf);
+  u8g2.setFont(u8g2_font_8x13_t_cyrillic);
   u8g2.firstPage();
   do {
     u8g2.setCursor(0, 20);
     u8g2.print(toShow);
     if (toShow1!="")
     {
-      u8g2.setFont(u8g2_font_helvB12_tn);
+      //u8g2.setFont(u8g2_font_timB12_tn);
     u8g2.setCursor(0, 40);
     u8g2.print(toShow1);
     }
     if (toShow2!="")
     {
-      u8g2.setFont(u8g2_font_helvB12_tr);
+      //u8g2.setFont(u8g2_font_timB12_tr);
     u8g2.setCursor(0, 60);
     u8g2.print(toShow2);
     }
