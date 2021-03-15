@@ -65,6 +65,7 @@ private:
 	//void handleSuvidChart();
 	//Config * conf;
 	AsyncWebServer * server;
+	
 	//ESP8266HTTPUpdateServer * httpUpdater;
 	//ESP8266WebSpiffsUpdater * httpSpiffsUpdater;
 	//DataSrc * ds;
