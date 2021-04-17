@@ -57,8 +57,8 @@ void setup() {
     // appear on each upload.
     delay(2000);
 
-    Serial.println();
-    Serial.print(fw);
+    //Serial.println();
+    //Serial.print(fw);
     logg.logging(fw);
     // Connect to Wifi.
     
