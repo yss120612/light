@@ -10,7 +10,7 @@ uint8_t Buttons::add(uint8_t pin, bool level) {
   uint8_t result;
   button_t b;
 
-  if (pin > 15)
+  if (pin > 36)
     return 0xFF;
   b.pin = pin;
   b.level = level;
