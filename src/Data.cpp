@@ -28,6 +28,7 @@ void AppData::setup()
     evts.putPultEvent((uint8_t)IR_DEVICE,PULT_3);
     
   display.setup();  
+  mqtt.setup(this);
   fast_time_interval = true;
   last_tsync = 0;
   learn_commang=0;
@@ -47,6 +48,7 @@ void AppData::loop(unsigned long t)
     learn_commang=0;
     display.showString("Learn mode","OFF","");
   }
+  if (t < last_tsync) last_tsync=t;
   if (last_tsync==0 || t - last_tsync > (fast_time_interval ? SHORT_TIME : LONG_TIME))
   {
     last_tsync = t;

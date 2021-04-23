@@ -16,7 +16,7 @@
 #include "Events.h"
 #include "Config.h"
 #include "display.h"
-
+#include "MQTTclient.h"
 
 class AppData
 {
@@ -42,6 +42,8 @@ public:
     void putWebEvent(uint8_t n, uint8_t nn){evts.putWebEvent(n,nn);};
 private:
     const char * ntpServer = "pool.ntp.org";
+   
+
     boolean update_time_from_inet();
     Events evts;
     Buttons btns;
@@ -50,6 +52,7 @@ private:
     const uint8_t lgh = sizeof(relays) / sizeof(Relay);
     BandLED lamp;
     RTC_DS3231 rtc;
+    MqttClient mqtt;
     boolean fast_time_interval;
     unsigned long last_tsync;
     unsigned long learn_commang;//10 минут отображаем комманды с пульта

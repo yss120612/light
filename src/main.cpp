@@ -80,10 +80,11 @@ void setup() {
 
 void loop()
 {
-
-  if (millis() - ms < CHECKPERIOD)
+  unsigned long m=millis();
+  if (m<ms) ms=m;
+  if (m - ms < CHECKPERIOD)
     return;
-  ms = millis();
+  ms = m;
   if (msWiFi==0) msWiFi=ms;
   
 
