@@ -1,5 +1,6 @@
 #include "MQTTclient.h"
 #include "Log.h"
+#include "Data.h"
 
 MqttClient::MqttClient()
 {

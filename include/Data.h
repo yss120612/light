@@ -1,5 +1,6 @@
 #ifndef _DATA_h
 #define _DATA_h
+
 #include <Arduino.h>
 #include <Wire.h>
 #include <WiFiUdp.h>
@@ -17,6 +18,8 @@
 #include "Config.h"
 #include "display.h"
 #include "MQTTclient.h"
+
+//class MqttClient;
 
 class AppData
 {
