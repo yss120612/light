@@ -7,16 +7,18 @@
 #include "Settings.h"
 #include "Data.h"
 #include "buttons.h"
+#include "Blinker.h"
+
 
 
 AppData data;
 
 const char* WIFI_SSID = "Yss_GIGA";
 const char* WIFI_PASS = "bqt3bqt3";
-const char* fw = "Running firmware v. 2.1";
+const char* fw = "Running firmware v. 2.2";
 
 
-HttpHelper * http_server;
+
 unsigned long ms;
 unsigned long msWiFi;
 boolean forceWiFi;//если не задалось с первого раза повторять каждые Х минут или нет
@@ -24,14 +26,36 @@ boolean forceWiFi;//если не задалось с первого раза п
 extern boolean connect2WiFi();
 
 
+HttpHelper * http_server;
+MqttClient *mqtt;
+
+Blinker * blinker;
 
 
 
+void init_networks(){
+ if (!http_server)
+        {
+          http_server = new HttpHelper();
+          http_server->setup(&data);
+        }
+        if (!mqtt)
+        {
+          mqtt = new MqttClient();
+          mqtt->setup(&data);
+          //logg.setup(mqtt);
+        }
+        
+}
+
+static void WiFiTaskHandler(void *pvParam) {
+  const uint32_t WIFI_TIMEOUT = 30000; // 30 sec.
+}
 
 void setup() {
   // put your setup code here, to run once:
-   pinMode(LED,OUTPUT);
-  
+   //pinMode(LED,OUTPUT);
+  blinker=new Blinker(LED,HIGH);
 
   //  pinMode(RELAY1,OUTPUT_OPEN_DRAIN);
   //  pinMode(RELAY2,OUTPUT_OPEN_DRAIN);
@@ -47,33 +71,24 @@ void setup() {
    
 
    SPIFFS.begin();
-   data.setup(); 
+   
    
 
 // WiFi credentials.
-   Serial.begin(9600);
-    // Giving it a little time because the serial monitor doesn't
-    // immediately attach. Want the firmware that's running to
-    // appear on each upload.
-    delay(2000);
-
-    //Serial.println();
-    //Serial.print(fw);
-    logg.logging(fw);
-    // Connect to Wifi.
+#ifdef _SERIAL
+   Serial.begin(115200);
+#endif
     
     forceWiFi=true;
     
     if (connect2WiFi())
     {
-      http_server = new HttpHelper();
-      http_server->setup(&data);
+     init_networks();
       msWiFi=0;
     }
     ms=0;
-    
-    //ir.enable();
-  //  band.setup();
+   data.setup(mqtt);  
+   logg.logging(fw);
 }
 
 
@@ -89,10 +104,16 @@ void loop()
   
 
   data.loop(ms);
-  
-  if (!http_server || !http_server->isUpdate())
-  {
-    digitalWrite(LED, data.isOn() ? HIGH : LOW);
+  if (mqtt) mqtt->loop(ms);
+
+  // if (!http_server || !http_server->isUpdate())
+  // {
+  //   digitalWrite(LED, data.isOn() ? HIGH : LOW);
+  // }
+
+
+  if (blinker->getMode()!=BLINK_ON && data.isOn() || blinker->getMode()!=BLINK_OFF && !data.isOn()){
+    blinker->setMode(data.isOn()?BLINK_ON:BLINK_OFF);
   }
 
   if (ms-msWiFi>CHECKWIFI){
@@ -104,27 +125,29 @@ void loop()
 }
 
 boolean connect2WiFi(){
-    Serial.print("Connecting to ");
-    Serial.println(WIFI_SSID);
+    //Serial.print("Connecting to ");
+    //Serial.println(WIFI_SSID);
     logg.logging("Connecting to "+String(WIFI_SSID));
+    blinker->setMode(BLINK_4HZ);
     // Set WiFi to station mode and disconnect from an AP if it was previously connected
     WiFi.mode(WIFI_STA);
     //WiFi.disconnect();
    // delay(100);
     WiFi.disconnect();
     WiFi.begin(WIFI_SSID, WIFI_PASS);
-    Serial.println("Connecting...");
+    //Serial.println("Connecting...");
     uint8_t cycles=0;
     while (WiFi.status() != WL_CONNECTED) {
       // Check to see if connecting failed.
       // This is due to incorrect credentials
       if (WiFi.status() == WL_CONNECT_FAILED) {
-        Serial.println("Failed to connect to WIFI. Please verify credentials: ");
-        Serial.print("SSID: ");
-        Serial.println(WIFI_SSID);
-        Serial.print("Password: ");
-        Serial.println(WIFI_PASS);
-
+        logg.logging("Failed to connect to WIFI.");
+        //Serial.println("Failed to connect to WIFI. Please verify credentials: ");
+        //Serial.print("SSID: ");
+        // Serial.println(WIFI_SSID);
+        // Serial.print("Password: ");
+        //Serial.println(WIFI_PASS);
+        logg.logging("Connecting to "+String(WIFI_SSID));
       }
       delay(5000);
       cycles++;
@@ -135,12 +158,13 @@ boolean connect2WiFi(){
       break;
       }
     }
-    Serial.println("");
-    Serial.println("WiFi connected");
-    Serial.println("IP address: ");
-    Serial.println(WiFi.localIP());
+    //Serial.println("");
+    //Serial.println("WiFi connected");
+    //Serial.println("IP address: ");
+    //Serial.println(WiFi.localIP());
+    blinker->setMode(BLINK_OFF);
     logg.logging("WiFi connected.IP address: "+WiFi.localIP().toString());
-    Serial.println("I'm connected to the internets!!");
+    //Serial.println("I'm connected to the internets!!");
     return true;
     
 }
