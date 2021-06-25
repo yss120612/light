@@ -17,7 +17,7 @@
 // #define PULT_POWER  0x58A728D7
 
 #define IR_DEVICE 162
-#define DISPLAY_1   67
+//#define DISPLAY_1   67
 
 
 #define PULT_1      1
@@ -36,6 +36,7 @@
 #define PULT_ZOOM  24
 #define PULT_STOP  22
 #define PULT_PAUSE  16
+#define PULT_INFO  67
 
 #define WEB_CANNEL_CW   100
 #define WEB_CANNEL_NW   101

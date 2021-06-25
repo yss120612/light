@@ -34,10 +34,10 @@ else{
 
 void BandLED::on()
 {
-    conf.lamp_on=true;
+    //conf.lamp_on=true;
     //conf.save();
-    conf.changed();
-    conf.story();
+    //conf.changed();
+    //conf.force_story();
     refresh();
 }
 
@@ -47,9 +47,8 @@ void BandLED::off()
     ledcWrite(CANNEL_CW, 0);
     ledcWrite(CANNEL_NW, 0);
     ledcWrite(CANNEL_WW, 0);
-    conf.lamp_on=false;
-    conf.changed();
-    conf.story();
+    //conf.lamp_on=false;
+    //conf.force_story();
     refresh();
 }
 
@@ -59,43 +58,42 @@ void BandLED::colorUp(uint8_t cannel)
     switch (cannel)
     {
     case CANNEL_CW:
-    if (conf.cw==0){
+    if (conf.cw<64){
         conf.cw=64;
-    }else if (conf.cw==64)    {
+    }else if (conf.cw<128)    {
         conf.cw=128;
-    }else if (conf.cw==128)    {
+    }else if (conf.cw<192)    {
         conf.cw=192;
-    }else if (conf.cw==192)    {
+    }else if (conf.cw<255)    {
         conf.cw=255;
     }
     break;
 
     case CANNEL_NW:
-    if (conf.nw==0){
+    if (conf.nw<64){
         conf.nw=64;
-    }else if (conf.nw==64)    {
+    }else if (conf.nw<128)    {
         conf.nw=128;
-    }else if (conf.nw==128)    {
+    }else if (conf.nw<192)    {
         conf.nw=192;
-    }else if (conf.nw==192)    {
+    }else if (conf.nw<255)    {
         conf.nw=255;
     }
     break;
 
     case CANNEL_WW:
-    if (conf.ww==0){
+    if (conf.ww<64){
         conf.ww=64;
-    }else if (conf.ww==64)    {
+    }else if (conf.ww<128)    {
         conf.ww=128;
-    }else if (conf.ww==128)    {
+    }else if (conf.ww<192)    {
         conf.ww=192;
-    }else if (conf.ww==192)    {
+    }else if (conf.ww<255)    {
         conf.ww=255;
     }
     break;
     }
-    conf.changed();
-    conf.story();
+    conf.force_story();
     refresh();
 }
 
@@ -105,42 +103,43 @@ void BandLED::colorDown(uint8_t cannel)
     switch (cannel)
     {
     case CANNEL_CW:
-    if (conf.cw==255){
+    if (conf.cw>192){
         conf.cw=192;
-    }else if (conf.cw==192)    {
+    }else if (conf.cw>128)    {
         conf.cw=128;
-    }else if (conf.cw==128)    {
+    }else if (conf.cw>64)    {
         conf.cw=64;
-    }else if (conf.cw==64)    {
+    }else if (conf.cw>0)    {
         conf.cw=0;
     }
     break;
 
     case CANNEL_NW:
-    if (conf.nw==255){
+    if (conf.nw>192){
         conf.nw=192;
-    }else if (conf.nw==192)    {
+    }else if (conf.nw>128)    {
         conf.nw=128;
-    }else if (conf.nw==128)    {
+    }else if (conf.nw>64)    {
         conf.nw=64;
-    }else if (conf.nw==64)    {
+    }else if (conf.nw>0)    {
         conf.nw=0;
     }
     break;
 
     case CANNEL_WW:
-    if (conf.ww==255){
+    if (conf.ww>192){
         conf.ww=192;
-    }else if (conf.ww==192)    {
+    }else if (conf.ww>128)    {
         conf.ww=128;
-    }else if (conf.ww==128)    {
+    }else if (conf.ww>64)    {
         conf.ww=64;
-    }else if (conf.ww==64)    {
+    }else if (conf.ww>0)    {
         conf.ww=0;
     }
     break;
     }
-    conf.save();
+    //conf.save();
+    conf.force_story();
     refresh();
 }
 
@@ -148,7 +147,6 @@ void BandLED::colorDown(uint8_t cannel)
 void BandLED::refresh(){
     if (conf.lamp_on){
      force_refresh();
-
     }
     
 }
@@ -164,7 +162,8 @@ void BandLED::force_refresh(){
 
 void BandLED::setOne(uint8_t cannel, uint8_t value)
 {
-    if (!conf.lamp_on) return;
+    
+    //if (!conf.lamp_on) return;
    // logg.logging("CHANNEL="+String(cannel)+ "Value="+String(value));
     switch (cannel){
         case CANNEL_CW:
@@ -177,8 +176,7 @@ void BandLED::setOne(uint8_t cannel, uint8_t value)
             conf.ww=value;
         break;
     }
-    conf.changed();
-    conf.story();
+    conf.force_story();
     //выкл или вкл для записи состояния
     refresh();
 }

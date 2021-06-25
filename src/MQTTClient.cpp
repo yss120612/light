@@ -17,7 +17,13 @@ void MqttClient::setup(AppData *ad)
   wf = new WiFiClient();
   data = ad;
   client = new PubSubClient(mqtt_server, mqtt_port, std::bind(&MqttClient::callback, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3), *wf);
-  ignore_next_valve=false;
+  ignore_relay1=false;
+  ignore_relay2=false;
+  ignore_relay3=false;
+  ignore_relay4=false;
+  ignore_cw=false;
+  ignore_ww=false;
+  ignore_nw=false;
 }
 
 String MqttClient::getStatus()
@@ -38,32 +44,48 @@ String MqttClient::getStatus()
 
 void MqttClient::callback(char *topic, byte *payload, unsigned int length)
 {
+  
+  
   String mess = "";
   String top = topic;
   for (int i = 0; i < length; i++)
   {
     mess += (char)payload[i];
   }
-  logg.logging("[" + String(topic) + String("] = ") + mess+String(ignore_next_valve?" (ignor)":""));
-  if (top.indexOf("/valve")>0)
+    
+  if (top.indexOf("/rel3")>0)
   {
-    if (ignore_next_valve){
-      ignore_next_valve=false;
-      return;
-    }
-    if (mess.equals("0")){}
-      //ws_sys->close_valve();
-    //else
-     // ws_sys->open_valve();
+    if (ignore_relay3){ignore_relay3=false;mess+="(ignor)";}
+    else data->putWebEvent(PULT_3,mess.equals("1"));
   }
-  else if (top.indexOf("/switch")>0)
+  else if (top.indexOf("/rel2")>0)
   {
-    //ws_sys->switch_valve();
+    if (ignore_relay2){ignore_relay2=false;mess+="(ignor)";}
+    else data->putWebEvent(PULT_2,mess.equals("1"));
   }
-  else if (top.indexOf("/disalarm")>0)
+  else if (top.indexOf("/rel1")>0)
   {
+    if (ignore_relay1){ignore_relay1=false;mess+="(ignor)";}
+    else data->putWebEvent(PULT_1,mess.equals("1"));
+  }
+  else if (top.indexOf("/ww")>0)
+  {
+    if (ignore_ww){ignore_ww=false;mess+="(ignor)";}
+    else data->putWebEvent(WEB_CANNEL_WW,mess.toInt());
    // ws_sys->disalarm();
   }
+  else if (top.indexOf("/cw")>0)
+  {
+    if (ignore_cw){ignore_cw=false;mess+="(ignor)";}
+    else data->putWebEvent(WEB_CANNEL_CW,mess.toInt());
+  }
+  else if (top.indexOf("/nw")>0)
+  {
+    if (ignore_nw){ignore_nw=false;mess+="(ignor)";}
+    else data->putWebEvent(WEB_CANNEL_NW,mess.toInt());
+  }
+  logg.logging("[" + String(topic) + String("] = ") + mess);
+  
 }
 
 void MqttClient::reconnect()
@@ -78,11 +100,23 @@ void MqttClient::reconnect()
     {
       logg.logging("connected");
       // Once connected, publish an announcement...
-      //client->publish("user/yss1/161/alarm","0");
+      client->publish(mqtt_str_notebook,data->isOn(0)?"1":"0");
+      client->publish(mqtt_str_heater,data->isOn(1)?"1":"0");
+      client->publish(mqtt_str_light,data->isOn(2)?"1":"0");
+      client->publish(mqtt_str_ww,String(data->getWW()).c_str());
+      client->publish(mqtt_str_nw,String(data->getNW()).c_str());
+      client->publish(mqtt_str_cw,String(data->getCW()).c_str());
+      
+      
       
       // ... and resubscribe
       //logg.logging(mqtt_str_valve);
-      //client->subscribe(mqtt_str_valve);
+      client->subscribe(mqtt_str_light);
+      client->subscribe(mqtt_str_notebook);
+      client->subscribe(mqtt_str_heater);
+      client->subscribe(mqtt_str_ww);
+      client->subscribe(mqtt_str_nw);
+      client->subscribe(mqtt_str_cw);
       //client->subscribe(mqtt_str_switch);
       //client->subscribe(mqtt_str_disalarm);
       //setValve(ws_sys->valve_is_open());
@@ -99,9 +133,48 @@ void MqttClient::reconnect()
   }
 }
 
+void MqttClient::updateState(uint8_t wh, uint8_t val){
+  if (!client->connected()) return;
+     
+     switch (wh)
+      {
+      case PULT_1:
+        client->publish(mqtt_str_notebook,data->isOn(0)?"1":"0");
+        ignore_relay1=true;
+        break;
+      case PULT_2:
+        client->publish(mqtt_str_heater,data->isOn(1)?"1":"0");
+        ignore_relay2=true;
+        break;
+      case PULT_3:
+        client->publish(mqtt_str_light,data->isOn(2)?"1":"0");
+        ignore_relay3=true;
+        break;
+      case PULT_4:
+        ignore_relay4=true;
+        break;
+      case CANNEL_CW+100:
+        client->publish(mqtt_str_cw,String(data->getCW()).c_str());
+        ignore_cw=true;
+        break;
+      case CANNEL_NW+100:
+        client->publish(mqtt_str_nw,String(data->getNW()).c_str());
+        ignore_nw=true;
+        break;
+      case CANNEL_WW+100:
+        client->publish(mqtt_str_ww,String(data->getWW()).c_str());
+        ignore_ww=true;
+        break;
+      }
+}
+
+
 void MqttClient::log(String s){
+if (!client->connected()) return;
 client->publish(mqtt_str_log, s.c_str());
 }
+
+
 
 void MqttClient::loop(long ms)
 {

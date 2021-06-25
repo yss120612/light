@@ -1,4 +1,5 @@
 #include "Relays.h"
+#include "Log.h"
 
 Relay::Relay(uint8_t p)
 {
@@ -6,17 +7,36 @@ Relay::Relay(uint8_t p)
     tm = 0;
 }
 
-void Relay::setup(uint8_t tp)
+void Relay::setup(boolean * mst,uint8_t tp)
 {
     pinMode(pin, OUTPUT_OPEN_DRAIN);
-    digitalWrite(pin, HIGH);
+    //digitalWrite(pin, HIGH);
     state = false;
+    if (mst!=NULL){
+        mem_state=mst;
+        state=*mst;
+        //logg.logging("mem="+String((int)mem_state) +"val="+String(*mem_state));
+    }
+    
+    syncro();
+    //logg.logging("mem2="+String((int)mem_state));
     type = tp;
     if (type == RELTYPE_BUTTON){
         dur = PRESS_DURATION;
     }
     else{
         dur=0;
+    }
+}
+
+
+void Relay::setState(boolean s){
+    state=s;
+    
+    if (mem_state!=NULL){
+        *mem_state=s;
+        
+        conf.force_story();
     }
 }
 
@@ -29,8 +49,8 @@ void Relay::setOn()
 {
     if (!state)
     {
-        digitalWrite(pin, LOW);
-        state = true;
+        setState(true);
+        syncro();
     }
 }
 
@@ -38,9 +58,13 @@ void Relay::setOff()
 {
     if (state)
     {
-        digitalWrite(pin, HIGH);
-        state = false;
+        setState(false);
+        syncro();
     }
+}
+
+void Relay::syncro(){
+    digitalWrite(pin, state?LOW:HIGH);
 }
 
 void Relay::set(boolean w)

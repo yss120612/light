@@ -1,5 +1,7 @@
 #ifndef _LOG_h
 #define _LOG_h
+#define _SERIAL1
+
 #include <Arduino.h>
 
 #include<QList.h>

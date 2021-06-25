@@ -6,14 +6,29 @@ AppData::AppData()
 {
 }
 
-void AppData::setup()
+void AppData::setup(MqttClient * mq)
 {
-  
-  relays[0].setup();
+  if (!conf.setup())
+  {
+    logg.logging("AT24C32 ERROR!");
+  }
+  else{
+    logg.logging("AT24C32 OK!");
+  }
+  conf.upload();
+  conf.print();
+  relays[0].setup(&conf.notebook_on);
   relays[1].setup();
-  relays[2].setup();
-  relays[3].setup(RELTYPE_BUTTON);
+  relays[2].setup(&conf.lamp_on);
+  relays[3].setup(NULL,RELTYPE_BUTTON);
+  //logg.logging("lamp="+String((int)&conf.lamp_on)+" val="+String(conf.lamp_on));
+  //logg.logging("NB="+String((int)&conf.notebook_on)+" val="+String(conf.notebook_on));
+
   lamp.setup();
+
+  // conf.notebook_on=false;
+  // conf.heater_on=true;
+  // conf.lamp_on=false;
   btns.setEvents(&evts);
   if (btns.add(BUTTON_1, HIGH)==0xFF)
   {
@@ -21,17 +36,18 @@ void AppData::setup()
   }
   
   ir.enable();
-  conf.setup();
-  conf.upload();
-  lamp.force_refresh();
-  if (conf.lamp_on)
-    evts.putPultEvent((uint8_t)IR_DEVICE,PULT_3);
+  
+  // lamp.force_refresh();
+  // relays[2].set(conf.notebook_on);
+  // if (conf.lamp_on)
+  //   evts.putPultEvent((uint8_t)IR_DEVICE,PULT_3);
     
   display.setup();  
-  mqtt.setup(this);
   fast_time_interval = true;
   last_tsync = 0;
   learn_commang=0;
+  mqtt=mq;
+
 }
 
 void AppData::loop(unsigned long t)
@@ -74,31 +90,24 @@ uint8_t AppData::getCW() { return conf.cw; }
 uint8_t AppData::getNW() { return conf.nw; }
 uint8_t AppData::getWW() { return conf.ww; }
 
+
 void AppData::relaySwitchOff(unsigned long t)
 {
+  relayOff();
   for (uint8_t i = 0; i < lgh; i++)
   {
-    switch (relays[i].type)
-    {
-    case RELTYPE_SWICH:
-      relays[i].setOff();
-      break;
-    case RELTYPE_BUTTON:
-      relays[i].arm(t);
-      break;
-    }
+    if (relays[i].type==RELTYPE_BUTTON) relays[i].arm(t);
   }
 }
 
-void AppData::relayOff(unsigned long t)
+void AppData::relayOff()
 {
   for (uint8_t i = 0; i < lgh; i++)
   {
-    switch (relays[i].type)
+    if (relays[i].type==RELTYPE_SWICH)
     {
-    case RELTYPE_SWICH:
       relays[i].setOff();
-      break;
+      if (mqtt) mqtt->updateState(i+1,relays[i].isOn());
     }
   }
 }
@@ -109,6 +118,7 @@ void AppData::relaySet(uint8_t i, boolean st)
   {
   case RELTYPE_SWICH:
     relays[i].set(st);
+    if (mqtt) mqtt->updateState(i+1,relays[i].isOn());
     break;
   }
 }
@@ -119,11 +129,13 @@ void AppData::relaySwitch(uint8_t i, unsigned long t)
   {
   case RELTYPE_SWICH:
     relays[i].swc();
+    if (mqtt) mqtt->updateState(i+1,relays[i].isOn());
     break;
   case RELTYPE_BUTTON:
     relays[i].arm(t);
     break;
   }
+  
 }
 
 boolean AppData::isOn(uint8_t i)
@@ -207,32 +219,34 @@ void AppData::ProcessEvents(unsigned long t)
       case PULT_4:
         relaySwitch(3, t);
         break;
-      case DISPLAY_1:
-        display.test("Hiii");
+      
+      
+      case PULT_INFO:
+        conf.print();
         break;
       case PULT_POWER:
-        relayOff(t);
+        relayOff();
         break;
       case PULT_SOUND:
         relaySwitchOff(t);
         break;
       case PULT_VOLDOWN:
-        tuneLight(false, CANNEL_CW);
+        //tuneLight(false, CANNEL_CW);
         break;
       case PULT_VOLUP:
-        tuneLight(true, CANNEL_CW);
+        //tuneLight(true, CANNEL_CW);
         break;
       case PULT_FASTBACK:
-        tuneLight(false, CANNEL_NW);
+        //tuneLight(false, CANNEL_NW);
         break;
       case PULT_FASTFORWARD:
-        tuneLight(true, CANNEL_NW);
+        //tuneLight(true, CANNEL_NW);
         break;
       case PULT_PREV:
-        tuneLight(false, CANNEL_WW);
+        //tuneLight(false, CANNEL_WW);
         break;
       case PULT_NEXT:
-        tuneLight(true, CANNEL_WW);
+        //tuneLight(true, CANNEL_WW);
         break;
       case PULT_SLOW: //ultra low
         setOneBand(CANNEL_CW, 0);
@@ -294,8 +308,8 @@ void AppData::ProcessEvents(unsigned long t)
 
 void AppData::setOneBand(uint8_t cannel, uint8_t val)
 {
-  //if (val>0) lamp.on();
-  lamp.setOne(cannel, val);
+   lamp.setOne(cannel, val);
+  if (conf.lamp_on && mqtt) mqtt->updateState(cannel+100,val);
 }
 
 void AppData::swcLight(boolean state)

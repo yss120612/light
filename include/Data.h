@@ -25,13 +25,13 @@ class AppData
 {
 public:
     AppData();
-    void relayOff(unsigned long t);                 //просто все выключить
+    void relayOff();                 //просто все выключить
     void relaySwitchOff(unsigned long t);           //все выключить + щелкнуть по кнопкам
     void relaySwitch(uint8_t i, unsigned long tm);  //все , кто не кнопки - переворачиваемся
     void relaySet(uint8_t i, boolean st);           //устанавливаем i тое реле в st
     boolean isOn(uint8_t i);                        //конкретное
     boolean isOn();                                 //хоть одно (не кнопка)
-    void setup();
+    void setup(MqttClient * mq);
     void loop(unsigned long);
     uint8_t getCW();
     uint8_t getNW();
@@ -55,11 +55,12 @@ private:
     const uint8_t lgh = sizeof(relays) / sizeof(Relay);
     BandLED lamp;
     RTC_DS3231 rtc;
-    MqttClient mqtt;
+    MqttClient * mqtt;
     boolean fast_time_interval;
     unsigned long last_tsync;
     unsigned long learn_commang;//10 минут отображаем комманды с пульта
     Display display;
+    
 };
 
 #endif
