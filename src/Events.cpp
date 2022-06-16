@@ -26,8 +26,19 @@ event_t e;
 e.state=PULT_BUTTON;
 e.button=n;
 e.count=p;
+e.type=-1;
 _events.push_back(e);
 }
+
+void Events::putPultEvent(uint8_t p, uint8_t n, int8_t t){
+event_t e;
+e.state=PULT_BUTTON;
+e.button=n;
+e.count=p;
+e.type=t;
+_events.push_back(e);
+}
+
 
 void Events::putWebEvent(uint8_t n, uint8_t nn){
     event_t e;

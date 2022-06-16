@@ -52,37 +52,37 @@ void MqttClient::callback(char *topic, byte *payload, unsigned int length)
   {
     mess += (char)payload[i];
   }
-    
+  
   if (top.indexOf("/rel3")>0)
   {
     if (ignore_relay3){ignore_relay3=false;mess+="(ignor)";}
-    else data->putWebEvent(PULT_3,mess.equals("1"));
+    else {data->putWebEvent(PULT_3,mess.equals("1"));mess+="Put in MQTT";};
   }
   else if (top.indexOf("/rel2")>0)
   {
     if (ignore_relay2){ignore_relay2=false;mess+="(ignor)";}
-    else data->putWebEvent(PULT_2,mess.equals("1"));
+    else {data->putWebEvent(PULT_2,mess.equals("1"));mess+="Put in MQTT";};
   }
   else if (top.indexOf("/rel1")>0)
   {
     if (ignore_relay1){ignore_relay1=false;mess+="(ignor)";}
-    else data->putWebEvent(PULT_1,mess.equals("1"));
+    else {data->putWebEvent(PULT_1,mess.equals("1"));mess+="Put in MQTT";};
   }
   else if (top.indexOf("/ww")>0)
   {
     if (ignore_ww){ignore_ww=false;mess+="(ignor)";}
-    else data->putWebEvent(WEB_CANNEL_WW,mess.toInt());
+    else {data->putWebEvent(WEB_CANNEL_WW,mess.toInt());mess+="Put in MQTT";};
    // ws_sys->disalarm();
   }
   else if (top.indexOf("/cw")>0)
   {
     if (ignore_cw){ignore_cw=false;mess+="(ignor)";}
-    else data->putWebEvent(WEB_CANNEL_CW,mess.toInt());
+    else {data->putWebEvent(WEB_CANNEL_CW,mess.toInt());mess+="Put in MQTT";};
   }
   else if (top.indexOf("/nw")>0)
   {
     if (ignore_nw){ignore_nw=false;mess+="(ignor)";}
-    else data->putWebEvent(WEB_CANNEL_NW,mess.toInt());
+    else {data->putWebEvent(WEB_CANNEL_NW,mess.toInt());mess+="Put in MQTT";};
   }
   logg.logging("[" + String(topic) + String("] = ") + mess);
   
@@ -99,6 +99,12 @@ void MqttClient::reconnect()
     if (client->connect("ESP32Client-30", mqtt_user, mqtt_pass))
     {
       logg.logging("connected");
+      client->unsubscribe(mqtt_str_light);
+      client->unsubscribe(mqtt_str_notebook);
+      client->unsubscribe(mqtt_str_heater);
+      client->unsubscribe(mqtt_str_ww);
+      client->unsubscribe(mqtt_str_nw);
+      client->unsubscribe(mqtt_str_cw);
       // Once connected, publish an announcement...
       client->publish(mqtt_str_notebook,data->isOn(0)?"1":"0");
       client->publish(mqtt_str_heater,data->isOn(1)?"1":"0");

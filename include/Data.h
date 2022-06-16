@@ -43,6 +43,7 @@ public:
     void ProcessEvents(unsigned long t);
     void ir_sleep();
     void putWebEvent(uint8_t n, uint8_t nn){evts.putWebEvent(n,nn);};
+    void getI2Cdevices();
 private:
     const char * ntpServer = "pool.ntp.org";
    

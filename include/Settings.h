@@ -43,7 +43,7 @@
 #define WEB_CANNEL_WW   102
 
 #define PRESS_DURATION 300//держим реле (имитация нажатия) 
-#define PERIOD 1000
+#define PERIOD 2500
 #define CHECKPERIOD 100
 #define CHECKWIFI 300000
 

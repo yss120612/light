@@ -20,6 +20,10 @@
         "regex": "cpp",
         "tuple": "cpp",
         "type_traits": "cpp",
-        "typeinfo": "cpp"
+        "typeinfo": "cpp",
+        "array": "cpp",
+        "string_view": "cpp",
+        "iomanip": "cpp",
+        "sstream": "cpp"
     }
 }

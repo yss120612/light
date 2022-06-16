@@ -31,52 +31,26 @@ MqttClient *mqtt;
 
 Blinker * blinker;
 
+extern void init_networks();
 
 
-void init_networks(){
- if (!http_server)
-        {
-          http_server = new HttpHelper();
-          http_server->setup(&data);
-        }
-        if (!mqtt)
-        {
-          mqtt = new MqttClient();
-          mqtt->setup(&data);
-          //logg.setup(mqtt);
-        }
-        
-}
 
 static void WiFiTaskHandler(void *pvParam) {
   const uint32_t WIFI_TIMEOUT = 30000; // 30 sec.
 }
 
 void setup() {
-  // put your setup code here, to run once:
-   //pinMode(LED,OUTPUT);
+ 
   blinker=new Blinker(LED,HIGH);
 
-  //  pinMode(RELAY1,OUTPUT_OPEN_DRAIN);
-  //  pinMode(RELAY2,OUTPUT_OPEN_DRAIN);
-  //  pinMode(RELAY3,OUTPUT_OPEN_DRAIN);
-  //  pinMode(RELAY4,OUTPUT_OPEN_DRAIN);
-  //  digitalWrite(RELAY1,HIGH);
-  //  digitalWrite(RELAY2,HIGH);
-  //  digitalWrite(RELAY3,HIGH);
-  //  digitalWrite(RELAY4,HIGH);
-   //data.relay1=false;
-   //data.relay2=false;
-   //data.relay3=false;
-   
+  SPIFFS.begin();
 
-   SPIFFS.begin();
-   
+
    
 
 // WiFi credentials.
 #ifdef _SERIAL
-   Serial.begin(115200);
+   Serial.begin(9600);
 #endif
     
     forceWiFi=true;
@@ -106,12 +80,12 @@ void loop()
   data.loop(ms);
   if (mqtt) mqtt->loop(ms);
 
-  // if (!http_server || !http_server->isUpdate())
-  // {
-  //   digitalWrite(LED, data.isOn() ? HIGH : LOW);
-  // }
+  if (!http_server || !http_server->isUpdate())
+  {
+    digitalWrite(LED, data.isOn() ? HIGH : LOW);
+  }
 
-
+  if (blinker)
   if (blinker->getMode()!=BLINK_ON && data.isOn() || blinker->getMode()!=BLINK_OFF && !data.isOn()){
     blinker->setMode(data.isOn()?BLINK_ON:BLINK_OFF);
   }
@@ -124,15 +98,32 @@ void loop()
   }
 }
 
+void init_networks(){
+ if (!http_server)
+        {
+          http_server = new HttpHelper();
+          http_server->setup(&data);
+        }
+        if (!mqtt)
+        {
+          mqtt = new MqttClient();
+          mqtt->setup(&data);
+        }
+        
+}
+
 boolean connect2WiFi(){
     //Serial.print("Connecting to ");
     //Serial.println(WIFI_SSID);
+    //return false;
     logg.logging("Connecting to "+String(WIFI_SSID));
+    //////////////////////////////////data.getI2Cdevices();
     blinker->setMode(BLINK_4HZ);
     // Set WiFi to station mode and disconnect from an AP if it was previously connected
     WiFi.mode(WIFI_STA);
     //WiFi.disconnect();
    // delay(100);
+    //data.getI2Cdevices();
     WiFi.disconnect();
     WiFi.begin(WIFI_SSID, WIFI_PASS);
     //Serial.println("Connecting...");
@@ -149,7 +140,7 @@ boolean connect2WiFi(){
         //Serial.println(WIFI_PASS);
         logg.logging("Connecting to "+String(WIFI_SSID));
       }
-      delay(5000);
+      delay(7000);
       cycles++;
       if (cycles>4) 
       {

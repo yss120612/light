@@ -1,6 +1,7 @@
 #include "Data.h"
 #include "Log.h"
 #include "Settings.h"
+#include "IRtext.h"
 
 AppData::AppData()
 {
@@ -8,6 +9,7 @@ AppData::AppData()
 
 void AppData::setup(MqttClient * mq)
 {
+  
   if (!conf.setup())
   {
     logg.logging("AT24C32 ERROR!");
@@ -47,17 +49,19 @@ void AppData::setup(MqttClient * mq)
   last_tsync = 0;
   learn_commang=0;
   mqtt=mq;
-
+  rtc.begin();
 }
 
 void AppData::loop(unsigned long t)
-{
+ {
+   
   if (ir.checkIR(t) > 0)
   {
-    evts.putPultEvent((uint8_t)ir.getDevice(), (uint8_t)ir.getCommand());
+    evts.putPultEvent((uint8_t)ir.getDevice(), (uint8_t)ir.getCommand(), (int8_t)ir.getType());
+    //logg.logging("Put on IR command");
   }
 
-  ProcessEvents(t);
+   ProcessEvents(t);
 
   if (learn_commang>0 && t-learn_commang>60000)//10 min
   {
@@ -171,37 +175,23 @@ void AppData::ProcessEvents(unsigned long t)
       {
         learn_commang=t;
         display.showString("Learn mode","ON","");
-        //logg.logging("Time is= "+ rtc.now().timestamp());
-        //+" time="+rtc.timestring());
-        //logg.logging(rtc.test());
-        // pinMode(D0,OUTPUT);
-        // pinMode(D1,OUTPUT);
-        // pinMode(D2,OUTPUT);
-        // digitalWrite(D0,HIGH);
-        // digitalWrite(D1,HIGH);
-        // digitalWrite(D2,HIGH);
       }
       else if (ev.count == 3){
-        int error;
-        for (int address = 1; address < 127; address++ )  {
-    Wire.beginTransmission(address);
-    error = Wire.endTransmission();
-    if (error == 0)    {
-      logg.logging("I2C device found at address "+String(address));
-      
-    }
+        getI2Cdevices();
+     }
+
     //else if (error == 4)    {
       //Serial.print("Unknow error at address "+String(address));
     //}
-  }
-      }
+  
+      
       break;
     case BTN_LONGCLICK:
       if (ev.count==3) ESP.restart();
       break;
     case PULT_BUTTON:
       if (learn_commang>0){
-        display.showString("Dev."+String(ev.count)+(ev.count==IR_DEVICE?" MY":" ALIEN"),"Code "+String(ev.button),"pult`");
+        display.showString("Dev."+String(ev.count)+(ev.count==IR_DEVICE?" MY":" ALIEN"),"Code "+String(ev.button),"type="+String(ev.type));
       }
       if (ev.count!=IR_DEVICE) break;
       switch (ev.button)
@@ -306,6 +296,16 @@ void AppData::ProcessEvents(unsigned long t)
   }
 }
 
+void AppData::getI2Cdevices(){
+    int error;
+    for (int address = 1; address < 127; address++ )  {
+    Wire.beginTransmission(address);
+    error = Wire.endTransmission();
+    if (error == 0)    {
+      logg.logging("I2C device found at address "+String(address));
+    }
+    }
+}
 void AppData::setOneBand(uint8_t cannel, uint8_t val)
 {
    lamp.setOne(cannel, val);
@@ -342,8 +342,8 @@ boolean AppData::update_time_from_inet()
 
   timeClient = new NTPClient(*ntpUDP, ntpServer, 3600 * TIME_OFFSET, 60000 * 60 * 24);
   timeClient->begin();
-
-  if (timeClient->forceUpdate())
+  bool result=timeClient->forceUpdate();
+  if (result)
   {
     DateTime d(timeClient->getEpochTime());
     rtc.adjust(d);
@@ -358,4 +358,5 @@ boolean AppData::update_time_from_inet()
   timeClient->end();
   delete timeClient;
   delete ntpUDP;
+  return result;
 }

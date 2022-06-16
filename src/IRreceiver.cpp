@@ -26,42 +26,62 @@ void IRreceiver::disable(){
 
 void IRreceiver::sleep_sometime(unsigned long time){
     disable();
-    sleeping_time=millis()+time;
+    ulong m=millis();
+    sleeping_time=(m+time)<time?time:m+time;
 }
 
 uint32_t IRreceiver::getCommand(){
     return last_command;
 }
 
+void IRreceiver::resetCommand(){
+    last_command=0;
+}
+
 uint32_t IRreceiver::getDevice(){
     return last_device;
 }
+
+decode_type_t IRreceiver::getType(){
+    return (decode_type_t)last_type;
+}
+
+
 uint32_t IRreceiver::checkIR(unsigned long ms){
+  bool sig=false;  
   if (sleeping_time!=0 && ms>sleeping_time)  {
       enable();
   }
+
   if (irrecv->decode(&dres))
   {
       
      //if (dres.command>0 && dres.address==IR_DEVICE){
-     if (dres.command>0){
-        if (ms-time_lc>PERIOD || dres.command!=last_command)
-        {  
-        last_command=dres.command;
-        last_device=dres.address;
-        time_lc=ms;
-        //logg.logging("IR Command="+String(last_command));
-        return dres.command;
-        }
-      }
-      else if(dres.command>0){
+    //  if (dres.command>0){
+    //     if (ms-time_lc>PERIOD || dres.command!=last_command)
+    //     {  
+    //     last_command=dres.command;
+    //     last_device=dres.address;
+    //     last_type=dres.decode_type;
+    //     time_lc=ms;
+    //logg.logging("IR Command="+String(last_command));
+    //     return dres.command;
+    //     }
+    //   }
+    //   else 
+      if(dres.command>0 && (ms-time_lc>PERIOD || dres.command!=last_command)){
           last_device=dres.address;
           last_command=dres.command;
-          return dres.command;
-          //logg.logging("Not my device ("+String(IR_DEVICE)+")! Device="+String(dres.address)+";IR Command="+String(dres.command));
+          last_type=dres.decode_type;
+          sig=true;
+          logg.logging("Delta="+String(ms-time_lc)+" Command="+String(last_command) +" Dres command=="+String(dres.command));
+       
       }
+      
+      time_lc=ms;
       irrecv->resume();
+      
   }
-  return 0;
+   return sig?dres.command:0;
   }
 

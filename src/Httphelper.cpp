@@ -9,60 +9,34 @@
 HttpHelper::HttpHelper()
 {
 	server = new AsyncWebServer(80);
-	//SPIFFS.begin();
-	
 }
 
 HttpHelper::~HttpHelper()
 {
-	//delete httpUpdater;
-	//delete httpSpiffsUpdater;
+	
 	delete server;
-	//SPIFFS.end();
+	
 }
 
 void HttpHelper::setup(AppData *ad) {
 	if (server == NULL) return;
 
-	//irrc=rcv;
 	data = ad;
-	//WiFiconnect();
-			
-	//server->on("/", std::bind(&HttpHelper::handleRoot, this, std::placeholders::_1));
 
-	//server->serveStatic("/", SPIFFS, "/index.htm", NULL);
-	//server->serveStatic("", SPIFFS, "/index.htm", NULL);
 	server->on("/", std::bind(&HttpHelper::handleRoot, this, std::placeholders::_1));
 
 	server->on("/test", std::bind(&HttpHelper::handleTest, this, std::placeholders::_1));
 
 	server->on("/main", std::bind(&HttpHelper::handleMainFile, this, std::placeholders::_1));
 
-	//server->on("/logdata", std::bind(&HttpHelper::handleLogData, this, std::placeholders::_1));
-
     server->onNotFound(std::bind(&HttpHelper::handleNotFound, this, std::placeholders::_1));
 
-	// server->on("/distilldata", std::bind(&HttpHelper::handleDistill, this));
-	// server->on("/distillset", std::bind(&HttpHelper::handleDistillSet, this)); // Установка distill
-
-	// server->on("/rectifydata", std::bind(&HttpHelper::handleRectify, this));
-	// server->on("/rectifyset", std::bind(&HttpHelper::handleRectifySet, this)); // Установка rectify
-
-	// //server->on("/suviddata", std::bind(&HttpHelper::handleSuvid, this));
-	// //server->on("/suvidset", std::bind(&HttpHelper::handleSuvidSet, this)); // Установка suvid
-
-	// server->on("/brewingdata", std::bind(&HttpHelper::handleBrewing, this));
-	// server->on("/brewingset", std::bind(&HttpHelper::handleBrewingSet, this));
-
-	//server->on("/restart", web_handlers::restart);
-		
 	server->on("/upd", std::bind(&HttpHelper::handleUpd, this, std::placeholders::_1));
 
 	server->on(
 	"/update", 
 	HTTP_POST, 
 	[](AsyncWebServerRequest *request){
-      //request->send(200);
 	  request->redirect("/");
     }, 
 	std::bind(&HttpHelper::handleUpdate, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5, std::placeholders::_6)
@@ -91,37 +65,11 @@ server->on(
 
  	server->on("/post", HTTP_ANY, std::bind(&HttpHelper::handleW2A, this, std::placeholders::_1));
 
-	 server->on("/getdata", HTTP_ANY, std::bind(&HttpHelper::handleA2W, this, std::placeholders::_1));
-
-	//server->serveStatic("/heater",SPIFFS,"/heater.htm", NULL);
-
-	//server->serveStatic("/log", SPIFFS, "/log.htm", NULL);
-
-	//server->serveStatic("/distill", SPIFFS, "/distillation.htm", NULL);
-
-	//server->serveStatic("/rectify", SPIFFS, "/rectify.htm", NULL);
-
-	//server->serveStatic("/suvid", SPIFFS, "/suvid.htm", NULL);
-
-	//server->serveStatic("/brewing", SPIFFS, "/brewing.htm", NULL);
-
-	//server->serveStatic("/css/bootstrap.min.css", SPIFFS, "/css/bootstrap.min.css", NULL);
-
-	//server->serveStatic("/js/bootstrap.min.js", SPIFFS, "/js/bootstrap.min.js", NULL);
-
-	//server->serveStatic("/js/jquery.min.js", SPIFFS, "/js/jquery.min.js", NULL);
-
-	//server->serveStatic("/js/export-data.js", SPIFFS, "/js/export-data.js", NULL);
-
-	//server->serveStatic("/js/exporting.js", SPIFFS, "/js/exporting.js", NULL);
- 
-	//server->serveStatic("/js/highstock.js", SPIFFS, "/js/highstock.js", NULL);
-
+	server->on("/getdata", HTTP_ANY, std::bind(&HttpHelper::handleA2W, this, std::placeholders::_1));
 		
 	server->begin();
 
-//	httpSpiffsUpdater = new 
-//	httpSpiffsUpdater->setup(server);
+
 }
 
 void HttpHelper::var(String n, String v)
@@ -129,37 +77,30 @@ void HttpHelper::var(String n, String v)
 	if (n.equals("REL1"))
 	{
 		data->putWebEvent(PULT_1,v.equals(F("true")));
-		//logg.logging("n=" + n + ", v=" + v);
 	}
 	else if (n.equals("REL2"))
 	{
 		data->putWebEvent(PULT_2,v.equals(F("true")));
-		//logg.logging("n=" + n + ", v=" + v);
 	}
 	else if (n.equals("REL3"))
 	{
 		data->putWebEvent(PULT_3,v.equals(F("true")));
-		//logg.logging("n=" + n + ", v=" + v);
 	}
 	else if (n.equals("REL4"))
 	{
 		data->putWebEvent(PULT_4,v.equals(F("true")));
-		//logg.logging("n=" + n + ", v=" + v);
 	}
 	else if (n.equals("BAND_CW"))
 	{
 		data->putWebEvent(WEB_CANNEL_CW,v.equals(F("true"))?255:0);
-		//logg.logging("BAND=" + n + ", v=" + v);
 	}
 	else if (n.equals("BAND_NW"))
 	{
 		data->putWebEvent(WEB_CANNEL_NW,v.equals(F("true"))?255:0);
-		//logg.logging("BAND=" + n + ", v=" + v);
 	}
 	else if (n.equals("BAND_WW"))
 	{
 		data->putWebEvent(WEB_CANNEL_WW,v.equals(F("true"))?255:0);
-		//logg.logging("BAND=" + n + ", v=" + v);
 	}
 }
 
@@ -169,7 +110,6 @@ void HttpHelper::var_log(String n, String v)
 	{
 		logg.clear();
 		logg.logging("n=" + n + ", v=" + v);
-		//data->logConf();
 	}
 }
 
@@ -194,12 +134,6 @@ void HttpHelper::handleNotFound(AsyncWebServerRequest * request) {
 }
 
 
-// void HttpHelper::handleLogData(AsyncWebServerRequest * request)
-// {
-// 	String str = "{\"logdata\":\"<ul>"+logg.getAll2Web()+"</ul>\"}";
-// 	request->send(200, "text/json",str); // Oтправляем ответ No Reset
-// }
-
 void HttpHelper::handleBootstrapCss(AsyncWebServerRequest * request) {
 		handleFile("/css/bootstrap.min.css","text/css",request);
 }
@@ -211,7 +145,6 @@ void HttpHelper::handleFontAwesomeCss(AsyncWebServerRequest * request) {
 		handleFile("/css/font-awesome.min.css","text/css",request);
 }
 void  HttpHelper::handleFontAwesomeFontsWoff(AsyncWebServerRequest * request){
-	//handleFile("/fonts/fontawesome-webfont.woff2","application/x-font-woff2",request);
 	handleFile("/fonts/fontawesome-webfont.woff","font/woff",request);
 }
 void HttpHelper::handleProgressCss(AsyncWebServerRequest * request) {
@@ -312,8 +245,7 @@ void HttpHelper::handleMainFile(AsyncWebServerRequest * request) {
 
 void HttpHelper::handleMainSetup(AsyncWebServerRequest * request)
 {
-	// String str = "{\"logdata\":\"<ul>"+logg.getAll2Web()+"</ul>\"}";
-	// request->send(200, "text/json",str); // Oтправляем ответ No Reset
+
 }
 
 void HttpHelper::handleW2A(AsyncWebServerRequest * request)
@@ -494,73 +426,4 @@ void HttpHelper::handleTest(AsyncWebServerRequest * request) {
 
 	request->send(200, "text/html", resp);
 }
-
-
-
-// void HttpHelper::clientHandle() {
-	//if (server!=NULL) server->handleClient();
-	//ArduinoOTA.handle();
-// }
-
-// boolean HttpHelper::handleFileRead(String path) {
-
-// 	if (path.endsWith("/")) path += "index.htm";
-// 	String contentType;
-// 	if (path.endsWith(".htm") || path.endsWith(".html")) contentType = "text/html";
-// 	else if (path.endsWith(".css")) contentType = "text/css";
-// 	else if (path.endsWith(".js")) contentType = "application/javascript";
-// 	else if (path.endsWith(".png")) contentType = "image/png";
-// 	else if (path.endsWith(".gif")) contentType = "image/gif";
-// 	else if (path.endsWith(".jpg")) contentType = "image/jpeg";
-// 	else if (path.endsWith(".ico")) contentType = "image/x-icon";
-// 	else if (path.endsWith(".xml")) contentType = "text/xml";
-// 	else if (path.endsWith(".pdf")) contentType = "application/x-pdf";
-// 	else if (path.endsWith(".zip")) contentType = "application/x-zip";
-// 	else if (path.endsWith(".gz")) contentType = "application/x-gzip";
-// 	else if (path.endsWith(".json")) contentType = "application/json";
-// 	else contentType = "text/plain";
-
-// 	//split filepath and extension
-
-// 	String prefix = path, ext = "";
-// 	int lastPeriod = path.lastIndexOf('.');
-// 	if (lastPeriod >= 0) {
-// 		prefix = path.substring(0, lastPeriod);
-// 		ext = path.substring(lastPeriod);
-// 	}
-
-// 	//look for smaller versions of file
-// 	//minified file, good (myscript.min.js)
-// 	if (SPIFFS.exists(prefix + ".min" + ext)) path = prefix + ".min" + ext;
-// 	//gzipped file, better (myscript.js.gz)
-// 	if (SPIFFS.exists(prefix + ext + ".gz")) path = prefix + ext + ".gz";
-// 	//min and gzipped file, best (myscript.min.js.gz)
-// 	if (SPIFFS.exists(prefix + ".min" + ext + ".gz")) path = prefix + ".min" + ext + ".gz";
-
-// 	if (SPIFFS.exists(path)) {
-
-// 		File file = SPIFFS.open(path, "r");
-// 		//if (server->hasArg())
-// 		if (server->hasArg("download"))
-// 			server->sendHeader("Content-Disposition", " attachment;");
-// 		if (server->uri().indexOf("nocache") < 0)
-// 			server->sendHeader("Cache-Control", " max-age=172800");
-
-// 		//optional alt arg (encoded url), server sends redirect to file on the web
-// 		//if (WiFi.status() == WL_CONNECTED && ESP8266WebServer::hasArg("alt")) {
-// 		//	ESP8266WebServer::sendHeader("Location", ESP8266WebServer::arg("alt"), true);
-// 		//	ESP8266WebServer::send(302, "text/plain", "");
-// 		//}
-// 		//else {
-// 		//	//server sends file
-// 		//	size_t sent = ESP8266WebServer::streamFile(file, contentType);
-// 		//}
-// 		size_t sent = server->streamFile(file, contentType);
-// 		file.close();
-// 		return true;
-// 	} //if SPIFFS.exists
-
-// 	//server->send(200, "text/plain", SPIFFS.);
-// 	return false;
-// } //bool handleFileRead
 

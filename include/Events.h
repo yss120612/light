@@ -11,6 +11,7 @@ struct event_t {
     buttonstate_t state;
     uint8_t button;
     uint8_t count;
+    int8_t type;
     volatile long wait_time;
   };
 
@@ -24,6 +25,7 @@ bool have_event(){return _events.size()>0;};
 bool count_event(){return _events.size();};
 bool getEvent(event_t * e, long ms);
 void putPultEvent(uint8_t p, uint8_t n);
+void putPultEvent(uint8_t p, uint8_t n, int8_t t);
 void putWebEvent(uint8_t n, uint8_t nn);
 void putEvent(event_t * e);
 void putEvent(uint8_t idx, event_t * e);

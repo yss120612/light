@@ -17,13 +17,16 @@ class IRreceiver
     void disable();
     void sleep_sometime(unsigned long time=24000);
     uint32_t getCommand();
+    void resetCommand();
     uint32_t getDevice();
+    decode_type_t getType();
     private:
     IRrecv * irrecv;
     uint16_t _port;
     decode_results dres;
     uint32_t last_command;
     uint32_t last_device;
+    decode_type_t last_type;
     unsigned long time_lc;
     unsigned long sleeping_time;
 };
