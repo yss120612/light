@@ -22,7 +22,7 @@ class MqttClient{
 
     private:
     const char * mqtt_server = "mqtt.by"; //сервер MQTT
-    const int mqtt_port = 1883;     // Порт для подключения к серверу MQTT
+    const uint16_t mqtt_port = 1883;     // Порт для подключения к серверу MQTT
     const char *mqtt_user = "yss1"; // Логин от сервер
     const char *mqtt_pass = "bqt3"; // Пароль от сервера
     
@@ -42,7 +42,7 @@ class MqttClient{
     boolean ignore_nw;
     PubSubClient * client;
     void reconnect();
-    void callback(char* topic, byte* payload, unsigned int length);
+    void callback(char* topic, uint8_t * payload, unsigned int length);
     WiFiClient * wf;
     AppData * data;
     const int check_time=1000; //every 3 sec
