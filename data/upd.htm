@@ -1,0 +1,59 @@
+	<!DOCTYPE html>
+    <html>
+    <head>
+	<meta charset = "utf-8">
+		<title>Yss STELLAJ прошивка</title>
+	<meta name = "description" content = "Версия 0.1">
+	<meta name = "author" content = "Yss">
+	<link href = "/css/bootstrap.min.css" type = "text/css" rel = "stylesheet">
+	<link href = "/css/progress.css" type = "text/css" rel = "stylesheet">
+	<script type = "text/javascript" src = "/js/jquery.min.js"></script>
+	<script type = "text/javascript" src = "/js/bootstrap.min.js"></script>
+	
+	</head>
+    <body>
+		<div class="container">
+			<header class="d-flex flex-wrap justify-content-center py-3 mb-4 border-bottom">
+			  <a href="/" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-dark text-decoration-none">
+				<svg class="bi me-2" width="40" height="32"><use xlink:href="#bootstrap"/></svg>
+				<span class="fs-4">Firmware update for Stellaj</span>
+			  </a>
+		
+			  <ul class="nav nav-pills">
+				<li class="nav-item"><a href="/" class="nav-link active" aria-current="page">Home</a></li>
+				<li class="nav-item"><a href="/" class="nav-link" >Home</a></li>
+				<li class="nav-item"><a href="/log" class="nav-link">Log</a></li>
+				
+			  </ul>
+			</header>
+		  </div>
+		
+	<div class = "col-md-2">
+	<a href = "/" class = "btn btn-info">Дом</a>
+	</div>
+	<div class = "col-md-10">
+		
+	</div>
+
+	<div class = "alert alert-info" role = "alert">
+	<h3>Прошивка</h3>
+	<form method = "POST" action = "/update" enctype = "multipart/form-data" class="form-inline">
+	<div class = "btn-group">
+	<input type = "file" class = "btn" name = "update">
+	<input type = "submit" class = "btn" value = "Прошить" onclick = "this.value = 'Подождите...';">
+	</div>
+	</form>
+	</div>
+	<div class = "alert alert-success" role = "alert">
+	<h3>WEB сервер</h3>
+	<form method = "POST" action = "/spiffs" enctype = "multipart/form-data" class="form-inline">
+	<div class = "btn-group">
+	<input type = "file" class = "btn" name = "spiffs">
+	<input type = "submit" class = "btn" value = "Прошить" onclick = "this.value = 'Подождите...';">
+	</div>
+	</form>
+	</div>
+	</body>
+    </html>
+
+

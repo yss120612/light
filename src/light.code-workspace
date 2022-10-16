@@ -1,0 +1,40 @@
+{
+	"folders": [
+		{
+			"path": ".."
+		},
+		{
+			"name": "stelaj",
+			"path": "..\\..\\stelaj"
+		}
+	],
+	"settings": {
+		"files.associations": {
+			"functional": "cpp",
+			"*.tcc": "cpp",
+			"istream": "cpp",
+			"ostream": "cpp",
+			"string": "cpp",
+			"bitset": "cpp",
+			"cassert": "cpp",
+			"vector": "cpp",
+			"exception": "cpp",
+			"algorithm": "cpp",
+			"random": "cpp",
+			"fstream": "cpp",
+			"iosfwd": "cpp",
+			"limits": "cpp",
+			"new": "cpp",
+			"streambuf": "cpp",
+			"system_error": "cpp",
+			"regex": "cpp",
+			"tuple": "cpp",
+			"type_traits": "cpp",
+			"typeinfo": "cpp",
+			"array": "cpp",
+			"string_view": "cpp",
+			"iomanip": "cpp",
+			"sstream": "cpp"
+		}
+	}
+}
