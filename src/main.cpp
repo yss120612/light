@@ -3,7 +3,7 @@
 #include <SPIFFS.h>
 
 #include "Log.h"
-#include "Httphelper.h"
+//#include "Httphelper.h"
 #include "Settings.h"
 #include "Data.h"
 #include "buttons.h"
@@ -11,6 +11,7 @@
 #include "WiFiTask.h"
 #include "IRTask.h"
 #include "LEDTask.h"
+#include "HTTPTask.h"
 
 
 
@@ -24,13 +25,13 @@ const char* fw = "Running firmware v. 2.2";
 
 unsigned long ms;
 //unsigned long msWiFi;
-boolean forceWiFi;//если не задалось с первого раза повторять каждые Х минут или нет
+//boolean forceWiFi;//если не задалось с первого раза повторять каждые Х минут или нет
 //BandLED band;
 //extern boolean connect2WiFi();
 
 
-HttpHelper * http_server;
-MqttClient *mqtt;
+//HttpHelper * http_server;
+//MqttClient *mqtt;
 QueueHandle_t queue;
 SemaphoreHandle_t btn_semaphore;
 EventGroupHandle_t flags;
@@ -39,6 +40,7 @@ EventGroupHandle_t flags;
 LEDTask * leds;
 WiFiTask * wifi;
 IRTask * ir;
+HTTPTask * http;
 //extern void init_networks();
 
 
@@ -62,7 +64,8 @@ wifi=new WiFiTask("WiFi",8192,queue,flags);
 wifi->resume();
 ir= new IRTask("IR",2048,queue);  
 ir->resume();
-
+http = new HTTPTask("http",8192,queue,flags);
+http->resume();
 
 
 // WiFi credentials.
@@ -78,7 +81,7 @@ ir->resume();
     //   msWiFi=0;
     // }
     ms=0;
-   data.setup(mqtt);  
+   //data.setup(mqtt);  
    logg.logging(fw);
 }
 
@@ -86,6 +89,44 @@ ir->resume();
 
 void loop()
 {
+
+event_t command;
+if (xQueueReceive(queue,&command,portMAX_DELAY))
+{
+  switch(command.state)
+  {
+  case WEB_EVENT:
+      switch (command.button)
+      {
+      case PULT_1:
+        relaySet(0, ev.count > 0);
+        break;
+      case PULT_2:
+        relaySet(1, ev.count > 0);
+        break;
+      case PULT_3:
+        //logg.logging("here");
+        relaySet(2, ev.count > 0);
+        swcLight(ev.count > 0);
+        break;
+      case PULT_4:
+        display.showString("Comp. OFF");
+        relaySwitch(3, t);
+        break;
+      case WEB_CANNEL_CW:
+        setOneBand(CANNEL_CW, ev.count);
+        break;
+      case WEB_CANNEL_NW:
+        setOneBand(CANNEL_NW, ev.count);
+        break;
+      case WEB_CANNEL_WW:
+        setOneBand(CANNEL_WW, ev.count);
+        break;
+      }
+      break;
+    }
+}//if queue
+
   unsigned long m=millis();
   if (m<ms) ms=m;
   if (m - ms < CHECKPERIOD)
@@ -95,7 +136,7 @@ void loop()
   
 
   data.loop(ms);
-  if (mqtt) mqtt->loop(ms);
+  //if (mqtt) mqtt->loop(ms);
 
   //if (!http_server || !http_server->isUpdate())
   //{
@@ -116,16 +157,16 @@ void loop()
 }
 
 void init_networks(){
- if (!http_server)
-        {
-          http_server = new HttpHelper();
-          http_server->setup(&data);
-        }
-        if (!mqtt)
-        {
-          mqtt = new MqttClient();
-          mqtt->setup(&data);
-        }
+//  if (!http_server)
+//         {
+//           http_server = new HttpHelper();
+//           http_server->setup(&data);
+//         }
+//         if (!mqtt)
+//         {
+//           mqtt = new MqttClient();
+//           mqtt->setup(&data);
+//         }
         
 }
 
