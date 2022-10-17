@@ -87,7 +87,7 @@ void AppData::loop(unsigned long t)
 
 void AppData::ir_sleep()
 {
-  ir.sleep_sometime();
+  //ir.sleep_sometime();
 }
 
 uint8_t AppData::getCW() { return conf.cw; }
