@@ -5,14 +5,10 @@
 #include <Wire.h>
 #include <WiFiUdp.h>
 #include <NtpClient.h>
-
-
 #include "RTClib.h"
-#include "Relays.h"
 #include "BandLED.h"
 #include "Settings.h"
 #include "Config.h"
-#include "IRreceiver.h"
 #include "buttons.h"
 #include "Events.h"
 #include "Config.h"
@@ -52,8 +48,8 @@ private:
     Events evts;
     Buttons btns;
     //IRreceiver  ir=IRreceiver(IRPIN);
-    Relay relays[4] = {Relay(RELAY1), Relay(RELAY2), Relay(RELAY3), Relay(RELAY4)};
-    const uint8_t lgh = sizeof(relays) / sizeof(Relay);
+    //Relay relays[4] = {Relay(RELAY1), Relay(RELAY2), Relay(RELAY3), Relay(RELAY4)};
+    //const uint8_t lgh = sizeof(relays) / sizeof(Relay);
     BandLED lamp;
     RTC_DS3231 rtc;
     MqttClient * mqtt;

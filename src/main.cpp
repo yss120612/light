@@ -12,6 +12,7 @@
 #include "IRTask.h"
 #include "LEDTask.h"
 #include "HTTPTask.h"
+#include "RELTask.h"
 
 
 
@@ -41,6 +42,7 @@ LEDTask * leds;
 WiFiTask * wifi;
 IRTask * ir;
 HTTPTask * http;
+RELTask * relay;
 //extern void init_networks();
 
 
@@ -66,7 +68,8 @@ ir= new IRTask("IR",2048,queue);
 ir->resume();
 http = new HTTPTask("http",8192,queue,flags);
 http->resume();
-
+relay= new RELTask("Relay",2048,queue);  
+relay->resume();
 
 // WiFi credentials.
 #ifdef _SERIAL
@@ -93,34 +96,113 @@ void loop()
 event_t command;
 if (xQueueReceive(queue,&command,portMAX_DELAY))
 {
+  bool learn_command=true;
+  uint32_t result;
   switch(command.state)
   {
   case WEB_EVENT:
       switch (command.button)
       {
       case PULT_1:
-        relaySet(0, ev.count > 0);
+        result=1<<16 | command.count > 0;
+        relay->notify(result);
         break;
       case PULT_2:
-        relaySet(1, ev.count > 0);
+        result=2<<16 | command.count > 0;
+        relay->notify(result);
         break;
       case PULT_3:
-        //logg.logging("here");
-        relaySet(2, ev.count > 0);
-        swcLight(ev.count > 0);
+        result=3<<16 | command.count > 0;
+        relay->notify(result);
         break;
       case PULT_4:
-        display.showString("Comp. OFF");
-        relaySwitch(3, t);
+        result=4<<16 | command.count > 0;
+        relay->notify(result);
         break;
       case WEB_CANNEL_CW:
-        setOneBand(CANNEL_CW, ev.count);
+        //setOneBand(CANNEL_CW, ev.count);
         break;
       case WEB_CANNEL_NW:
-        setOneBand(CANNEL_NW, ev.count);
+        //setOneBand(CANNEL_NW, ev.count);
         break;
       case WEB_CANNEL_WW:
-        setOneBand(CANNEL_WW, ev.count);
+        //setOneBand(CANNEL_WW, ev.count);
+        break;
+      }
+      break;
+       case PULT_BUTTON:
+      if (learn_command){
+        //display.showString("Dev."+String(command.count)+(command.count==IR_DEVICE?" MY":" ALIEN"),"Code "+String(command.button),"type="+String(command.type));
+      }
+      if (command.count!=IR_DEVICE) break;
+      switch (command.button)
+      {
+      case PULT_1:
+        result=11<<16 | 0;
+        relay->notify(result);
+        break;
+      case PULT_2:
+        result=12<<16 | 0;
+        relay->notify(result);
+        break;
+      case PULT_3:
+        result=13<<16 | 0;
+        relay->notify(result);
+        break;
+      case PULT_4:
+        result=14<<16 | 0;
+        relay->notify(result);
+        break;
+      
+      
+      case PULT_INFO:
+        conf.print();
+        break;
+      case PULT_POWER:
+        result=20<<16 | 0;
+        relay->notify(result);
+        break;
+      case PULT_SOUND:
+        //relaySwitchOff(t);
+        break;
+      case PULT_VOLDOWN:
+        //tuneLight(false, CANNEL_CW);
+        break;
+      case PULT_VOLUP:
+        //tuneLight(true, CANNEL_CW);
+        break;
+      case PULT_FASTBACK:
+        //tuneLight(false, CANNEL_NW);
+        break;
+      case PULT_FASTFORWARD:
+        //tuneLight(true, CANNEL_NW);
+        break;
+      case PULT_PREV:
+        //tuneLight(false, CANNEL_WW);
+        break;
+      case PULT_NEXT:
+        //tuneLight(true, CANNEL_WW);
+        break;
+      case PULT_SLOW: //ultra low
+        //setOneBand(CANNEL_CW, 0);
+        //setOneBand(CANNEL_NW, 0);
+        //setOneBand(CANNEL_WW, 64);
+        //logg.logging("SLOW");
+        break;
+      case PULT_ZOOM: //low
+        //setOneBand(CANNEL_CW, 64);
+        //setOneBand(CANNEL_NW, 64);
+        //setOneBand(CANNEL_WW, 64);
+        break;
+      case PULT_STOP: //middle
+        //setOneBand(CANNEL_CW, 128);
+        //setOneBand(CANNEL_NW, 128);
+        //setOneBand(CANNEL_WW, 128);
+        break;
+      case PULT_PAUSE: //full
+        //setOneBand(CANNEL_CW, 255);
+        //setOneBand(CANNEL_NW, 255);
+        //setOneBand(CANNEL_WW, 255);
         break;
       }
       break;
