@@ -51,7 +51,7 @@ private:
     boolean update_time_from_inet();
     Events evts;
     Buttons btns;
-    IRreceiver  ir=IRreceiver(IRPIN);
+    //IRreceiver  ir=IRreceiver(IRPIN);
     Relay relays[4] = {Relay(RELAY1), Relay(RELAY2), Relay(RELAY3), Relay(RELAY4)};
     const uint8_t lgh = sizeof(relays) / sizeof(Relay);
     BandLED lamp;

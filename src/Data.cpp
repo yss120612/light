@@ -37,7 +37,7 @@ void AppData::setup(MqttClient * mq)
     logg.logging("error add button");
   }
   
-  ir.enable();
+  //ir.enable();
   
   // lamp.force_refresh();
   // relays[2].set(conf.notebook_on);
@@ -55,11 +55,11 @@ void AppData::setup(MqttClient * mq)
 void AppData::loop(unsigned long t)
  {
    
-  if (ir.checkIR(t) > 0)
-  {
-    evts.putPultEvent((uint8_t)ir.getDevice(), (uint8_t)ir.getCommand(), (int8_t)ir.getType());
-    //logg.logging("Put on IR command");
-  }
+  // if (ir.checkIR(t) > 0)
+  // {
+  //   evts.putPultEvent((uint8_t)ir.getDevice(), (uint8_t)ir.getCommand(), (int8_t)ir.getType());
+  //   //logg.logging("Put on IR command");
+  // }
 
    ProcessEvents(t);
 

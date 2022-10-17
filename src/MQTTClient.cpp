@@ -16,7 +16,8 @@ void MqttClient::setup(AppData *ad)
 {
   wf = new WiFiClient();
   data = ad;
-  client = new PubSubClient(mqtt_server, mqtt_port, std::bind(&MqttClient::callback, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3), *wf);
+  client = new PubSubClient(mqtt_server, mqtt_port, std::bind(&MqttClient::callback, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3), * wf) ;
+  //client = new PubSubClient(mqtt_server, mqtt_port,  wf);
   ignore_relay1=false;
   ignore_relay2=false;
   ignore_relay3=false;
@@ -42,7 +43,7 @@ String MqttClient::getStatus()
   
 }
 
-void MqttClient::callback(char *topic, byte *payload, unsigned int length)
+void MqttClient::callback(char *topic, uint8_t *payload, unsigned int length)
 {
   
   

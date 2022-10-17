@@ -76,7 +76,7 @@ void ICACHE_RAM_ATTR Buttons::_isr(Buttons *_this) {
   uint32_t status = GPIO_REG_READ(GPIO_STATUS_ADDRESS);
 #endif
 
-  if (_this->_btns.length()>0) {
+  if (_this->_btns.length()<1) return;
     long ms=millis();
     uint32_t time = ms - _this->_isrtime;
     //uint32_t inputs = GPI;
@@ -89,9 +89,6 @@ void ICACHE_RAM_ATTR Buttons::_isr(Buttons *_this) {
         else
           _this->_btns[i].duration = 0xFFFF;
 
-      //logg.logging("State="+String((inputs >> _this->_btns[i].pin) & 0x01));
-
-     // if (((inputs >> _this->_btns[i].pin) & 0x01) == _this->_btns[i].level) { // Button pressed
       if ( (digitalRead(_this->_btns[i].pin) & 0x01) == _this->_btns[i].level) { // Button pressed
         if (! _this->_btns[i].pressed) {
           if (_this->_btns[i].duration > DBLCLICK_TIME) 
@@ -100,10 +97,9 @@ void ICACHE_RAM_ATTR Buttons::_isr(Buttons *_this) {
           }
           _this->_btns[i].duration = 0;
           _this->_btns[i].pressed = true;
-          //_this->onChange(BTN_PRESSED, i);
         }
       } else { // Button released
-        if (_this->_btns[i].pressed) { // Was pressed
+        if (_this->_btns[i].pressed) {
         
           if (_this->_btns[i].duration >= LONGCLICK_TIME) {
             _this->onChange(BTN_LONGCLICK, i,_this->_btns[i].xdbl);
@@ -119,7 +115,7 @@ void ICACHE_RAM_ATTR Buttons::_isr(Buttons *_this) {
         }
       }
     }
-  }
+  
 #ifdef INTR_EXCLUSIIVE
   GPIO_REG_WRITE(GPIO_STATUS_W1TC_ADDRESS, status);
 #endif
