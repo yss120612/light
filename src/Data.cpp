@@ -1,7 +1,7 @@
 #include "Data.h"
 #include "Log.h"
 #include "Settings.h"
-#include "IRtext.h"
+//#include "IRtext.h"
 
 AppData::AppData()
 {

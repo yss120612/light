@@ -1,6 +1,6 @@
 #ifndef _LOG_h
 #define _LOG_h
-#define _SERIAL1
+#define _SERIAL
 
 #include <Arduino.h>
 

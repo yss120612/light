@@ -73,7 +73,7 @@ relay->resume();
 
 // WiFi credentials.
 #ifdef _SERIAL
-   Serial.begin(9600);
+   Serial.begin(115200);
 #endif
     
     // forceWiFi=true;
@@ -209,15 +209,15 @@ if (xQueueReceive(queue,&command,portMAX_DELAY))
     }
 }//if queue
 
-  unsigned long m=millis();
-  if (m<ms) ms=m;
-  if (m - ms < CHECKPERIOD)
-    return;
-  ms = m;
+  // unsigned long m=millis();
+  // if (m<ms) ms=m;
+  // if (m - ms < CHECKPERIOD)
+  //   return;
+  // ms = m;
   //if (msWiFi==0 || msWiFi>ms) msWiFi=ms;
   
 
-  data.loop(ms);
+  //data.loop(ms);
   //if (mqtt) mqtt->loop(ms);
 
   //if (!http_server || !http_server->isUpdate())
