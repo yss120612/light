@@ -17,7 +17,7 @@ void LEDTask::setup()
   ledc_timer_config_t ledc_timer_cfg = {
       .speed_mode = LEDC_LOW_SPEED_MODE,
       {.duty_resolution = LEDC_TIMER_8_BIT},
-      .timer_num = TIMER_NUM,
+      .timer_num = LED_TIMER_NUM,
       .freq_hz = 1000};
 
   if (ledc_timer_config(&ledc_timer_cfg) != ESP_OK)

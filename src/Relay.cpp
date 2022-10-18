@@ -5,20 +5,11 @@ void Relay::setup(boolean * mst,uint8_t tp)
 {
     pinMode(pin, OUTPUT_OPEN_DRAIN);
     state = !level;
-    // if (mst!=NULL){
-    //     mem_state=mst;
-    //     state=*mst;
-    // }
-    
     syncro();
-    //logg.logging("mem2="+String((int)mem_state));
+    
     type = tp;
-    if (type == RELTYPE_BUTTON){
-        dur = PRESS_DURATION;
-    }
-    else{
-        dur=0;
-    }
+    armed=false;
+    
 }
 
 
@@ -72,8 +63,19 @@ boolean Relay::swc()
    return state;
 }
 
-void Relay::arm(unsigned long t)
+void Relay::arm()
 {
-    tm = t;
-    setOn();
+    if (type == RELTYPE_BUTTON){
+        armed=true;   
+        setOn();
+    }
+}
+
+
+void Relay::disarm()
+{
+    if (type == RELTYPE_BUTTON){
+        armed=false;   
+        setOff();
+    }
 }

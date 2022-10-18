@@ -25,6 +25,7 @@ protected:
     void setup() override;
     void loop() override;
     void timerCallback();
+    void arm(uint8_t i);
     int32_t last_time;
     uint16_t _step;
     Relay * relay[4]; 

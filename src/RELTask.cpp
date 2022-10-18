@@ -14,6 +14,7 @@ void RELTask::setup()
     return;
   }
 
+
  
 
   // ledc_channel_t channels[]={LEDC_CHANNEL_0,LEDC_CHANNEL_1,LEDC_CHANNEL_2,LEDC_CHANNEL_3};
@@ -31,7 +32,14 @@ void RELTask::setup()
   //setLedMode(1, BLINK_OFF);
 }
 
- 
+void RELTask::arm(uint8_t i) {
+ if (i>=4 || !relay[i])  return;
+ relay[i]->arm();
+if (esp_timer_start_periodic(_timer, 500000) != ESP_OK) {
+           return;
+         }
+}
+
 void RELTask::loop()
 {
   uint32_t command;
@@ -44,8 +52,7 @@ void RELTask::loop()
     {
     case 1:
       relay[0]->set(act>0);
-      
-      break;
+        break;
     case 2:
       relay[1]->set(act>0);
       break;
@@ -53,7 +60,7 @@ void RELTask::loop()
       relay[2]->set(act>0);
       break;
     case 4:
-      relay[3]->set(act>0);
+      arm(3);
       break;
     case 11:
       relay[0]->swc();
@@ -65,7 +72,7 @@ void RELTask::loop()
       relay[2]->swc();
       break;
     case 14:
-      relay[3]->swc();
+      arm(3);
       break;
     case 20:
       relay[0]->setOff();
@@ -95,6 +102,11 @@ void RELTask::cleanup()
 
 void RELTask::timerCallback()
 {
-
+for (uint8_t i = 0; i < 4; i++)
+    if (rpins[i]>0)
+    {
+      relay[i] -> disarm();
+    }
+esp_timer_stop(_timer);    
  
 }

@@ -1,6 +1,7 @@
 #include "BandLED.h"
 #include "BandLED.h"
 #include "Log.h"
+#include "Settings.h"
 
 BandLED::BandLED()
 {

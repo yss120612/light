@@ -13,17 +13,17 @@ class Relay{
     void setOff();
     void set(boolean w);
     boolean swc();
-    void arm(unsigned long t);
+    void arm();
+    void disarm();
     uint8_t type;
     protected :
     boolean  state;
     //boolean  * mem_state;
     uint8_t pin;
-    unsigned long tm;
-    uint16_t dur;
     void setState(boolean s);
     void syncro();
     bool level;
+    bool armed;
 };
 
 

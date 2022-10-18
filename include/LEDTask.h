@@ -7,7 +7,7 @@
 #include "Led.h"
 #include "Settings.h"
 //#define LED_PIN GPIO_NUM_32
-const ledc_channel_t channels[]={LEDC_CHANNEL_0,LEDC_CHANNEL_1,LEDC_CHANNEL_2,LEDC_CHANNEL_3};
+
 const uint8_t pins[]={LED,0,0,0};
 
 

@@ -4,10 +4,8 @@
 #include <esp_timer.h>
 #include <driver/ledc.h>
 #include <HardwareSerial.h>
+#include "Settings.h"
 
-const ledc_timer_t TIMER_NUM = LEDC_TIMER_3;
-const ledc_mode_t SPEED_MODE = LEDC_LOW_SPEED_MODE;
-enum blinkmode_t { BLINK_OFF, BLINK_ON, BLINK_TOGGLE, BLINK_05HZ, BLINK_1HZ, BLINK_2HZ, BLINK_4HZ, BLINK_FADEIN, BLINK_FADEOUT, BLINK_FADEINOUT, BLINK_SUNRAISE,BLINK_SUNSET };
 
 
 class Led {
