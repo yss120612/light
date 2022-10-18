@@ -1,5 +1,6 @@
 #ifndef _SETTINGS_h
 #define _SETTINGS_h
+#include <driver/ledc.h>
 
 #define LED     2
 #define IRPIN   4
@@ -77,5 +78,22 @@
 #define SHORT_TIME  60000*5 //one per 5 min
 
 #define DISPLAY_ON_TIME 1000*5
+
+#define LED_TIMER_NUM LEDC_TIMER_3
+#define BAND_TIMER_NUM LEDC_TIMER_2
+
+#define SPEED_MODE LEDC_LOW_SPEED_MODE
+
+#define CANNEL_CW LEDC_CHANNEL_0
+#define CANNEL_NW LEDC_CHANNEL_1
+#define CANNEL_WW LEDC_CHANNEL_2
+
+
+const ledc_channel_t channels[]={LEDC_CHANNEL_0,LEDC_CHANNEL_1,LEDC_CHANNEL_2,LEDC_CHANNEL_3};
+
+enum blinkmode_t { BLINK_OFF, BLINK_ON, BLINK_TOGGLE, BLINK_05HZ, BLINK_1HZ, BLINK_2HZ, BLINK_4HZ, BLINK_FADEIN, BLINK_FADEOUT, BLINK_FADEINOUT, BLINK_SUNRAISE,BLINK_SUNSET };
+
+
+
 
 #endif

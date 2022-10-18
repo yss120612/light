@@ -13,6 +13,7 @@
 #include "LEDTask.h"
 #include "HTTPTask.h"
 #include "RELTask.h"
+#include "BANDTask.h"
 
 
 
@@ -43,6 +44,7 @@ WiFiTask * wifi;
 IRTask * ir;
 HTTPTask * http;
 RELTask * relay;
+BANDTask * band;
 //extern void init_networks();
 
 

@@ -19,7 +19,7 @@ Led::Led(uint8_t pin, bool level, ledc_channel_t channel, esp_timer_handle_t tim
   _channel = channel;
   _value = 0;
   _pin=pin;
-  pinMode(pin,OUTPUT);
+  //pinMode(pin,OUTPUT);
    gpio_set_direction((gpio_num_t)pin, GPIO_MODE_OUTPUT);
    gpio_set_level((gpio_num_t)pin, ! level);
 }
@@ -63,7 +63,7 @@ void Led::setMode(blinkmode_t mode) {
           ledc_channel_cfg1.speed_mode=SPEED_MODE;
           ledc_channel_cfg1.intr_type=LEDC_INTR_DISABLE;
           ledc_channel_cfg1.channel=_channel;
-          ledc_channel_cfg1.timer_sel=TIMER_NUM;
+          ledc_channel_cfg1.timer_sel=LED_TIMER_NUM;
           ledc_channel_cfg1.duty= _level ? 0 : 255;
         
         if (ledc_channel_config(&ledc_channel_cfg1) != ESP_OK) {
