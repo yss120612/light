@@ -112,19 +112,19 @@ if (xQueueReceive(queue,&command,portMAX_DELAY))
       switch (command.button)
       {
       case PULT_1:
-        result=1<<16 | command.count > 0;
+        result=1<<24 & 0xFF000000 | command.count > 0?1:0 & 0x000000FF ;
         relay->notify(result);
         break;
       case PULT_2:
-        result=2<<16 & 0xFFFF0000 | command.count > 0;
+        result=2<<24 & 0xFF000000 | command.count > 0?1:0 & 0x000000FF ;
         relay->notify(result);
         break;
       case PULT_3:
-        result=3<<16 & 0xFFFF0000 | command.count > 0;
+        result=3<<24 & 0xFF000000 | command.count > 0?1:0 & 0x000000FF ;
         relay->notify(result);
         break;
       case PULT_4:
-        result=4<<16 & 0xFFFF0000 | command.count > 0;
+        result=4<<24 & 0xFF000000 | command.count > 0?1:0 & 0x000000FF ;
         relay->notify(result);
         break;
       case WEB_CANNEL_CW:
@@ -145,99 +145,115 @@ if (xQueueReceive(queue,&command,portMAX_DELAY))
       {
         //read result processing
         case 1://CW
-        result=1<<24 & 0xFF000000 | 0 << 16 & 0x00FF0000 | command.count & 0x0000FFFF;
+        result=15<<24 & 0xFF000000 | 0 << 16 & 0x00FF0000 | command.count & 0x0000FFFF;
         band->notify(result);
         break;
         case 2://NW
-        result=1<<24 & 0xFF000000 | 1 << 16 & 0x00FF0000 | command.count & 0x0000FFFF;
+        result=15<<24 & 0xFF000000 | 1 << 16 & 0x00FF0000 | command.count & 0x0000FFFF;
         band->notify(result);
         break;
         case 3://WW
-        result=1<<24 & 0xFF000000 | 2 << 16 & 0x00FF0000 | command.count & 0x0000FFFF;
+        result=15<<24 & 0xFF000000 | 2 << 16 & 0x00FF0000 | command.count & 0x0000FFFF;
         band->notify(result);
         break;
         case 4://relay 1
-          result=1<<16 & 0xFFFF0000 | command.count > 0?1:0 & 0x0000FFFF;
+          result=21<<24 & 0xFFFF0000 & 1<<16 & 0x00FF0000 | command.count > 0?1:0 & 0x0000FFFF;
           relay->notify(result);
         break;
         case 5://relay 2
-          result=2<<16 & 0xFFFF0000 | command.count > 0?1:0 & 0x0000FFFF ;
+          result=21<<24 & 0xFFFF0000 & 2<<16 & 0x00FF0000 | command.count > 0?1:0 & 0x0000FFFF;
           relay->notify(result);
         break;
         case 6://relay 3
-          result=3<<16 & 0xFFFF0000 | command.count > 0?1:0 & 0x0000FFFF;
+          result=21<<24 & 0xFFFF0000 & 3<<16 & 0x00FF0000 | command.count > 0?1:0 & 0x0000FFFF;
           relay->notify(result);
         break;
         case 7://relay 4
-          result=4<<16 & 0xFFFF0000 | command.count > 0?1:0 & 0x0000FFFF;
+          result=21<<24 & 0xFFFF0000 & 4<<16 & 0x00FF0000 | command.count > 0?1:0 & 0x0000FFFF;
           relay->notify(result);
         break;
 
         ///// request for read
         case 100://
           result=1<<24 & 0xFF000000 | 0 & 0x0000FFFF;
+          // Serial.print("Request=");
+          // Serial.println(0);
           mem->notify(result);
         break;
         case 101://request CW
           result=1<<24 & 0xFF000000 | 1 & 0x0000FFFF;
+          
           mem->notify(result);
         break;
         case 102://request NW
           result=1<<24 & 0xFF000000 | 2 & 0x0000FFFF;
+          // Serial.print("Request=");
+          // Serial.println(2);
           mem->notify(result);
         break;
         case 103://request WW
           result=1<<24 & 0xFF000000 | 3 & 0x0000FFFF;
+          // Serial.print("Request=");
+          // Serial.println(3);
           mem->notify(result);
         break;
         case 104://request Relay1
           result=1<<24 & 0xFF000000 | 4 & 0x0000FFFF;
+          // Serial.print("Request=");
+          // Serial.println(4);
           mem->notify(result);
         break;
         case 105://request Relay2
           result=1<<24 & 0xFF000000 | 5 & 0x0000FFFF;
+          // Serial.print("Request=");
+          // Serial.println(5);
           mem->notify(result);
         break;
         case 106://request Relay3
           result=1<<24 & 0xFF000000 | 6 & 0x0000FFFF;
+          // Serial.print("Request=");
+          // Serial.println(6);
           mem->notify(result);
         break;
         case 107://request Relay4
           result=1<<24 & 0xFF000000 | 7 & 0x0000FFFF;
+          // Serial.print("Request=");
+          // Serial.println(7);
           mem->notify(result);
         break;
 
          ///// request for write
         case 200://
-          result=2<<24 & 0xFF000000 | command.count <16 & 0x000FF0000 | 0 & 0x0000FFFF;
+          result=2<<24 & 0xFF000000 | command.count <16 & 0x00FF0000 | 0 & 0x0000FFFF;
           mem->notify(result);
         break;
         case 201://request CW
-          result=2<<24 & 0xFF000000 | command.count <16 & 0x000FF0000 | 1 & 0x0000FFFF;
+          result=2<<24 & 0xFF000000 | command.count <16 & 0x00FF0000 | 1 & 0x0000FFFF;
+          
           mem->notify(result);
         break;
         case 202://request NW
-          result=2<<24 & 0xFF000000 | command.count <16 & 0x000FF0000 | 2 & 0x0000FFFF;
+          result=2<<24 & 0xFF000000 | command.count <16 & 0x00FF0000 | 2 & 0x0000FFFF;
           mem->notify(result);
         break;
         case 203://request WW
-          result=2<<24 & 0xFF000000 | command.count <16 & 0x000FF0000 | 3 & 0x0000FFFF;
+          result=2<<24 & 0xFF000000 | command.count <16 & 0x00FF0000 | 3 & 0x0000FFFF;
           mem->notify(result);
         break;
         case 204://request Relay1
-          result=2<<24 & 0xFF000000 | command.count <16 & 0x000FF0000 | 4 & 0x0000FFFF;
+          result=2<<24 & 0xFF000000 | command.count <16 & 0x00FF0000 | 4 & 0x0000FFFF;
           mem->notify(result);
         break;
         case 205://request Relay2
-          result=2<<24 & 0xFF000000 | command.count <16 & 0x000FF0000 | 5 & 0x0000FFFF;
+          result=2<<24 & 0xFF000000 | command.count <16 & 0x00FF0000 | 5 & 0x0000FFFF;
           mem->notify(result);
         break;
         case 206://request Relay3
-          result=2<<24 & 0xFF000000 | command.count <16 & 0x000FF0000 | 6 & 0x0000FFFF;
+          result=2<<24 & 0xFF000000 | command.count <16 & 0x00FF0000 | 6 & 0x0000FFFF;
           mem->notify(result);
         break;
         case 207://request Relay4
-          result=2<<24 & 0xFF000000 | command.count <16 & 0x000FF0000 | 7 & 0x0000FFFF;
+          result=2<<24 & 0xFF000000 | command.count <16 & 0x00FF0000 | 7 & 0x0000FFFF;
           mem->notify(result);
         break;
 
@@ -253,27 +269,27 @@ if (xQueueReceive(queue,&command,portMAX_DELAY))
       switch (command.button)
       {
       case PULT_1:
-        result=11<<16 & 0xFFFF0000 | 0;
+        result=11<<24 & 0xFF000000;
         relay->notify(result);
         
         break;
       case PULT_2:
-        result=12<<16 & 0xFFFF0000 | 0;
+        result=12<<24 & 0xFF000000;
         relay->notify(result);
         break;
       case PULT_3:
-        result=13<<16 & 0xFFFF0000 | 0;
+        result=13<<24 & 0xFF000000;
         relay->notify(result);
         break;
       case PULT_4:
-        result=14<<16 & 0xFFFF0000 | 0;
+        result=14<<24 & 0xFF000000;
         relay->notify(result);
         break;
       case PULT_INFO:
         conf.print();
         break;
       case PULT_POWER:
-        result=20<<16 & 0xFFFF0000 | 0;
+        result=20<<24 & 0xFF000000;
         relay->notify(result);
         break;
       case PULT_SOUND:
@@ -331,7 +347,7 @@ if (xQueueReceive(queue,&command,portMAX_DELAY))
       break;
     }
 }//if queue
-
+delay(1);
   // unsigned long m=millis();
   // if (m<ms) ms=m;
   // if (m - ms < CHECKPERIOD)

@@ -57,7 +57,9 @@ void RELTask::loop()
 
   if (xTaskNotifyWait(0, 0, &command, portMAX_DELAY))
   {
-    uint8_t comm=command>>16 & 0x0000FFFF;
+    
+    uint8_t comm=command>>24 & 0x000000FF;
+    uint8_t rel = command >> 16 & 0x000000FF;
     uint8_t act=command & 0x0000FFFF;
     
     switch (comm)
@@ -104,6 +106,12 @@ void RELTask::loop()
       save(2);
       relay[3]->setOff();
       //save(3);
+    break;
+    case 21:
+    if (rel<4) relay[rel-1]->setState(act>0);
+    else arm(3);
+
+      
     break;
   }
   }

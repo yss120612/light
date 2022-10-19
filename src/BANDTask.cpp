@@ -56,7 +56,7 @@ gpio_set_level((gpio_num_t)PIN_CW, ! _level);
     };
     ledc_channel_config(&ledc_channel);
     ledc_channel.gpio_num=PIN_NW;
-    ledc_channel.channel=CANNEL_CW;
+    ledc_channel.channel=CANNEL_NW;
     ledc_channel_config(&ledc_channel);
     ledc_channel.gpio_num=PIN_WW;
     ledc_channel.channel=CANNEL_WW;
@@ -67,6 +67,7 @@ gpio_set_level((gpio_num_t)PIN_CW, ! _level);
 
     ev.state= MEM_EVENT;
     ev.button=101;
+    
     xQueueSend(que,&ev,portMAX_DELAY);
     delay(100);
     ev.button=102;
@@ -77,7 +78,7 @@ gpio_set_level((gpio_num_t)PIN_CW, ! _level);
 
 }
 
-void BANDTask::setOne(uint8_t cannel, uint8_t value){
+void BANDTask::setOne(uint8_t cannel, uint8_t value,bool sv){
        switch (cannel){
           case 0:
            ledc_set_duty(SPEED_MODE, CANNEL_CW, _level?value:255-value);
@@ -92,11 +93,13 @@ void BANDTask::setOne(uint8_t cannel, uint8_t value){
            ledc_update_duty(SPEED_MODE, CANNEL_WW);
           break;
         }
+        if (sv){
         event_t ev;
         ev.state=MEM_EVENT;
         ev.button=201+cannel;
         ev.count=value;
         xQueueSend(que,&ev,portMAX_DELAY);
+        }
        } 
 
 void BANDTask::loop()
@@ -155,7 +158,9 @@ void BANDTask::loop()
       setOne(1,0);
       setOne(2,128);
       break;
-   
+   case 15://low warm
+      setOne(l,h,false);
+      break;
   }
   }
 }
