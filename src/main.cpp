@@ -224,36 +224,36 @@ if (xQueueReceive(queue,&command,portMAX_DELAY))
 
          ///// request for write
         case 200://
-          result=2<<24 & 0xFF000000 | command.count <16 & 0x00FF0000 | 0 & 0x0000FFFF;
+          result=2<<24 & 0xFF000000 | command.count << 16 & 0x00FF0000 | 0 & 0x0000FFFF;
           mem->notify(result);
         break;
         case 201://request CW
-          result=2<<24 & 0xFF000000 | command.count <16 & 0x00FF0000 | 1 & 0x0000FFFF;
+          result=2<<24 & 0xFF000000 | command.count << 16 & 0x00FF0000 | 1 & 0x0000FFFF;
           
           mem->notify(result);
         break;
         case 202://request NW
-          result=2<<24 & 0xFF000000 | command.count <16 & 0x00FF0000 | 2 & 0x0000FFFF;
+          result=2<<24 & 0xFF000000 | command.count << 16 & 0x00FF0000 | 2 & 0x0000FFFF;
           mem->notify(result);
         break;
         case 203://request WW
-          result=2<<24 & 0xFF000000 | command.count <16 & 0x00FF0000 | 3 & 0x0000FFFF;
+          result=2<<24 & 0xFF000000 | command.count << 16 & 0x00FF0000 | 3 & 0x0000FFFF;
           mem->notify(result);
         break;
         case 204://request Relay1
-          result=2<<24 & 0xFF000000 | command.count <16 & 0x00FF0000 | 4 & 0x0000FFFF;
+          result=2<<24 & 0xFF000000 | command.count << 16 & 0x00FF0000 | 4 & 0x0000FFFF;
           mem->notify(result);
         break;
         case 205://request Relay2
-          result=2<<24 & 0xFF000000 | command.count <16 & 0x00FF0000 | 5 & 0x0000FFFF;
+          result=2<<24 & 0xFF000000 | command.count << 16 & 0x00FF0000 | 5 & 0x0000FFFF;
           mem->notify(result);
         break;
         case 206://request Relay3
-          result=2<<24 & 0xFF000000 | command.count <16 & 0x00FF0000 | 6 & 0x0000FFFF;
+          result=2<<24 & 0xFF000000 | command.count << 16 & 0x00FF0000 | 6 & 0x0000FFFF;
           mem->notify(result);
         break;
         case 207://request Relay4
-          result=2<<24 & 0xFF000000 | command.count <16 & 0x00FF0000 | 7 & 0x0000FFFF;
+          result=2<<24 & 0xFF000000 | command.count << 16 & 0x00FF0000 | 7 & 0x0000FFFF;
           mem->notify(result);
         break;
 
@@ -279,6 +279,7 @@ if (xQueueReceive(queue,&command,portMAX_DELAY))
         break;
       case PULT_3:
         result=13<<24 & 0xFF000000;
+        
         relay->notify(result);
         break;
       case PULT_4:

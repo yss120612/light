@@ -35,13 +35,14 @@ void RELTask::setup()
 
 void RELTask::arm(uint8_t i) {
  if (i>=4 || !relay[i])  return;
- relay[i]->arm();
+ if (!relay[i]->arm()) return;
 if (esp_timer_start_periodic(_timer, 500000) != ESP_OK) {
            return;
          }
 }
 
 void RELTask::save(uint8_t idx){
+  
         event_t ev;
         ev.state=MEM_EVENT;
         ev.button=204+idx;
@@ -90,7 +91,8 @@ void RELTask::loop()
       break;
     case 13:
       relay[2]->swc();
-      save(2);
+      //Serial.println("Command work");
+      //save(2);
       break;
     case 14:
       arm(3);

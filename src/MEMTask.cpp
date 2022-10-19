@@ -51,6 +51,7 @@ uint32_t command;
 
 void MEMTask::read(uint16_t index, uint8_t* buf, uint16_t len) {
 	//lock();
+	return;
 	Wire.beginTransmission(_address);
 	Wire.write((index >> 8) & 0x0F);
 	Wire.write(index & 0xFF);
@@ -68,11 +69,12 @@ void MEMTask::read(uint16_t index, uint8_t* buf, uint16_t len) {
 				*buf++ = Wire.read();
 		}
 	}
-	///unlock();
+	//unlock();
 }
 
 
 void MEMTask::write(uint16_t index, const uint8_t* buf, uint16_t len) {
+	return;
 	index &= 0x0FFF;
 	//lock();
 	while (len > 0) {
@@ -94,5 +96,5 @@ void MEMTask::write(uint16_t index, const uint8_t* buf, uint16_t len) {
 			break;
 		while (!Wire.requestFrom(_address, (uint8_t)1)); // Polling EEPROM ready (write complete)
 	}
-	unlock();
+	//unlock();
 }

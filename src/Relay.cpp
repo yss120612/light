@@ -1,30 +1,17 @@
 #include "Relay.h"
 
 
-void Relay::setup(boolean * mst,uint8_t tp)
+void Relay::setup(uint8_t tp)
 {
     pinMode(pin, OUTPUT_OPEN_DRAIN);
-    //state = !level;
-    syncro();
-    
     type = tp;
     armed=false;
-    
 }
 
 
 void Relay::setState(boolean s){
     state=s;
     syncro();
-
-
-
-    // Serial.print("state=");
-    // Serial.println(state);
-    // if (mem_state!=NULL){
-    //     *mem_state=s;
-    //     conf.force_story();
-    // }
 }
 
 boolean Relay::isOn()
@@ -60,12 +47,14 @@ boolean Relay::swc()
    return state;
 }
 
-void Relay::arm()
+bool Relay::arm()
 {
     if (type == RELTYPE_BUTTON){
         armed=true;   
         setOn();
+        return true;
     }
+    return false;
 }
 
 
