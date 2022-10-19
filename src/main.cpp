@@ -59,7 +59,9 @@ void setup() {
 queue= xQueueCreate(16,sizeof(event_t));
 btn_semaphore=xSemaphoreCreateBinary();
 flags=xEventGroupCreate();
-
+#ifdef _SERIAL
+   Serial.begin(115200);
+#endif
 
 //SPIFFS.begin();
 leds = new LEDTask("Leds",3072,queue,LOW);
@@ -72,11 +74,11 @@ http = new HTTPTask("http",8192,queue,flags);
 http->resume();
 relay= new RELTask("Relay",2048,queue);  
 relay->resume();
+band= new BANDTask("Band",2048,HIGH);  
+band->resume();
 
 // WiFi credentials.
-#ifdef _SERIAL
-   Serial.begin(115200);
-#endif
+
     
     // forceWiFi=true;
     
@@ -131,8 +133,10 @@ if (xQueueReceive(queue,&command,portMAX_DELAY))
         //setOneBand(CANNEL_WW, ev.count);
         break;
       }
-      break;
-       case PULT_BUTTON:
+  break;
+  case BTN_CLICK:
+  break;
+  case PULT_BUTTON:
       if (learn_command){
         //display.showString("Dev."+String(command.count)+(command.count==IR_DEVICE?" MY":" ALIEN"),"Code "+String(command.button),"type="+String(command.type));
       }
@@ -140,28 +144,27 @@ if (xQueueReceive(queue,&command,portMAX_DELAY))
       switch (command.button)
       {
       case PULT_1:
-        result=11<<16 | 0;
+        result=11<<16 & 0xFFFF0000 | 0;
         relay->notify(result);
+        
         break;
       case PULT_2:
-        result=12<<16 | 0;
+        result=12<<16 & 0xFFFF0000 | 0;
         relay->notify(result);
         break;
       case PULT_3:
-        result=13<<16 | 0;
+        result=13<<16 & 0xFFFF0000 | 0;
         relay->notify(result);
         break;
       case PULT_4:
-        result=14<<16 | 0;
+        result=14<<16 & 0xFFFF0000 | 0;
         relay->notify(result);
         break;
-      
-      
       case PULT_INFO:
         conf.print();
         break;
       case PULT_POWER:
-        result=20<<16 | 0;
+        result=20<<16 & 0xFFFF0000 | 0;
         relay->notify(result);
         break;
       case PULT_SOUND:
@@ -186,22 +189,30 @@ if (xQueueReceive(queue,&command,portMAX_DELAY))
         //tuneLight(true, CANNEL_WW);
         break;
       case PULT_SLOW: //ultra low
+        result=9<<24 & 0xFF000000;
+        band->notify(result);
         //setOneBand(CANNEL_CW, 0);
         //setOneBand(CANNEL_NW, 0);
         //setOneBand(CANNEL_WW, 64);
         //logg.logging("SLOW");
         break;
       case PULT_ZOOM: //low
+        result=5<<24 & 0xFF000000;
+        band->notify(result);
         //setOneBand(CANNEL_CW, 64);
         //setOneBand(CANNEL_NW, 64);
         //setOneBand(CANNEL_WW, 64);
         break;
       case PULT_STOP: //middle
+        result=4<<24 & 0xFF000000;
+        band->notify(result);
         //setOneBand(CANNEL_CW, 128);
         //setOneBand(CANNEL_NW, 128);
         //setOneBand(CANNEL_WW, 128);
         break;
       case PULT_PAUSE: //full
+        result=2<<24 & 0xFF000000;
+        band->notify(result);
         //setOneBand(CANNEL_CW, 255);
         //setOneBand(CANNEL_NW, 255);
         //setOneBand(CANNEL_WW, 255);

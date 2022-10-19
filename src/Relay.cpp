@@ -14,8 +14,10 @@ void Relay::setup(boolean * mst,uint8_t tp)
 
 
 void Relay::setState(boolean s){
-    state=s?level:!level;
-    
+    state=s;
+    syncro();
+    // Serial.print("state=");
+    // Serial.println(state);
     // if (mem_state!=NULL){
     //     *mem_state=s;
     //     conf.force_story();
@@ -24,7 +26,7 @@ void Relay::setState(boolean s){
 
 boolean Relay::isOn()
 {
-    return state==level;
+    return state;
 }
 
 void Relay::setOn()
@@ -32,7 +34,6 @@ void Relay::setOn()
     if (!state)
     {
         setState(true);
-        syncro();
     }
 }
 
@@ -41,7 +42,6 @@ void Relay::setOff()
     if (state)
     {
         setState(false);
-        syncro();
     }
 }
 
@@ -49,17 +49,11 @@ void Relay::syncro(){
     digitalWrite(pin, state?level:!level);
 }
 
-void Relay::set(boolean w)
-{
-    if (w)
-        setOn();
-    else
-        setOff();
-}
+
 
 boolean Relay::swc()
 {
-   set(!state);
+   setState(!state);
    return state;
 }
 

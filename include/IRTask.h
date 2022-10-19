@@ -3,8 +3,7 @@
 #include "Task.h"
 #include <IRremoteESP8266.h>
 #include <IRrecv.h>
-
-#define IR_PIN GPIO_NUM_23
+#include "Settings.h"
 
 class IRTask: public Task{
 public:    

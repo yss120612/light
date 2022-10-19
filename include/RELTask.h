@@ -9,13 +9,13 @@
 
 //#define LED_PIN GPIO_NUM_32
 //const ledc_channel_t channels[]={LEDC_CHANNEL_0,LEDC_CHANNEL_1,LEDC_CHANNEL_2,LEDC_CHANNEL_3};
-const uint8_t rpins[]={RELAY1,RELAY2,RELAY3,RELAY4};
+
 
 
 
 class RELTask: public Task{
 public:   
-    RELTask(const char *name, uint32_t stack,QueueHandle_t q,bool lv=LOW):Task(name, stack){que=q;_level=lv;}
+    RELTask(const char *name, uint32_t stack,QueueHandle_t q,bool lv=LOW):Task(name, stack){_level=lv;}
     
    
     //blinkmode_t get_blinkmode(uint8_t idx) {return led[idx]->getMode();}
@@ -32,7 +32,7 @@ protected:
     esp_timer_handle_t _timer;
     //bool need_timer;
     bool _level;
-    QueueHandle_t que;
+    
 };
 
 

@@ -11,16 +11,15 @@ class Relay{
     boolean isOn();
     void setOn();
     void setOff();
-    void set(boolean w);
     boolean swc();
     void arm();
     void disarm();
     uint8_t type;
+    void setState(boolean s);
     protected :
     boolean  state;
     //boolean  * mem_state;
     uint8_t pin;
-    void setState(boolean s);
     void syncro();
     bool level;
     bool armed;

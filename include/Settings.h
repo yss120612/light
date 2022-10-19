@@ -54,9 +54,9 @@
 //PWM
 #define RESOLUTION  8
 #define FREQ        5000
-#define CANNEL_CW   0
-#define CANNEL_NW   1
-#define CANNEL_WW   2
+#define CANNEL_CW   LEDC_CHANNEL_0
+#define CANNEL_NW   LEDC_CHANNEL_1
+#define CANNEL_WW   LEDC_CHANNEL_2
 
 
 #define PIN_CW   23
@@ -93,7 +93,7 @@ const ledc_channel_t channels[]={LEDC_CHANNEL_0,LEDC_CHANNEL_1,LEDC_CHANNEL_2,LE
 
 enum blinkmode_t { BLINK_OFF, BLINK_ON, BLINK_TOGGLE, BLINK_05HZ, BLINK_1HZ, BLINK_2HZ, BLINK_4HZ, BLINK_FADEIN, BLINK_FADEOUT, BLINK_FADEINOUT, BLINK_SUNRAISE,BLINK_SUNSET };
 
-
+const uint8_t rpins[]={RELAY1,RELAY2,RELAY3,RELAY4};
 
 
 #endif

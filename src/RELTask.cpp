@@ -22,14 +22,11 @@ void RELTask::setup()
     if (rpins[i] > 0)
     {
       relay[i] = new Relay(rpins[i], _level);
-      relay[i] ->setup(NULL,false);
+      relay[i] ->setup();
     }
     else
       relay[i] = NULL;
-  ///last_time = 0;
-
-  //setLedMode(0, BLINK_05HZ);
-  //setLedMode(1, BLINK_OFF);
+  
 }
 
 void RELTask::arm(uint8_t i) {
@@ -51,13 +48,13 @@ void RELTask::loop()
     switch (comm)
     {
     case 1:
-      relay[0]->set(act>0);
+      relay[0]->setState(act>0);
         break;
     case 2:
-      relay[1]->set(act>0);
+      relay[1]->setState(act>0);
       break;
     case 3:
-      relay[2]->set(act>0);
+      relay[2]->setState(act>0);
       break;
     case 4:
       arm(3);
