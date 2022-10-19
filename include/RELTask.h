@@ -15,7 +15,7 @@
 
 class RELTask: public Task{
 public:   
-    RELTask(const char *name, uint32_t stack,QueueHandle_t q,bool lv=LOW):Task(name, stack){_level=lv;}
+    RELTask(const char *name, uint32_t stack,QueueHandle_t q,bool lv=LOW):Task(name, stack){que=q;_level=lv;}
     
    
     //blinkmode_t get_blinkmode(uint8_t idx) {return led[idx]->getMode();}
@@ -26,10 +26,12 @@ protected:
     void loop() override;
     void timerCallback();
     void arm(uint8_t i);
+    void save(uint8_t idx);
     int32_t last_time;
     uint16_t _step;
     Relay * relay[4]; 
     esp_timer_handle_t _timer;
+    QueueHandle_t que;
     //bool need_timer;
     bool _level;
     

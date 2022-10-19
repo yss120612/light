@@ -95,5 +95,6 @@ enum blinkmode_t { BLINK_OFF, BLINK_ON, BLINK_TOGGLE, BLINK_05HZ, BLINK_1HZ, BLI
 
 const uint8_t rpins[]={RELAY1,RELAY2,RELAY3,RELAY4};
 
+enum flags_t : uint8_t { FLAG_WIFI = 1, FLAG_MQTT = 2 };
 
 #endif

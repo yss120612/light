@@ -3,7 +3,7 @@
 #include "Task.h"
 #include "Led.h"
 #include <WiFi.h>
-
+#include "Settings.h"
 
 
 
@@ -13,7 +13,7 @@
 const char WIFI_SSID[] = "Yss_GIGA";
 const char WIFI_PSWD[] = "bqt3bqt3";
 
-enum flags_t : uint8_t { FLAG_WIFI = 1, FLAG_MQTT = 2 };
+
 
 class WiFiTask: public Task
 {

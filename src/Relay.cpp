@@ -4,7 +4,7 @@
 void Relay::setup(boolean * mst,uint8_t tp)
 {
     pinMode(pin, OUTPUT_OPEN_DRAIN);
-    state = !level;
+    //state = !level;
     syncro();
     
     type = tp;
@@ -16,6 +16,9 @@ void Relay::setup(boolean * mst,uint8_t tp)
 void Relay::setState(boolean s){
     state=s;
     syncro();
+
+
+
     // Serial.print("state=");
     // Serial.println(state);
     // if (mem_state!=NULL){

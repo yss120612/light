@@ -8,6 +8,7 @@
 #include "Data.h"
 #include "buttons.h"
 //#include "Blinker.h"
+#include "MEMTask.h"
 #include "WiFiTask.h"
 #include "IRTask.h"
 #include "LEDTask.h"
@@ -45,6 +46,7 @@ IRTask * ir;
 HTTPTask * http;
 RELTask * relay;
 BANDTask * band;
+MEMTask * mem;
 //extern void init_networks();
 
 
@@ -64,6 +66,8 @@ flags=xEventGroupCreate();
 #endif
 
 //SPIFFS.begin();
+mem= new MEMTask("Memory",2048,queue);  
+mem->resume();
 leds = new LEDTask("Leds",3072,queue,LOW);
 leds->resume();
 wifi=new WiFiTask("WiFi",8192,queue,flags);
@@ -74,7 +78,7 @@ http = new HTTPTask("http",8192,queue,flags);
 http->resume();
 relay= new RELTask("Relay",2048,queue);  
 relay->resume();
-band= new BANDTask("Band",2048,HIGH);  
+band= new BANDTask("Band",2048, queue, HIGH);  
 band->resume();
 
 // WiFi credentials.
@@ -112,15 +116,15 @@ if (xQueueReceive(queue,&command,portMAX_DELAY))
         relay->notify(result);
         break;
       case PULT_2:
-        result=2<<16 | command.count > 0;
+        result=2<<16 & 0xFFFF0000 | command.count > 0;
         relay->notify(result);
         break;
       case PULT_3:
-        result=3<<16 | command.count > 0;
+        result=3<<16 & 0xFFFF0000 | command.count > 0;
         relay->notify(result);
         break;
       case PULT_4:
-        result=4<<16 | command.count > 0;
+        result=4<<16 & 0xFFFF0000 | command.count > 0;
         relay->notify(result);
         break;
       case WEB_CANNEL_CW:
@@ -135,6 +139,111 @@ if (xQueueReceive(queue,&command,portMAX_DELAY))
       }
   break;
   case BTN_CLICK:
+  break;
+  case MEM_EVENT:
+      switch (command.button)
+      {
+        //read result processing
+        case 1://CW
+        result=1<<24 & 0xFF000000 | 0 << 16 & 0x00FF0000 | command.count & 0x0000FFFF;
+        band->notify(result);
+        break;
+        case 2://NW
+        result=1<<24 & 0xFF000000 | 1 << 16 & 0x00FF0000 | command.count & 0x0000FFFF;
+        band->notify(result);
+        break;
+        case 3://WW
+        result=1<<24 & 0xFF000000 | 2 << 16 & 0x00FF0000 | command.count & 0x0000FFFF;
+        band->notify(result);
+        break;
+        case 4://relay 1
+          result=1<<16 & 0xFFFF0000 | command.count > 0?1:0 & 0x0000FFFF;
+          relay->notify(result);
+        break;
+        case 5://relay 2
+          result=2<<16 & 0xFFFF0000 | command.count > 0?1:0 & 0x0000FFFF ;
+          relay->notify(result);
+        break;
+        case 6://relay 3
+          result=3<<16 & 0xFFFF0000 | command.count > 0?1:0 & 0x0000FFFF;
+          relay->notify(result);
+        break;
+        case 7://relay 4
+          result=4<<16 & 0xFFFF0000 | command.count > 0?1:0 & 0x0000FFFF;
+          relay->notify(result);
+        break;
+
+        ///// request for read
+        case 100://
+          result=1<<24 & 0xFF000000 | 0 & 0x0000FFFF;
+          mem->notify(result);
+        break;
+        case 101://request CW
+          result=1<<24 & 0xFF000000 | 1 & 0x0000FFFF;
+          mem->notify(result);
+        break;
+        case 102://request NW
+          result=1<<24 & 0xFF000000 | 2 & 0x0000FFFF;
+          mem->notify(result);
+        break;
+        case 103://request WW
+          result=1<<24 & 0xFF000000 | 3 & 0x0000FFFF;
+          mem->notify(result);
+        break;
+        case 104://request Relay1
+          result=1<<24 & 0xFF000000 | 4 & 0x0000FFFF;
+          mem->notify(result);
+        break;
+        case 105://request Relay2
+          result=1<<24 & 0xFF000000 | 5 & 0x0000FFFF;
+          mem->notify(result);
+        break;
+        case 106://request Relay3
+          result=1<<24 & 0xFF000000 | 6 & 0x0000FFFF;
+          mem->notify(result);
+        break;
+        case 107://request Relay4
+          result=1<<24 & 0xFF000000 | 7 & 0x0000FFFF;
+          mem->notify(result);
+        break;
+
+         ///// request for write
+        case 200://
+          result=2<<24 & 0xFF000000 | command.count <16 & 0x000FF0000 | 0 & 0x0000FFFF;
+          mem->notify(result);
+        break;
+        case 201://request CW
+          result=2<<24 & 0xFF000000 | command.count <16 & 0x000FF0000 | 1 & 0x0000FFFF;
+          mem->notify(result);
+        break;
+        case 202://request NW
+          result=2<<24 & 0xFF000000 | command.count <16 & 0x000FF0000 | 2 & 0x0000FFFF;
+          mem->notify(result);
+        break;
+        case 203://request WW
+          result=2<<24 & 0xFF000000 | command.count <16 & 0x000FF0000 | 3 & 0x0000FFFF;
+          mem->notify(result);
+        break;
+        case 204://request Relay1
+          result=2<<24 & 0xFF000000 | command.count <16 & 0x000FF0000 | 4 & 0x0000FFFF;
+          mem->notify(result);
+        break;
+        case 205://request Relay2
+          result=2<<24 & 0xFF000000 | command.count <16 & 0x000FF0000 | 5 & 0x0000FFFF;
+          mem->notify(result);
+        break;
+        case 206://request Relay3
+          result=2<<24 & 0xFF000000 | command.count <16 & 0x000FF0000 | 6 & 0x0000FFFF;
+          mem->notify(result);
+        break;
+        case 207://request Relay4
+          result=2<<24 & 0xFF000000 | command.count <16 & 0x000FF0000 | 7 & 0x0000FFFF;
+          mem->notify(result);
+        break;
+
+
+      }
+    
   break;
   case PULT_BUTTON:
       if (learn_command){
@@ -186,6 +295,7 @@ if (xQueueReceive(queue,&command,portMAX_DELAY))
         //tuneLight(false, CANNEL_WW);
         break;
       case PULT_NEXT:
+        
         //tuneLight(true, CANNEL_WW);
         break;
       case PULT_SLOW: //ultra low
