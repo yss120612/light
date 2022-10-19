@@ -40,6 +40,9 @@ uint32_t command;
       break;
       case 2:
            write(addr,&value,sizeof(value)); 
+		  Serial.print("Addr="); 
+		  Serial.println(ev.button); 
+
       break;
     }
   }
@@ -47,6 +50,7 @@ uint32_t command;
 }
 
 void MEMTask::read(uint16_t index, uint8_t* buf, uint16_t len) {
+	//lock();
 	Wire.beginTransmission(_address);
 	Wire.write((index >> 8) & 0x0F);
 	Wire.write(index & 0xFF);
@@ -64,11 +68,13 @@ void MEMTask::read(uint16_t index, uint8_t* buf, uint16_t len) {
 				*buf++ = Wire.read();
 		}
 	}
+	///unlock();
 }
 
 
 void MEMTask::write(uint16_t index, const uint8_t* buf, uint16_t len) {
 	index &= 0x0FFF;
+	//lock();
 	while (len > 0) {
 		uint8_t l;
 
@@ -88,4 +94,5 @@ void MEMTask::write(uint16_t index, const uint8_t* buf, uint16_t len) {
 			break;
 		while (!Wire.requestFrom(_address, (uint8_t)1)); // Polling EEPROM ready (write complete)
 	}
+	unlock();
 }
