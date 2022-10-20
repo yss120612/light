@@ -97,4 +97,15 @@ const uint8_t rpins[]={RELAY1,RELAY2,RELAY3,RELAY4};
 
 enum flags_t : uint8_t { FLAG_WIFI = 1, FLAG_MQTT = 2 };
 
+void static readPacket(uint32_t container, uint8_t &btn, uint8_t &value, uint16_t &data){
+    btn   = container >> 24 & 0x000000FF;
+    value = container >> 16 & 0x000000FF;
+    data  = container & 0x0000FFFF;
+}
+ static uint32_t makePacket(uint8_t btn, uint8_t value, uint16_t data){
+    uint32_t container;
+    container = (btn << 24) & 0xFF000000 | (value<<16) & 0x00FF0000 | data & 0x0000FFFF;
+    return container;
+}
+
 #endif

@@ -105,20 +105,18 @@ void BANDTask::loop()
   
   if (xTaskNotifyWait(0, 0, &command, portMAX_DELAY))
   {
-    uint8_t comm=command>>24 & 0x000000FF;
-    uint8_t l=command>>16 & 0x000000FF;
-    uint16_t h=command & 0x0000FFFF;
-    
+    uint8_t comm,val;
+    uint16_t data;
+    readPacket(command,comm,val,data);
     switch (comm)
     {
     case 1://set one channel
-      setOne(l,h);
+      setOne(val,data);
       break;
     case 2://all on
        setOne(0,255);
        setOne(1,255);
        setOne(2,255);
-       //Serial.println("Tutttt");
       break;
     case 3://all off
       setOne(0,0);
