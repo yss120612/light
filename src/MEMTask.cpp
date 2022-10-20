@@ -19,9 +19,9 @@ uint32_t command;
   
   if (xTaskNotifyWait(0, 0, &command, portMAX_DELAY))
   {
-    uint8_t comm=command>>24 & 0x000000FF;
-    uint8_t value=command>>16 & 0x000000FF;
-    uint16_t addr=command & 0x0000FFFF;
+    uint8_t comm,value;//=command>>24 & 0x000000FF;
+    uint16_t addr;
+	readPacket(command,comm,value,addr);
     //comm=1 read, com=2 write
     switch (comm)
     {
@@ -29,8 +29,8 @@ uint32_t command;
            read(addr,&value,sizeof(value)); 
            event_t ev;
            ev.state=MEM_EVENT;
-           ev.button=(uint16_t)addr;
-           ev.count=(uint8_t)value;
+           ev.button=addr;
+           ev.count=value;
            
         Serial.print("Addr="); 
         Serial.print(ev.button);

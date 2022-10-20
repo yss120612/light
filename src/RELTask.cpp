@@ -57,21 +57,21 @@ void RELTask::loop()
 
   if (xTaskNotifyWait(0, 0, &command, portMAX_DELAY))
   {
-    uint8_t comm=command>>16 & 0x0000FFFF;
-    uint8_t act=command & 0x0000FFFF;
-    
+    uint8_t comm,act;
+    uint16_t data;
+    readPacket(command,comm,act,data);
     switch (comm)
     {
     case 1:
-      relay[0]->setState(act>0);
+      relay[0]->setState(data>0);
       save(0);
         break;
     case 2:
-      relay[1]->setState(act>0);
+      relay[1]->setState(data>0);
       save(1);
       break;
     case 3:
-      relay[2]->setState(act>0);
+      relay[2]->setState(data>0);
       save(2);
       break;
     case 4:
