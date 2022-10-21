@@ -15,6 +15,7 @@
 #include "HTTPTask.h"
 #include "RELTask.h"
 #include "BANDTask.h"
+#include "DISPTask.h"
 
 
 
@@ -47,6 +48,7 @@ HTTPTask * http;
 RELTask * relay;
 BANDTask * band;
 MEMTask * mem;
+DISPTask * display;
 //extern void init_networks();
 
 
@@ -80,6 +82,8 @@ relay= new RELTask("Relay",2048,queue);
 relay->resume();
 band= new BANDTask("Band",2048, queue, HIGH);  
 band->resume();
+display= new DISPTask("Display",2048);  
+display->resume();
 
 // WiFi credentials.
 
@@ -113,25 +117,28 @@ if (xQueueReceive(queue,&command,portMAX_DELAY))
       switch (command.button)
       {
       case PULT_1:
-      
         //result=1<<16 | command.count > 0;
         result=makePacket(1,0,command.count > 0?1:0);
         relay->notify(result);
+        display->notify(result);
         break;
       case PULT_2:
         result=makePacket(2,0,command.count > 0?1:0);
         //result=2<<16 & 0xFFFF0000 | command.count > 0;
         relay->notify(result);
+        display->notify(result);
         break;
       case PULT_3:
         result=makePacket(3,0,command.count > 0?1:0);
         //result=3<<16 & 0xFFFF0000 | command.count > 0;
         relay->notify(result);
+        display->notify(result);
         break;
       case PULT_4:
         result=makePacket(4,0,command.count > 0?1:0);
         //result=4<<16 & 0xFFFF0000 | command.count > 0;
         relay->notify(result);
+        display->notify(result);
         break;
       case WEB_CANNEL_CW:
         //setOneBand(CANNEL_CW, ev.count);

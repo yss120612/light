@@ -12,7 +12,7 @@
 #include "buttons.h"
 #include "Events.h"
 #include "Config.h"
-#include "display.h"
+
 #include "MQTTclient.h"
 
 //class MqttClient;
@@ -56,7 +56,7 @@ private:
     boolean fast_time_interval;
     unsigned long last_tsync;
     unsigned long learn_commang;//10 минут отображаем комманды с пульта
-    Display display;
+   // Display display;
     
 };
 

@@ -16,7 +16,7 @@ const uint16_t ACTIVE_TIME = 1000*10;//10 sec
 
 class DISPTask: public Task{
 public:   
-    DISPTask(const char *name, uint32_t stack,QueueHandle_t q):Task(name, stack){};
+    DISPTask(const char *name, uint32_t stack):Task(name, stack){};
     
    
 

@@ -44,7 +44,7 @@ void AppData::setup(MqttClient * mq)
   // if (conf.lamp_on)
   //   evts.putPultEvent((uint8_t)IR_DEVICE,PULT_3);
     
-  display.setup();  
+ //display.setup();  
   fast_time_interval = true;
   last_tsync = 0;
   learn_commang=0;
@@ -66,7 +66,7 @@ void AppData::loop(unsigned long t)
   if (learn_commang>0 && t-learn_commang>60000)//10 min
   {
     learn_commang=0;
-    display.showString("Learn mode","OFF","");
+   // display.showString("Learn mode","OFF","");
   }
   if (t < last_tsync) last_tsync=t;
   if (last_tsync==0 || t - last_tsync > (fast_time_interval ? SHORT_TIME : LONG_TIME))
@@ -78,7 +78,7 @@ void AppData::loop(unsigned long t)
   // for (uint8_t i = 0; i < lgh; i++)
   //   relays[i].loop(t);
 
-  display.loop(t);  
+  //display.loop(t);  
 }
 
 
