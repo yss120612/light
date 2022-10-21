@@ -23,8 +23,7 @@ void DISPTask::loop()
       case 2:
       case 3:
       case 4:
-        showString("Switched","relay="+comm,"");
-
+        showString("Switched","relay="+comm,"is " + data>0?"ON":"OFF");
       break;
     
     }
@@ -33,14 +32,14 @@ void DISPTask::loop()
   if (!display_on && display_timer==0) return;  
   if (display_on) 
 {
-  display_on=false;
   drawText();
+  display_on=false;
   display_timer=millis();
 }
 else  if (millis()-display_timer>DISPLAY_ON_TIME){
    u8g2.clear();
-   display_timer=0;
    u8g2.sleepOn();
+   display_timer=0;
 }
 }
 
