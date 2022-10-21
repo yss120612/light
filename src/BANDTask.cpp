@@ -77,7 +77,7 @@ gpio_set_level((gpio_num_t)PIN_CW, ! _level);
 
 }
 
-void BANDTask::setOne(uint8_t cannel, uint8_t value){
+void BANDTask::setOne(uint8_t cannel, uint8_t value, bool sav){
        switch (cannel){
           case 0:
            ledc_set_duty(SPEED_MODE, CANNEL_CW, _level?value:255-value);
@@ -92,11 +92,13 @@ void BANDTask::setOne(uint8_t cannel, uint8_t value){
            ledc_update_duty(SPEED_MODE, CANNEL_WW);
           break;
         }
+        if (sav){
         event_t ev;
         ev.state=MEM_EVENT;
         ev.button=201+cannel;
         ev.count=value;
         xQueueSend(que,&ev,portMAX_DELAY);
+        }
        } 
 
 void BANDTask::loop()
@@ -153,7 +155,9 @@ void BANDTask::loop()
       setOne(1,0);
       setOne(2,128);
       break;
-   
+    case 10://set one channel
+      setOne(val,data,false);
+      break;
   }
   }
 }

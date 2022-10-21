@@ -64,19 +64,19 @@ void RELTask::loop()
     {
     case 1:
       relay[0]->setState(data>0);
-      save(0);
+      if (!act) save(0);
         break;
     case 2:
       relay[1]->setState(data>0);
-      save(1);
+      if (!act) save(1);
       break;
     case 3:
       relay[2]->setState(data>0);
-      save(2);
+      if (!act) save(2);
       break;
     case 4:
       arm(3);
-      //save(0);
+      //if (!act) save(0);
       break;
     case 11:
       relay[0]->swc();

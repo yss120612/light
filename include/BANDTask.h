@@ -22,7 +22,7 @@ void loop() override;
 //void colorUp(uint8_t cannel);
 //void colorDown(uint8_t cannel);
 
-void setOne(uint8_t cannel, uint8_t value);
+void setOne(uint8_t cannel, uint8_t value,bool sav=true);
 //void force_refresh();
 
 //void refresh();

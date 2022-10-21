@@ -25,6 +25,8 @@ protected:
     void cleanup() override;
     void setup() override;
     void loop() override;
+    void drawText();
+    void showString(String s,String s1,String s2);
     U8G2_SH1106_128X64_VCOMH0_1_HW_I2C u8g2=U8G2_SH1106_128X64_VCOMH0_1_HW_I2C(U8G2_R2,U8X8_PIN_NONE);
     boolean display_on;
     unsigned long display_timer;

@@ -151,37 +151,37 @@ if (xQueueReceive(queue,&command,portMAX_DELAY))
       {
         //read result processing
         case 1://CW
-        result=makePacket(1,0,command.count);
+        result=makePacket(10,0,command.count);
         //1<<24 & 0xFF000000 | 0 << 16 & 0x00FF0000 | command.count & 0x0000FFFF;
         band->notify(result);
         break;
         case 2://NW
-        result=makePacket(1,1,command.count);
+        result=makePacket(10,1,command.count);
         //1<<24 & 0xFF000000 | 1 << 16 & 0x00FF0000 | command.count & 0x0000FFFF;
         band->notify(result);
         break;
         case 3://WW
-        result=makePacket(1,2,command.count);
+        result=makePacket(10,2,command.count);
         //1<<24 & 0xFF000000 | 2 << 16 & 0x00FF0000 | command.count & 0x0000FFFF;
         band->notify(result);
         break;
         case 4://relay 1
-          result=makePacket(1,0,command.count>0?1:0);
+          result=makePacket(1,1,command.count>0?1:0);
           //1<<16 & 0xFFFF0000 | command.count > 0?1:0 & 0x0000FFFF;
           relay->notify(result);
         break;
         case 5://relay 2
-            result=makePacket(2,0,command.count>0?1:0);
+            result=makePacket(2,1,command.count>0?1:0);
           //result=2<<16 & 0xFFFF0000 | command.count > 0?1:0 & 0x0000FFFF ;
           relay->notify(result);
         break;
         case 6://relay 3
-          result=makePacket(3,0,command.count>0?1:0);
+          result=makePacket(3,1,command.count>0?1:0);
           //result=3<<16 & 0xFFFF0000 | command.count > 0?1:0 & 0x0000FFFF;
           relay->notify(result);
         break;
         case 7://relay 4
-          result=makePacket(4,0,command.count>0?1:0);
+          result=makePacket(4,1,command.count>0?1:0);
           //result=4<<16 & 0xFFFF0000 | command.count > 0?1:0 & 0x0000FFFF;
           relay->notify(result);
         break;
