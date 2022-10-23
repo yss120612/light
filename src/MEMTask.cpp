@@ -25,7 +25,9 @@ uint32_t command;
     //comm=1 read, com=2 write
     switch (comm)
     {
+
       case 1:
+	  break;
            read(addr,&value,sizeof(value)); 
            event_t ev;
            ev.state=MEM_EVENT;
@@ -39,6 +41,11 @@ uint32_t command;
         xQueueSend(que,&ev,portMAX_DELAY);
       break;
       case 2:
+	  break;
+	  	   Serial.print("addr=");
+		   Serial.print(addr);
+		   Serial.print("value=");
+		   Serial.println(value);
            write(addr,&value,sizeof(value)); 
       break;
     }
@@ -47,6 +54,7 @@ uint32_t command;
 }
 
 void MEMTask::read(uint16_t index, uint8_t* buf, uint16_t len) {
+	
 	Wire.beginTransmission(_address);
 	Wire.write((index >> 8) & 0x0F);
 	Wire.write(index & 0xFF);
@@ -68,6 +76,7 @@ void MEMTask::read(uint16_t index, uint8_t* buf, uint16_t len) {
 
 
 void MEMTask::write(uint16_t index, const uint8_t* buf, uint16_t len) {
+	
 	index &= 0x0FFF;
 	while (len > 0) {
 		uint8_t l;

@@ -92,6 +92,7 @@ void BANDTask::setOne(uint8_t cannel, uint8_t value, bool sav){
            ledc_update_duty(SPEED_MODE, CANNEL_WW);
           break;
         }
+        
         if (sav){
         event_t ev;
         ev.state=MEM_EVENT;

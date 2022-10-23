@@ -7,18 +7,18 @@
 class Relay{
     public:
     Relay(uint8_t p,bool lvl=false){pin=p,level=lvl;};
-    void setup(boolean * mst=NULL,uint8_t tp=RELTYPE_SWICH);
-    boolean isOn();
+    void setup(uint8_t tp=RELTYPE_SWICH);
+    bool isOn();
     void setOn();
     void setOff();
-    boolean swc();
+    bool swc();
     void arm();
     void disarm();
-    uint8_t type;
+    bool ison;
     void setState(boolean s);
     protected :
-    boolean  state;
-    //boolean  * mem_state;
+    uint8_t type;
+    
     uint8_t pin;
     void syncro();
     bool level;

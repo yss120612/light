@@ -1,10 +1,10 @@
 #include "Relay.h"
 
 
-void Relay::setup(boolean * mst,uint8_t tp)
+void Relay::setup(uint8_t tp)
 {
     pinMode(pin, OUTPUT_OPEN_DRAIN);
-    //state = !level;
+    //ison = !level;
     syncro();
     
     type = tp;
@@ -13,28 +13,20 @@ void Relay::setup(boolean * mst,uint8_t tp)
 }
 
 
-void Relay::setState(boolean s){
-    state=s;
+void Relay::setState(bool s){
+    ison=s;
+    boolean
     syncro();
-
-
-
-    // Serial.print("state=");
-    // Serial.println(state);
-    // if (mem_state!=NULL){
-    //     *mem_state=s;
-    //     conf.force_story();
-    // }
 }
 
-boolean Relay::isOn()
-{
-    return state;
+bool Relay::isOn()
+{   
+    return ison;
 }
 
 void Relay::setOn()
 {
-    if (!state)
+    if (!ison)
     {
         setState(true);
     }
@@ -42,22 +34,26 @@ void Relay::setOn()
 
 void Relay::setOff()
 {
-    if (state)
+    if (ison)
     {
         setState(false);
     }
 }
 
 void Relay::syncro(){
-    digitalWrite(pin, state?level:!level);
+    digitalWrite(pin, ison?level:!level);
+    Serial.print("pin=");
+    Serial.print(pin);
+    Serial.print(" ison=");
+    Serial.println(ison);
 }
 
 
 
-boolean Relay::swc()
+bool Relay::swc()
 {
-   setState(!state);
-   return state;
+   setState(!ison);
+   return ison;
 }
 
 void Relay::arm()

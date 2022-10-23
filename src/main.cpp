@@ -125,6 +125,7 @@ if (xQueueReceive(queue,&command,portMAX_DELAY))
       case PULT_2:
         result=makePacket(2,0,command.count > 0?1:0);
         //result=2<<16 & 0xFFFF0000 | command.count > 0;
+        Serial.println(result);
         relay->notify(result);
         display->notify(result);
         break;
@@ -248,6 +249,7 @@ if (xQueueReceive(queue,&command,portMAX_DELAY))
         case 206:
         case 207:
           result=makePacket(2,command.count,command.button-200);
+          
           //result=2<<24 & 0xFF000000 | command.count <16 & 0x000FF0000 | 0 & 0x0000FFFF;
           mem->notify(result);
         break;
