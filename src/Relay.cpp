@@ -14,7 +14,7 @@ void Relay::setup(uint8_t tp)
 
 
 void Relay::setState(bool s){
-    ison=s;
+    ison=s?true:false;
     boolean
     syncro();
 }

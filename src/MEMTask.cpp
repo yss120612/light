@@ -19,7 +19,7 @@ uint32_t command;
   
   if (xTaskNotifyWait(0, 0, &command, portMAX_DELAY))
   {
-    uint8_t comm,value;//=command>>24 & 0x000000FF;
+    uint8_t comm,value;
     uint16_t addr;
 	readPacket(command,comm,value,addr);
     //comm=1 read, com=2 write

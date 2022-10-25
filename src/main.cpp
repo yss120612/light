@@ -85,19 +85,7 @@ band->resume();
 display= new DISPTask("Display",2048);  
 display->resume();
 
-// WiFi credentials.
 
-    
-    // forceWiFi=true;
-    
-    // if (connect2WiFi())
-    // {
-    //  init_networks();
-    //   msWiFi=0;
-    // }
-    ms=0;
-   //data.setup(mqtt);  
-   logg.logging(fw);
 }
 
 
@@ -284,7 +272,6 @@ if (xQueueReceive(queue,&command,portMAX_DELAY))
 
 
       }
-    
   break;
   case PULT_BUTTON:
       if (learn_command){
@@ -296,22 +283,26 @@ if (xQueueReceive(queue,&command,portMAX_DELAY))
       case PULT_1:
         result=makePacket(11,0,0);
         //result=11<<16 & 0xFFFF0000 | 0;
+        display->notify(result);
         relay->notify(result);
         
         break;
       case PULT_2:
         result=makePacket(12,0,0);
         //result=12<<16 & 0xFFFF0000 | 0;
+        display->notify(result);
         relay->notify(result);
         break;
       case PULT_3:
         result=makePacket(13,0,0);
         //result=13<<16 & 0xFFFF0000 | 0;
+        display->notify(result);
         relay->notify(result);
         break;
       case PULT_4:
         //result=14<<16 & 0xFFFF0000 | 0;
         result=makePacket(14,0,0);
+        display->notify(result);
         relay->notify(result);
         break;
       case PULT_INFO:
@@ -382,93 +373,4 @@ if (xQueueReceive(queue,&command,portMAX_DELAY))
     }
 }//if queue
 
-  // unsigned long m=millis();
-  // if (m<ms) ms=m;
-  // if (m - ms < CHECKPERIOD)
-  //   return;
-  // ms = m;
-  //if (msWiFi==0 || msWiFi>ms) msWiFi=ms;
   
-
-  //data.loop(ms);
-  //if (mqtt) mqtt->loop(ms);
-
-  //if (!http_server || !http_server->isUpdate())
-  //{
-    //digitalWrite(LED, data.isOn() ? HIGH : LOW);
-  //}
-
-  // if (blinker)
-  // if (blinker->getMode()!=BLINK_ON && data.isOn() || blinker->getMode()!=BLINK_OFF && !data.isOn()){
-  //   blinker->setMode(data.isOn()?BLINK_ON:BLINK_OFF);
-  // }
-
-  // if (ms-msWiFi>CHECKWIFI){
-  //   msWiFi=ms;
-  //   if (forceWiFi && WiFi.status()!=WL_CONNECTED){
-  //     connect2WiFi();
-  //   }
-  // }
-}
-
-void init_networks(){
-//  if (!http_server)
-//         {
-//           http_server = new HttpHelper();
-//           http_server->setup(&data);
-//         }
-//         if (!mqtt)
-//         {
-//           mqtt = new MqttClient();
-//           mqtt->setup(&data);
-//         }
-        
-}
-
-// boolean connect2WiFi(){
-//     //Serial.print("Connecting to ");
-//     //Serial.println(WIFI_SSID);
-//     //return false;
-//     logg.logging("Connecting to "+String(WIFI_SSID));
-//     //////////////////////////////////data.getI2Cdevices();
-//     blinker->setMode(BLINK_4HZ);
-//     // Set WiFi to station mode and disconnect from an AP if it was previously connected
-//     WiFi.mode(WIFI_STA);
-//     //WiFi.disconnect();
-//    // delay(100);
-//     //data.getI2Cdevices();
-//     WiFi.disconnect();
-//     WiFi.begin(WIFI_SSID, WIFI_PASS);
-//     //Serial.println("Connecting...");
-//     uint8_t cycles=0;
-//     while (WiFi.status() != WL_CONNECTED) {
-//       // Check to see if connecting failed.
-//       // This is due to incorrect credentials
-//       if (WiFi.status() == WL_CONNECT_FAILED) {
-//         logg.logging("Failed to connect to WIFI.");
-//         //Serial.println("Failed to connect to WIFI. Please verify credentials: ");
-//         //Serial.print("SSID: ");
-//         // Serial.println(WIFI_SSID);
-//         // Serial.print("Password: ");
-//         //Serial.println(WIFI_PASS);
-//         logg.logging("Connecting to "+String(WIFI_SSID));
-//       }
-//       delay(7000);
-//       cycles++;
-//       if (cycles>4) 
-//       {
-//       Serial.println("Working witout WiFi :(");  
-//       return false;
-//       break;
-//       }
-//     }
-//     //Serial.println("");
-//     //Serial.println("WiFi connected");
-//     //Serial.println("IP address: ");
-//     //Serial.println(WiFi.localIP());
-//     blinker->setMode(BLINK_OFF);
-//     logg.logging("WiFi connected.IP address: "+WiFi.localIP().toString());
-//     //Serial.println("I'm connected to the internets!!");
-//     return true;
-    
-// }

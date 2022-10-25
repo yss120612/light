@@ -90,6 +90,7 @@ void RELTask::loop()
       relay[0]->swc();
       
       save(0);
+      save(0);
       break;
     case 12:
       relay[1]->swc();
