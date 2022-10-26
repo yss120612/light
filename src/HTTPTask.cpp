@@ -6,7 +6,8 @@ void HTTPTask::cleanup(){
 	server->end();
 	SPIFFS.end();
 	delete server;
-};
+}
+
 void HTTPTask::setup(){
 SPIFFS.begin();
 server = new AsyncWebServer(80);

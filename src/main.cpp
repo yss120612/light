@@ -16,6 +16,7 @@
 #include "RELTask.h"
 #include "BANDTask.h"
 #include "DISPTask.h"
+#include "RTCTask.h"
 
 
 
@@ -49,6 +50,7 @@ RELTask * relay;
 BANDTask * band;
 MEMTask * mem;
 DISPTask * display;
+RTCTask * rtc;
 //extern void init_networks();
 
 
@@ -72,20 +74,34 @@ mem= new MEMTask("Memory",2048,queue);
 mem->resume();
 leds = new LEDTask("Leds",3072,queue,LOW);
 leds->resume();
-wifi=new WiFiTask("WiFi",8192,queue,flags);
+wifi=new WiFiTask("WiFi",4096,queue,flags);
 wifi->resume();
 ir= new IRTask("IR",2048,queue);  
 ir->resume();
-http = new HTTPTask("http",8192,queue,flags);
+http = new HTTPTask("http",4096,queue,flags);
 http->resume();
 relay= new RELTask("Relay",2048,queue);  
 relay->resume();
 band= new BANDTask("Band",2048, queue, HIGH);  
 band->resume();
+rtc = new RTCTask("Clock",2048,queue,flags);  
+rtc->resume();
 display= new DISPTask("Display",2048);  
 display->resume();
 
+// WiFi credentials.
 
+    
+    // forceWiFi=true;
+    
+    // if (connect2WiFi())
+    // {
+    //  init_networks();
+    //   msWiFi=0;
+    // }
+    ms=0;
+   //data.setup(mqtt);  
+   logg.logging(fw);
 }
 
 
@@ -373,4 +389,4 @@ if (xQueueReceive(queue,&command,portMAX_DELAY))
     }
 }//if queue
 
-  
+}

@@ -26,7 +26,7 @@ void AppData::setup(MqttClient * mq)
   //logg.logging("lamp="+String((int)&conf.lamp_on)+" val="+String(conf.lamp_on));
   //logg.logging("NB="+String((int)&conf.notebook_on)+" val="+String(conf.notebook_on));
 
-  lamp.setup();
+  
 
   // conf.notebook_on=false;
   // conf.heater_on=true;
@@ -49,7 +49,7 @@ void AppData::setup(MqttClient * mq)
   last_tsync = 0;
   learn_commang=0;
   mqtt=mq;
-  rtc.begin();
+  //rtc.begin();
 }
 
 void AppData::loop(unsigned long t)
@@ -72,7 +72,7 @@ void AppData::loop(unsigned long t)
   if (last_tsync==0 || t - last_tsync > (fast_time_interval ? SHORT_TIME : LONG_TIME))
   {
     last_tsync = t;
-    update_time_from_inet();
+    //update_time_from_inet();
   }
 
   // for (uint8_t i = 0; i < lgh; i++)
@@ -309,25 +309,19 @@ void AppData::getI2Cdevices(){
 }
 void AppData::setOneBand(uint8_t cannel, uint8_t val)
 {
-   lamp.setOne(cannel, val);
-  if (conf.lamp_on && mqtt) mqtt->updateState(cannel+100,val);
+   //lamp.setOne(cannel, val);
+  //if (conf.lamp_on && mqtt) mqtt->updateState(cannel+100,val);
 }
 
 void AppData::swcLight(boolean state)
 {
-  if (state)
-    lamp.on();
-  else
-    lamp.off();
+  
   
 }
 
 void AppData::tuneLight(boolean dir, uint8_t cannel)
 {
-  if (dir)
-    lamp.colorUp(cannel);
-  else
-    lamp.colorDown(cannel);
+  
 }
 
 void AppData::logConf()
@@ -335,29 +329,3 @@ void AppData::logConf()
   conf.print();
 }
 
-boolean AppData::update_time_from_inet()
-{
-  WiFiUDP *ntpUDP;
-  NTPClient *timeClient;
-  ntpUDP = new WiFiUDP();
-
-  timeClient = new NTPClient(*ntpUDP, ntpServer, 3600 * TIME_OFFSET, 60000 * 60 * 24);
-  timeClient->begin();
-  bool result=timeClient->forceUpdate();
-  if (result)
-  {
-    DateTime d(timeClient->getEpochTime());
-    rtc.adjust(d);
-    fast_time_interval = false;
-    logg.logging("Success update time from inet. Time is :" + rtc.now().timestamp());
-  }
-  else
-  {
-    fast_time_interval = true;
-  }
-
-  timeClient->end();
-  delete timeClient;
-  delete ntpUDP;
-  return result;
-}
