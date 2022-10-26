@@ -29,7 +29,9 @@ void RELTask::setup()
       delay(100);
     }
     else
+    {
       relay[i] = NULL;
+    }
   
 }
 
@@ -45,9 +47,12 @@ void RELTask::save(uint8_t idx){
         event_t ev;
         ev.state=MEM_EVENT;
         ev.button=204+idx;
-        ev.count=(uint8_t)((bool)relay[idx]->isOn()) & 0x01;
-        
-        Serial.print("state=");
+        ev.count=0;
+        ev.count=relay[idx]->isOn();
+
+        Serial.print("state1=");
+        Serial.print(relay[idx]->isOn());
+        Serial.print(" state=");
         Serial.print(ev.count);
         Serial.print(" true=");
         Serial.print(true);
@@ -60,9 +65,6 @@ void RELTask::save(uint8_t idx){
 void RELTask::loop()
 {
   uint32_t command;
-  
-        
-
   if (xTaskNotifyWait(0, 0, &command, portMAX_DELAY))
   {
     uint8_t comm,act;
