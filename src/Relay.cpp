@@ -15,6 +15,10 @@ void Relay::setup(uint8_t tp)
 
 void Relay::setState(bool s){
     ison=s?true:false;
+    Serial.print(" sss=");
+    Serial.print(s);
+    Serial.print(" ISON=");
+    Serial.println(ison);
     boolean
     syncro();
 }
@@ -52,7 +56,7 @@ void Relay::syncro(){
 
 bool Relay::swc()
 {
-   setState(!ison);
+   setState(!ison?true:false);
    return ison;
 }
 
