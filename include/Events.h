@@ -5,7 +5,7 @@
 #include "Config.h"
 #include "Settings.h"
 
-enum buttonstate_t : uint8_t { BTN_CLICK, BTN_LONGCLICK, PULT_BUTTON, WEB_EVENT, MEM_EVENT };
+
 
 struct event_t {
     buttonstate_t state;
