@@ -54,7 +54,7 @@ bool RTCTask::update_time_from_inet()
   {
     DateTime d(timeClient->getEpochTime());
     rtc->adjust(d);
-    //logg.logging("Success update time from inet. Time is :" + rtc.now().timestamp());
+    Serial.println("Success update time from inet. Time is :" + rtc->now().timestamp());
   }
     
 
