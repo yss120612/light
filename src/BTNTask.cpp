@@ -4,8 +4,11 @@
 void BTNTask::setup()
 {
  for (uint8_t i = 0; i < sizeof(btns); ++i) {
-    btns[i].pin=0;
+    if (bpins[i]>0) add(i,LOW);
+    else btns[i].pin=0;
  }
+
+
 }
 
 
@@ -32,11 +35,12 @@ bool BTNTask::add(uint8_t i, bool level) {
   btns[i].duration = 0;
   btns[i].xdbl=0;
   pinMode(btns[i].pin, level ? INPUT : INPUT_PULLUP);
-  attachInterrupt(btns[i].pin,std::bind(&BTNTask::_isr, this, std::placeholders::_1), CHANGE);
+  //attachInterrupt(btns[i].pin,std::bind(&BTNTask::_isr, this, std::placeholders::_1), CHANGE);
+  //attachInterrupt(btns[i].pin, std::bind(&BTNTask::_isr, this, std::placeholders::_1) , CHANGE);
   return true;
 }
 
-void ICACHE_RAM_ATTR BTNTask::_isr() {
+void BTNTask::_isr() {
   
     unsigned long ms=millis();
     uint32_t time = ms - _isrtime;
@@ -49,7 +53,7 @@ void ICACHE_RAM_ATTR BTNTask::_isr() {
         else
           btns[i].duration = 0xFFFF;
 
-      if ( (digitalRead(btns[i].pin) & 0x01) == _this->_btns[i].level) { // Button pressed
+      if ( (digitalRead(btns[i].pin) & 0x01) == btns[i].level) { // Button pressed
         if (! btns[i].pressed) {
           if (btns[i].duration > DBLCLICK_TIME) 
           {
@@ -62,11 +66,11 @@ void ICACHE_RAM_ATTR BTNTask::_isr() {
         if (btns[i].pressed) {
         
           if (btns[i].duration >= LONGCLICK_TIME) {
-            onChange(BTN_LONGCLICK, i,_this->_btns[i].xdbl);
+            onChange(BTN_LONGCLICK, i,btns[i].xdbl);
             btns[i].xdbl = 0;
-          } else if (_this->_btns[i].duration >= CLICK_TIME) {
+          } else if (btns[i].duration >= CLICK_TIME) {
              btns[i].xdbl += 1;
-             onChange(BTN_CLICK, i,_this->_btns[i].xdbl, ms);
+             onChange(BTN_CLICK, i,btns[i].xdbl, ms);
           } else {
             
           }
@@ -85,14 +89,14 @@ evt.state=state;
 evt.count=cnt;
 evt.wait_time=m;
 int idx=-1;
-if (cnt>1){
-  for (int k=0;k<_evptr->count_event();k++){
-    if (_evptr->getEvent(k)->button==button && _evptr->getEvent(k)->state==BTN_CLICK && _evptr->getEvent(k)->count==(cnt-1)) idx=k;
-  }
-  if (idx>=0) {
-  _evptr->putEvent(idx,&evt);
-  return;
-  }
-}
-_evptr->putEvent(&evt);
+// if (cnt>1){
+//   for (int k=0;k<_evptr->count_event();k++){
+//     if (_evptr->getEvent(k)->button==button && _evptr->getEvent(k)->state==BTN_CLICK && _evptr->getEvent(k)->count==(cnt-1)) idx=k;
+//   }
+//   if (idx>=0) {
+//   //_evptr->putEvent(idx,&evt);
+//   return;
+//   }
+// }
+//_evptr->putEvent(&evt);
 }

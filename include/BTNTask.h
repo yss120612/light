@@ -3,7 +3,7 @@
 #include <Arduino.h>
 #include "Task.h"
 #include "Settings.h"
-#include "Config.h"
+#include <functional>
 
 
 struct __packed button_t {
@@ -26,13 +26,13 @@ bool add(uint8_t pin, bool level);
 void cleanup() override;
 void setup() override;
 void loop() override;
-void _isr();
-void onChange(buttonstate_t state, uint8_t button, uint8_t cnt, long m);
+void IRAM_ATTR _isr();
+void onChange(buttonstate_t state, uint8_t button, uint8_t cnt, long m=0);
 button_t btns[sizeof(bpins)];
 QueueHandle_t que;
 unsigned long _isrtime;
 
-}
+};
 
 
 
