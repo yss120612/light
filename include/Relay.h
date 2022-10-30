@@ -6,8 +6,8 @@
 
 class Relay{
     public:
-    Relay(uint8_t p,bool lvl=false){pin=p,level=lvl;};
-    void setup(uint8_t tp=RELTYPE_SWICH);
+    Relay();
+    void setup(uint8_t p, uint8_t tp=RELTYPE_SWICH,bool lvl=false);
     bool isOn();
     void setOn();
     void setOff();

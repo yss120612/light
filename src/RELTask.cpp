@@ -22,22 +22,22 @@ void RELTask::setup()
   for (uint8_t i = 0; i < 4; i++)
     if (rpins[i] > 0)
     {
-      relay[i] = new Relay(rpins[i], _level);
-      relay[i] ->setup();
+      relay[i] = Relay();
+      relay[i].setup(rpins[i], _level);
       ev.button=104+i;
       xQueueSend(que,&ev,portMAX_DELAY);
       delay(100);
     }
     else
     {
-      relay[i] = NULL;
+      //relay[i] = NULL;
     }
   
 }
 
 void RELTask::arm(uint8_t i) {
- if (i>=4 || !relay[i])  return;
- relay[i]->arm();
+ if (i>=4)  return;
+ relay[i].arm();
 if (esp_timer_start_periodic(_timer, 500000) != ESP_OK) {
            return;
          }
@@ -48,10 +48,10 @@ void RELTask::save(uint8_t idx){
         ev.state=MEM_EVENT;
         ev.button=204+idx;
         ev.count=0;
-        ev.count=relay[idx]->isOn();
+        ev.count=relay[idx].isOn();
 
         Serial.print("state1=");
-        Serial.print(relay[idx]->isOn());
+        Serial.print(relay[idx].isOn());
         Serial.print(" state=");
         Serial.print(ev.count);
         Serial.print(" true=");
@@ -73,15 +73,15 @@ void RELTask::loop()
     switch (comm)
     {
     case 1:
-      relay[0]->setState(data>0);
+      relay[0].setState(data>0);
       if (!act) save(0);
         break;
     case 2:
-      relay[1]->setState(data>0);
+      relay[1].setState(data>0);
       if (!act) save(1);
       break;
     case 3:
-      relay[2]->setState(data>0);
+      relay[2].setState(data>0);
       if (!act) save(2);
       break;
     case 4:
@@ -89,17 +89,17 @@ void RELTask::loop()
       //if (!act) save(0);
       break;
     case 11:
-      relay[0]->swc();
+      relay[0].swc();
       
       save(0);
       save(0);
       break;
     case 12:
-      relay[1]->swc();
+      relay[1].swc();
       save(1);
       break;
     case 13:
-      relay[2]->swc();
+      relay[2].swc();
       save(2);
       break;
     case 14:
@@ -108,13 +108,13 @@ void RELTask::loop()
       break;
     case 20:
     
-      relay[0]->setOff();
+      relay[0].setOff();
       save(0);
-      relay[1]->setOff();
+      relay[1].setOff();
       save(1);
-      relay[2]->setOff();
+      relay[2].setOff();
       save(2);
-      relay[3]->setOff();
+      relay[3].setOff();
       //save(3);
     break;
   }
@@ -132,7 +132,7 @@ void RELTask::cleanup()
       if (rpins[i] <= 0)
         break;
       gpio_reset_pin((gpio_num_t)rpins[i]);
-      delete (relay[i]);
+      //  delete (relay[i]);
     }
   }
 }
@@ -142,7 +142,7 @@ void RELTask::timerCallback()
 for (uint8_t i = 0; i < 4; i++)
     if (rpins[i]>0)
     {
-      relay[i] -> disarm();
+      relay[i].disarm();
     }
 esp_timer_stop(_timer);    
  

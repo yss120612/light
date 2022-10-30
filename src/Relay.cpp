@@ -1,12 +1,12 @@
 #include "Relay.h"
 
 
-void Relay::setup(uint8_t tp)
+void Relay::setup(uint8_t p,uint8_t tp,bool lvl)
 {
+    pin=p;
+    level=lvl;
     pinMode(pin, OUTPUT_OPEN_DRAIN);
-    //ison = !level;
     syncro();
-    
     type = tp;
     armed=false;
     
