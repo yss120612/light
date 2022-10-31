@@ -18,12 +18,12 @@ void RELTask::setup()
     event_t ev;
     ev.state= MEM_EVENT;
     
-  // ledc_channel_t channels[]={LEDC_CHANNEL_0,LEDC_CHANNEL_1,LEDC_CHANNEL_2,LEDC_CHANNEL_3};
+  
   for (uint8_t i = 0; i < 4; i++)
     if (rpins[i] > 0)
     {
-      relay[i] = Relay();
-      relay[i].setup(rpins[i], _level);
+      //relay[i] = Relay();
+      relay[i].setup(rpins[i],i<3?RELTYPE_SWICH:RELTYPE_BUTTON, _level);
       ev.button=104+i;
       xQueueSend(que,&ev,portMAX_DELAY);
       delay(100);

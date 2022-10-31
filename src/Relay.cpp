@@ -19,7 +19,6 @@ void Relay::setState(bool s){
     Serial.print(s);
     Serial.print(" ISON=");
     Serial.println(ison);
-    boolean
     syncro();
 }
 
