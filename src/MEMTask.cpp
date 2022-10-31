@@ -21,7 +21,7 @@ uint32_t command;
   {
     uint8_t comm,value;
     uint16_t addr;
-	readPacket(command,comm,value,addr);
+	readPacket(command,&comm,&value,&addr);
     //comm=1 read, com=2 write
     switch (comm)
     {

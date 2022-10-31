@@ -110,7 +110,7 @@ void BANDTask::loop()
   {
     uint8_t comm,val;
     uint16_t data;
-    readPacket(command,comm,val,data);
+    readPacket(command,&comm,&val,&data);
     switch (comm)
     {
     case 1://set one channel

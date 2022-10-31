@@ -14,9 +14,13 @@ void Relay::setup(uint8_t p,uint8_t tp,bool lvl)
 
 
 void Relay::setState(bool s){
-    ison=s?true:false;
-    Serial.print(" sss=");
+    ison=(s?true:false);
+    uint8_t iso=(s?1:0);
+    iso=1;
+    Serial.print("s=");
     Serial.print(s);
+    Serial.print(" iso=");
+    Serial.print(iso);
     Serial.print(" ISON=");
     Serial.println(ison);
     syncro();
@@ -45,17 +49,14 @@ void Relay::setOff()
 
 void Relay::syncro(){
     digitalWrite(pin, ison?level:!level);
-    Serial.print("pin=");
-    Serial.print(pin);
-    Serial.print(" ison=");
-    Serial.println(ison);
 }
 
 
 
 bool Relay::swc()
 {
-   setState(!ison?true:false);
+   if (ison) setState(false);
+   else setState(true);
    return ison;
 }
 

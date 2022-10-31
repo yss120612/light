@@ -69,7 +69,7 @@ void RELTask::loop()
   {
     uint8_t comm,act;
     uint16_t data;
-    readPacket(command,comm,act,data);
+    readPacket(command,&comm,&act,&data);
     switch (comm)
     {
     case 1:
@@ -103,8 +103,17 @@ void RELTask::loop()
       save(2);
       break;
     case 14:
-      arm(3);
+      //arm(3);
       //save(0);
+       event_t ev;
+    ev.state= MEM_EVENT;
+    for (uint8_t i = 0; i < 4; i++)
+    if (rpins[i] > 0)
+    {
+      ev.button=104+i;
+      xQueueSend(que,&ev,portMAX_DELAY);
+      delay(100);
+    }
       break;
     case 20:
     

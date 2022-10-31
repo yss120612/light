@@ -20,7 +20,7 @@ void RTCTask::loop()
     {
         uint8_t comm, act;
         uint16_t data;
-        readPacket(command, comm, act, data);
+        readPacket(command, &comm, &act, &data);
         switch (comm)
         {
         case 1:
