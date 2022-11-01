@@ -18,7 +18,7 @@ void IRTask::loop(){
         ev.button=(uint8_t)dres.command;
         ev.count=(uint8_t)dres.address;
         ev.type=(int8_t)dres.decode_type;
-        Serial.print("Command="); 
+        Serial.print("IR Command="); 
         Serial.print(ev.button);
         Serial.print(" Address="); 
         Serial.print(ev.count);

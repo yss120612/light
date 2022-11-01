@@ -92,6 +92,7 @@ void RELTask::loop()
     case 14:
       //arm(3);
       //save(0);
+      
        event_t ev;
     ev.state= MEM_EVENT;
     for (uint8_t i = 0; i < 4; i++)

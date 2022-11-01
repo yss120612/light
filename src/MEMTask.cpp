@@ -27,26 +27,27 @@ uint32_t command;
     {
 
       case 1:
-	  break;
-           read(addr,&value,sizeof(value)); 
-           event_t ev;
-           ev.state=MEM_EVENT;
-           ev.button=addr;
-           ev.count=value;
-           
-        Serial.print("Addr="); 
-        Serial.print(ev.button);
-        Serial.print(" Value="); 
-        Serial.println(ev.count);
-        xQueueSend(que,&ev,portMAX_DELAY);
+	  		//lock();
+           	read(addr,&value,sizeof(value)); 
+			//unlock();
+           	event_t ev;
+           	ev.state=MEM_EVENT;
+           	ev.button=addr;
+           	ev.count=value;
+	        Serial.print("Addr="); 
+    	    Serial.print(ev.button);
+        	Serial.print(" Value="); 
+        	Serial.println(ev.count);
+        	xQueueSend(que,&ev,portMAX_DELAY);
       break;
       case 2:
-	  break;
-	  	   Serial.print("addr=");
+	  	   Serial.print("Save addr=");
 		   Serial.print(addr);
-		   Serial.print("value=");
+		   Serial.print("save value=");
 		   Serial.println(value);
+		   //lock();
            write(addr,&value,sizeof(value)); 
+		   //unlock();
       break;
     }
   }
