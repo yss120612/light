@@ -6,10 +6,9 @@ void Relay::setup(uint8_t p,uint8_t tp,bool lvl)
     pin=p;
     level=lvl;
     pinMode(pin, OUTPUT_OPEN_DRAIN);
-    syncro();
+    //syncro();
     type = tp;
     armed=false;
-    
 }
 
 

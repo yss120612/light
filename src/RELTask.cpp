@@ -47,18 +47,7 @@ void RELTask::save(uint8_t idx){
         event_t ev;
         ev.state=MEM_EVENT;
         ev.button=204+idx;
-        ev.count=0;
         ev.count=relay[idx].isOn();
-
-        Serial.print("state1=");
-        Serial.print(relay[idx].isOn());
-        Serial.print(" state=");
-        Serial.print(ev.count);
-        Serial.print(" true=");
-        Serial.print(true);
-        Serial.print(" false=");
-        Serial.println(false);
-        
         xQueueSend(que,&ev,portMAX_DELAY);        
 }
 
@@ -90,8 +79,6 @@ void RELTask::loop()
       break;
     case 11:
       relay[0].swc();
-      
-      save(0);
       save(0);
       break;
     case 12:
