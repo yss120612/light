@@ -80,7 +80,7 @@ ir= new IRTask("IR",2048,queue);
 ir->resume();
 http = new HTTPTask("http",4096,queue,flags);
 http->resume();
-relay= new RELTask("Relay",4096,queue);  
+relay= new RELTask("Relay",2048,queue);  
 relay->resume();
 band= new BANDTask("Band",2048, queue, HIGH);  
 band->resume();
@@ -104,9 +104,9 @@ display->resume();
    logg.logging(fw);
 
 
-   delay(1000);
-    uint32_t result=makePacket(14,0,0);
-    relay->notify(result);
+  //  delay(1000);
+  //   uint32_t result=makePacket(14,0,0);
+  //   relay->notify(result);
 }
 
 
@@ -212,6 +212,10 @@ if (xQueueReceive(queue,&command,portMAX_DELAY))
         case 105:
         case 106:
         case 107:
+        
+        
+       
+
           result=makePacket(1,0,command.button-100);
           mem->notify(result);
         break;
@@ -321,7 +325,6 @@ if (xQueueReceive(queue,&command,portMAX_DELAY))
         relay->notify(result);
         break;
       case PULT_4:
-        //result=14<<16 & 0xFFFF0000 | 0;
         result=makePacket(14,0,0);
         display->notify(result);
         relay->notify(result);
