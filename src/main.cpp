@@ -80,7 +80,7 @@ ir= new IRTask("IR",2048,queue);
 ir->resume();
 http = new HTTPTask("http",4096,queue,flags);
 http->resume();
-relay= new RELTask("Relay",2048,queue);  
+relay= new RELTask("Relay",4096,queue);  
 relay->resume();
 band= new BANDTask("Band",2048, queue, HIGH);  
 band->resume();
@@ -102,6 +102,11 @@ display->resume();
     ms=0;
    //data.setup(mqtt);  
    logg.logging(fw);
+
+
+   delay(1000);
+    uint32_t result=makePacket(14,0,0);
+    relay->notify(result);
 }
 
 
