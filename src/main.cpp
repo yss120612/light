@@ -101,12 +101,12 @@ display->resume();
     // }
     ms=0;
    //data.setup(mqtt);  
-   logg.logging(fw);
+   //logg.logging(fw);
 
 
-  //  delay(1000);
-  //   uint32_t result=makePacket(14,0,0);
-  //   relay->notify(result);
+    delay(1000);
+    uint32_t result=makePacket(14,0,0);
+    relay->notify(result);
 }
 
 
@@ -126,27 +126,22 @@ if (xQueueReceive(queue,&command,portMAX_DELAY))
       switch (command.button)
       {
       case PULT_1:
-        //result=1<<16 | command.count > 0;
         result=makePacket(1,0,command.count > 0?1:0);
         relay->notify(result);
         display->notify(result);
         break;
       case PULT_2:
         result=makePacket(2,0,command.count > 0?1:0);
-        //result=2<<16 & 0xFFFF0000 | command.count > 0;
-        Serial.println(result);
         relay->notify(result);
         display->notify(result);
         break;
       case PULT_3:
         result=makePacket(3,0,command.count > 0?1:0);
-        //result=3<<16 & 0xFFFF0000 | command.count > 0;
         relay->notify(result);
         display->notify(result);
         break;
       case PULT_4:
         result=makePacket(4,0,command.count > 0?1:0);
-        //result=4<<16 & 0xFFFF0000 | command.count > 0;
         relay->notify(result);
         display->notify(result);
         break;
@@ -308,9 +303,8 @@ if (xQueueReceive(queue,&command,portMAX_DELAY))
       case PULT_1:
         result=makePacket(11,0,0);
         //result=11<<16 & 0xFFFF0000 | 0;
-        display->notify(result);
-        relay->notify(result);
-        
+         display->notify(result);
+         relay->notify(result);
         break;
       case PULT_2:
         result=makePacket(12,0,0);
@@ -356,7 +350,6 @@ if (xQueueReceive(queue,&command,portMAX_DELAY))
         //tuneLight(false, CANNEL_WW);
         break;
       case PULT_NEXT:
-        
         //tuneLight(true, CANNEL_WW);
         break;
       case PULT_SLOW: //ultra low
