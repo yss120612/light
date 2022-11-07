@@ -42,15 +42,15 @@ SemaphoreHandle_t btn_semaphore;
 EventGroupHandle_t flags;
 
 //Blinker * blinker;
+MEMTask * mem;
 LEDTask * leds;
 WiFiTask * wifi;
 IRTask * ir;
 HTTPTask * http;
-RELTask * relay;
-BANDTask * band;
-MEMTask * mem;
 DISPTask * display;
 RTCTask * rtc;
+RELTask * relay;
+BANDTask * band;
 //extern void init_networks();
 
 
@@ -80,33 +80,14 @@ ir= new IRTask("IR",2048,queue);
 ir->resume();
 http = new HTTPTask("http",4096,queue,flags);
 http->resume();
-relay= new RELTask("Relay",2048,queue);  
-relay->resume();
-band= new BANDTask("Band",2048, queue, HIGH);  
-band->resume();
 rtc = new RTCTask("Clock",2048,queue,flags);  
 rtc->resume();
 display= new DISPTask("Display",2048);  
 display->resume();
-
-// WiFi credentials.
-
-    
-    // forceWiFi=true;
-    
-    // if (connect2WiFi())
-    // {
-    //  init_networks();
-    //   msWiFi=0;
-    // }
-    ms=0;
-   //data.setup(mqtt);  
-   //logg.logging(fw);
-
-
-    delay(1000);
-    uint32_t result=makePacket(14,0,0);
-    relay->notify(result);
+relay= new RELTask("Relay",3072,queue);  
+relay->resume();
+band= new BANDTask("Band",2048, queue, HIGH);  
+band->resume();
 }
 
 
@@ -147,12 +128,16 @@ if (xQueueReceive(queue,&command,portMAX_DELAY))
         break;
       case WEB_CANNEL_CW:
         //setOneBand(CANNEL_CW, ev.count);
+        result=makePacket(1,CANNEL_CW,command.count);
+        band->notify(result);
         break;
       case WEB_CANNEL_NW:
-        //setOneBand(CANNEL_NW, ev.count);
+        result=makePacket(1,CANNEL_NW,command.count);
+        band->notify(result);
         break;
       case WEB_CANNEL_WW:
-        //setOneBand(CANNEL_WW, ev.count);
+        result=makePacket(1,CANNEL_WW,command.count);
+        band->notify(result);
         break;
       }
   break;
@@ -163,38 +148,17 @@ if (xQueueReceive(queue,&command,portMAX_DELAY))
       {
         //read result processing
         case 1://CW
-        result=makePacket(10,0,command.count);
-        //1<<24 & 0xFF000000 | 0 << 16 & 0x00FF0000 | command.count & 0x0000FFFF;
-        band->notify(result);
-        break;
         case 2://NW
-        result=makePacket(10,1,command.count);
-        //1<<24 & 0xFF000000 | 1 << 16 & 0x00FF0000 | command.count & 0x0000FFFF;
-        band->notify(result);
-        break;
         case 3://WW
-        result=makePacket(10,2,command.count);
-        //1<<24 & 0xFF000000 | 2 << 16 & 0x00FF0000 | command.count & 0x0000FFFF;
+        result=makePacket(10,command.button-1,command.count);
         band->notify(result);
         break;
+        
         case 4://relay 1
-          result=makePacket(1,1,command.count>0?1:0);
-          //1<<16 & 0xFFFF0000 | command.count > 0?1:0 & 0x0000FFFF;
-          relay->notify(result);
-        break;
         case 5://relay 2
-            result=makePacket(2,1,command.count>0?1:0);
-          //result=2<<16 & 0xFFFF0000 | command.count > 0?1:0 & 0x0000FFFF ;
-          relay->notify(result);
-        break;
         case 6://relay 3
-          result=makePacket(3,1,command.count>0?1:0);
-          //result=3<<16 & 0xFFFF0000 | command.count > 0?1:0 & 0x0000FFFF;
-          relay->notify(result);
-        break;
         case 7://relay 4
-          result=makePacket(4,1,command.count>0?1:0);
-          //result=4<<16 & 0xFFFF0000 | command.count > 0?1:0 & 0x0000FFFF;
+          result=makePacket(command.button-3,1,command.count>0?1:0);
           relay->notify(result);
         break;
 
@@ -207,12 +171,9 @@ if (xQueueReceive(queue,&command,portMAX_DELAY))
         case 105:
         case 106:
         case 107:
-        
-        
-       
-
           result=makePacket(1,0,command.button-100);
           mem->notify(result);
+          delay(800);
         break;
         // case 101://request CW
         //   result=makePacket(1,0,1);
@@ -292,6 +253,19 @@ if (xQueueReceive(queue,&command,portMAX_DELAY))
 
 
       }
+  
+  break;
+  case DISP_EVENT:
+  switch (command.button)
+      {
+    case 11:
+    case 12:
+    case 13:
+    case 14:
+    result=makePacket(command.button-10,0,command.count);
+    display->notify(result);
+    break;
+      }
   break;
   case PULT_BUTTON:
       if (learn_command){
@@ -302,43 +276,36 @@ if (xQueueReceive(queue,&command,portMAX_DELAY))
       {
       case PULT_1:
         result=makePacket(11,0,0);
-        //result=11<<16 & 0xFFFF0000 | 0;
-         display->notify(result);
          relay->notify(result);
+         //display->notify(result);
         break;
       case PULT_2:
         result=makePacket(12,0,0);
-        //result=12<<16 & 0xFFFF0000 | 0;
-        display->notify(result);
+        //display->notify(result);
         relay->notify(result);
         break;
       case PULT_3:
         result=makePacket(13,0,0);
-        //result=13<<16 & 0xFFFF0000 | 0;
-        display->notify(result);
+        //display->notify(result);
         relay->notify(result);
         break;
       case PULT_4:
         result=makePacket(14,0,0);
-        display->notify(result);
+        //display->notify(result);
         relay->notify(result);
         break;
-      case PULT_INFO:
-        conf.print();
-        break;
+      // case PULT_INFO:
+      //   conf.print();
+      //   break;
       case PULT_POWER:
         result=makePacket(20,0,0);
-        //result=20<<16 & 0xFFFF0000 | 0;
         relay->notify(result);
         break;
       case PULT_SOUND:
-        //relaySwitchOff(t);
         break;
       case PULT_VOLDOWN:
-        //tuneLight(false, CANNEL_CW);
         break;
       case PULT_VOLUP:
-        //tuneLight(true, CANNEL_CW);
         break;
       case PULT_FASTBACK:
         //tuneLight(false, CANNEL_NW);
@@ -346,44 +313,22 @@ if (xQueueReceive(queue,&command,portMAX_DELAY))
       case PULT_FASTFORWARD:
         //tuneLight(true, CANNEL_NW);
         break;
-      case PULT_PREV:
-        //tuneLight(false, CANNEL_WW);
-        break;
-      case PULT_NEXT:
-        //tuneLight(true, CANNEL_WW);
-        break;
-      case PULT_SLOW: //ultra low
+ 
+      case PULT_PREV: //ultra low
         result=makePacket(9,0,0);
-        //result=9<<24 & 0xFF000000;
         band->notify(result);
-        //setOneBand(CANNEL_CW, 0);
-        //setOneBand(CANNEL_NW, 0);
-        //setOneBand(CANNEL_WW, 64);
-        //logg.logging("SLOW");
         break;
-      case PULT_ZOOM: //low
-        //result=5<<24 & 0xFF000000;
+      case PULT_PAUSE: //low
         result=makePacket(5,0,0);
         band->notify(result);
-        //setOneBand(CANNEL_CW, 64);
-        //setOneBand(CANNEL_NW, 64);
-        //setOneBand(CANNEL_WW, 64);
         break;
       case PULT_STOP: //middle
-        //result=4<<24 & 0xFF000000;
         result=makePacket(4,0,0);
         band->notify(result);
-        //setOneBand(CANNEL_CW, 128);
-        //setOneBand(CANNEL_NW, 128);
-        //setOneBand(CANNEL_WW, 128);
         break;
-      case PULT_PAUSE: //full
-        //result=2<<24 & 0xFF000000;
+      case PULT_NEXT: //full
         result=makePacket(2,0,0);
         band->notify(result);
-        //setOneBand(CANNEL_CW, 255);
-        //setOneBand(CANNEL_NW, 255);
-        //setOneBand(CANNEL_WW, 255);
         break;
       }
       break;

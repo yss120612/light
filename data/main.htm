@@ -3,83 +3,83 @@
   <head>
     <meta charset="utf-8">
     <title>Система автоматики Yss</title>
-    <meta name="description" content="Версия 0.1">
+    <meta name="description" content="Версия 0.2">
     <meta name="author" content="Yss">
 	<link href="/css/bootstrap.min.css" type="text/css" rel="stylesheet" />
-	<link href="/css/font-awesome.min.css" type="text/css" rel="stylesheet" />
-	<link href="/css/radio.css" type="text/css" rel="stylesheet" />
 	<script type="text/javascript" src="/js/bootstrap.min.js"></script>
     <script type="text/javascript" src="/js/jquery.min.js"></script>
 	
 	
 </head>
 <body>
-	<div class="container-fluid">
-	<div class="row">
-		<div class="col-md-12">
-			<a href="/" class="btn btn-info">Дом</a>
-		</div>
-		<div class="col-md-offset-1 col-md-10">
-			<h3>Релейный блок</h3>
-		</div>
+	<nav class="navbar navbar-light bg-light navbar-expand-lg">
+		<div class="container-fluid">
+			<a class="navbar-brand" href="#">Параметры системы</a>
+		<ul class="nav nav-pills">
+			<li class="nav-item">
+			  <a class="nav-link" href="/">Home</a>
+			</li>
+			<li class="nav-item">
+			  <a class="nav-link active"  aria-current="page" href="#">Main</a>
+			</li>
+			<li class="nav-item">
+			  <a class="nav-link" href="/upd">Update</a>
+			</li>
+			<li class="nav-item">
+			  <a class="nav-link" href="/log">Log</a>
+			</li>
+			<li class="nav-item">
+			  <a class="nav-link" href="/reboot">Reboot</a>
+			</li>
+		  </ul>
+		  </div>
+		</nav>
+		
+		
 		
 		<div class="panel panel-default col-md-offset-1 col-md-10">
-			<div class="panel-heading">Текущие параметры</div>
+			
 			<div class="panel-body">		
 				<div class="col-md-4">
 					<form>
 						<h2>1. Релейный блок</h2>
-						<div class="form-check">
-							<label>
-								<input type="checkbox" name="check" id="REL1"> <span class="label-text">Рэле 1</span>
+						<div class="form-check form-switch">
+							<input class="form-check-input" name="REL1" type="checkbox" value="" id="REL1">
+							<label class="form-check-label" for="REL1">
+							  Рэле 1
 							</label>
-						</div>
-						<div class="form-check">
-							<label>
-								<input type="checkbox" name="check" id="REL2"> <span class="label-text">Рэле 2</span>
+						  </div>
+						  <div class="form-check">
+							<input class="form-check-input" name="REL2" type="checkbox" value="" id="REL2">
+							<label class="form-check-label" for="REL2">
+							  Рэле 2
 							</label>
-						</div>
-						<div class="form-check">
-							<label>
-								<input type="checkbox" name="check" id="REL3"> <span class="label-text">Рэле 3</span>
+						  </div>
+						  <div class="form-check">
+							<input class="form-check-input" type="checkbox" value="" name="REL3" id="REL3">
+							<label class="form-check-label" for="REL3">
+							  Рэле 3
 							</label>
-						</div>
-						<div class="form-check">
-							<label>
-								<input type="checkbox" name="check" disabled> <span class="label-text">Option 04</span>
-							</label>
-						</div>
-
+						  </div>
+												
 						<div class="form-button">
-							<a type="button" class="btn btn-lg btn-success" id="REL4"><i class="fa fa-bed fa-2x pull-left"> Sleep</i></a>
+							<a type="button" class="btn btn-lg btn-success" id="REL4"><i class="fa fa-bed fa-2x pull-left">Sleep</i></a>
 						</div>
-
 					</form>
-		
 				</div>
 
 				<div class="col-md-4">
 					<form>
 						<h2>2. Лампа</h2>
-						<div class="form-check">
-							<label>
-								<input type="checkbox" name="check" id="BAND_CW"> <span class="label-text">Cool</span>
-							</label>
-						</div>
-						<div class="form-check">
-							<label>
-								<input type="checkbox" name="check" id="BAND_NW"> <span class="label-text">Normal</span>
-							</label>
-						</div>
-						<div class="form-check">
-							<label>
-								<input type="checkbox" name="check" id="BAND_WW"> <span class="label-text">Warm</span>
-							</label>
-						</div>
-
+						<label for="LIGHT_CW" class="form-label">Свет CW</label>
+						<input type="range" class="form-range" min="0" max="255" step="32" id="LIGHT_CW">
+						<label for="LIGHT_NW" class="form-label">Свет NW</label>
+						<input type="range" class="form-range" min="0" max="255" step="32" id="LIGHT_NW">
+						<label for="LIGHT_WW" class="form-label">Свет WW</label>
+						<input type="range" class="form-range" min="0" max="255" step="32" id="LIGHT_WW">
 					</form>
-		
 				</div>
+
 
 				<div class="col-md-4">
 					<form>
@@ -134,8 +134,7 @@
 				</div>
 			</div>
 		</div>
-	</div>
-	</div>
+	
  
  <script type="text/javascript">
 	$(document).ready(function(){
@@ -187,33 +186,33 @@
                 return false;  
 			});  
 			
-			$('#BAND_CW').on('input',function(){  
+			$('#LIGHT_CW').on('change',function(){  
 			$.ajax({  
                     type: "POST",  
                     url: "/post",  
-                    data: "page=main&BAND_CW="+$('#BAND_CW').prop("checked"),  
+                    data: "page=main&LIGHT_CW="+$('#LIGHT_CW').prop("value"),  
                     success: function(html){  
                     }  
 			}); 
                 return false;  
 			});  
 
-			$('#BAND_NW').on('input',function(){  
+			$('#LIGHT_NW').on('change',function(){  
 			$.ajax({  
                     type: "POST",  
                     url: "/post",  
-                    data: "page=main&BAND_NW="+$('#BAND_NW').prop("checked"),  
+                    data: "page=main&LIGHT_NW="+$('#LIGHT_NW').prop("value"),  
                     success: function(html){  
                     }  
 			}); 
                 return false;  
 			});  
 
-			$('#BAND_WW').on('input',function(){  
+			$('#LIGHT_WW').on('change',function(){  
 			$.ajax({  
                     type: "POST",  
                     url: "/post",  
-                    data: "page=main&BAND_WW="+$('#BAND_WW').prop("checked"),  
+                    data: "page=main&LIGHT_WW="+$('#LIGHT_WW').prop("value"),  
                     success: function(html){  
                     }  
 			}); 
@@ -233,9 +232,9 @@
 			$('#REL1').prop('checked', data['REL1']==1);
 			$('#REL2').prop('checked', data['REL2']==1);
 			$('#REL3').prop('checked', data['REL3']==1);
-			$('#BAND_CW').prop('checked', data['BAND_CW']>0);
-			$('#BAND_NW').prop('checked', data['BAND_NW']>0);
-			$('#BAND_WW').prop('checked', data['BAND_WW']>0);
+			$('#LIGHT_CW').prop('value', data['LIGHT_CW']);
+			$('#LIGHT_NW').prop('value', data['LIGHT_NW']);
+			$('#LIGHT_WW').prop('value', data['LIGHT_WW']);
 
 		});
 		setTimeout('process()',2000);

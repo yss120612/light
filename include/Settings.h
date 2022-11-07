@@ -25,19 +25,18 @@
 #define PULT_2      2
 #define PULT_3      3
 #define PULT_4      4
-#define PULT_POWER  74
-#define PULT_SOUND  69
-#define PULT_VOLUP  14
-#define PULT_VOLDOWN  15
-#define PULT_FASTBACK 110
-#define PULT_FASTFORWARD  30
-#define PULT_NEXT 82
-#define PULT_PREV  83
-#define PULT_SLOW  17
-#define PULT_ZOOM  24
+#define PULT_POWER  28
+#define PULT_SOUND  18
+#define PULT_VOLUP  10
+#define PULT_VOLDOWN  11
+#define PULT_FASTBACK 15
+#define PULT_FASTFORWARD  14
+#define PULT_NEXT 16
+#define PULT_PREV  17
+#define PULT_PLAY  23 
 #define PULT_STOP  22
-#define PULT_PAUSE  16
-#define PULT_INFO  67
+#define PULT_PAUSE  24
+
 
 #define WEB_CANNEL_CW   100
 #define WEB_CANNEL_NW   101
@@ -90,7 +89,7 @@
 
 
 const ledc_channel_t channels[]={LEDC_CHANNEL_0,LEDC_CHANNEL_1,LEDC_CHANNEL_2,LEDC_CHANNEL_3};
-enum buttonstate_t : uint8_t { BTN_CLICK, BTN_LONGCLICK, PULT_BUTTON, WEB_EVENT, MEM_EVENT };
+enum buttonstate_t : uint8_t { BTN_CLICK, BTN_LONGCLICK, PULT_BUTTON, WEB_EVENT, MEM_EVENT,DISP_EVENT };
 enum blinkmode_t { BLINK_OFF, BLINK_ON, BLINK_TOGGLE, BLINK_05HZ, BLINK_1HZ, BLINK_2HZ, BLINK_4HZ, BLINK_FADEIN, BLINK_FADEOUT, BLINK_FADEINOUT, BLINK_SUNRAISE,BLINK_SUNSET };
 
 const uint8_t rpins[]={RELAY1,RELAY2,RELAY3,RELAY4};

@@ -15,6 +15,7 @@ void loop() override;
 QueueHandle_t que;
 IRrecv * irrecv;
 decode_results dres;
+uint32_t old_command;
 };
 
 

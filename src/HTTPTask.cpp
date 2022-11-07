@@ -18,6 +18,7 @@ if (!server){
 server->on("/", std::bind(&HTTPTask::handleRoot, this, std::placeholders::_1));
 server->on("/upd", std::bind(&HTTPTask::handleUpd, this, std::placeholders::_1));
 server->on("/log", std::bind(&HTTPTask::handleUpd, this, std::placeholders::_1));
+server->on("/reboot", std::bind(&HTTPTask::handleReboot, this, std::placeholders::_1));
 server->on("/main", std::bind(&HTTPTask::handleMain, this, std::placeholders::_1));
 server->on("/post", HTTP_ANY, std::bind(&HTTPTask::handleW2A, this, std::placeholders::_1));
 server->on("/getdata", HTTP_ANY, std::bind(&HTTPTask::handleA2W, this, std::placeholders::_1));
@@ -63,6 +64,14 @@ void HTTPTask::handleMain(AsyncWebServerRequest * request) {
 		return request->requestAuthentication();
 		handleFile("/main.htm","text/html",request);
 }
+
+void HTTPTask::handleReboot(AsyncWebServerRequest * request) {
+	if (!request->authenticate("Yss1", "bqt3"))
+		return request->requestAuthentication();
+		handleFile("/index.htm","text/html",request);
+		ESP.restart();
+}
+
 
 void HTTPTask::handleRoot(AsyncWebServerRequest * request) {
 	
@@ -171,8 +180,8 @@ void HTTPTask::handleW2A(AsyncWebServerRequest * request)
 
 void HTTPTask::var(String n, String v)
 {
-    event_t ev;
-    ev.state=WEB_EVENT;
+     event_t ev;
+     ev.state=WEB_EVENT;
   	if (n.equals("REL1"))
 	{
 		ev.button=PULT_1;
@@ -193,23 +202,23 @@ void HTTPTask::var(String n, String v)
 		ev.button=PULT_4;
 		ev.count=v.equals(F("true"));
 	}
-	else if (n.equals("BAND_CW"))
+	else if (n.equals("LIGHT_CW"))
 	{
 		ev.button=WEB_CANNEL_CW;
-		ev.count=v.equals(F("true"))?255:0;
+		ev.count=v.toInt();
 		
 	}
-	else if (n.equals("BAND_NW"))
+	else if (n.equals("LIGHT_NW"))
 	{
 		ev.button=WEB_CANNEL_NW;
-		ev.count=v.equals(F("true"))?255:0;
+		ev.count=v.toInt();
 	}
-	else if (n.equals("BAND_WW"))
+	else if (n.equals("LIGHT_WW"))
 	{
 		ev.button=WEB_CANNEL_WW;
-		ev.count=v.equals(F("true"))?255:0;
+		ev.count=v.toInt();
 	}
-	xQueueSend(que,&ev,portMAX_DELAY);
+	 xQueueSend(que,&ev,portMAX_DELAY);
 }
 
 

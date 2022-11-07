@@ -14,7 +14,7 @@ class Relay{
     bool swc();
     void arm();
     void disarm();
-    
+    bool isButton();
     void setState(boolean s);
     protected :
     uint8_t type;

@@ -19,6 +19,7 @@ void handleRoot(AsyncWebServerRequest * request);
 void handleFile(String path,String type, AsyncWebServerRequest *request);
 void handleMain(AsyncWebServerRequest * request);
 void handleNotFound(AsyncWebServerRequest * request);
+void handleReboot(AsyncWebServerRequest * request);
 void handleW2A(AsyncWebServerRequest * request);
 void handleA2W(AsyncWebServerRequest * request);
 void var(String n, String v);

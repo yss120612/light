@@ -177,7 +177,7 @@ void BandLED::setOne(uint8_t cannel, uint8_t value)
             conf.ww=value;
         break;
     }
-    conf.force_story();
+    //conf.force_story();
     //выкл или вкл для записи состояния
     refresh();
 }

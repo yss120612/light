@@ -11,8 +11,8 @@ void IRTask::loop(){
     
     if (irrecv->decode(&dres))
 {       uint32_t command=dres.command;
-        if (command){
-        lock();
+        if (command && command!=old_command){
+        old_command=command;    
         event_t ev;
         ev.state=PULT_BUTTON;
         ev.button=(uint8_t)dres.command;
@@ -25,12 +25,13 @@ void IRTask::loop(){
         Serial.print(" Type="); 
         Serial.println(ev.type);
         xQueueSend(que,&ev,portMAX_DELAY);
-        unlock();
+        
         }
         irrecv->resume();
     }
         
-    delay(100);
+    delay(500);
+    old_command=0;
 }
 
 void IRTask::cleanup(){

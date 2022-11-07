@@ -11,28 +11,37 @@
     <script type="text/javascript" src="/js/bootstrap.min.js"></script>
 </head>
 <body>
-<ul class="nav nav-tabs">
-    <li class="active"><a href="/"><b>Дом</b></a></li>
-    <li><a href="/upd">Обновление</a></li>
-    <li><a href="/main">Main</a></li>
-    <li><a href="/log">Лог</a></li>
-</ul>
+  <nav class="navbar navbar-light bg-light navbar-expand-lg">
+		<div class="container-fluid">
+			<a class="navbar-brand" href="#">Система автоматики рабочего стола</a>
+		<ul class="nav nav-pills">
+			<li class="nav-item">
+			  <a class="nav-link active"  aria-current="page" href="#">Home</a>
+			</li>
+			<li class="nav-item">
+			  <a class="nav-link" href="/main">Main</a>
+			</li>
+			<li class="nav-item">
+			  <a class="nav-link" href="/upd">Update</a>
+			</li>
+			<li class="nav-item">
+			  <a class="nav-link" href="/log">Log</a>
+			</li>
+			<li class="nav-item">
+			  <a class="nav-link" href="/reboot">Reboot</a>
+			</li>
+		  </ul>
+		  </div>
+		</nav>
+
+   
  <div class="container-fluid">
  <div class="row">
   <div class="col-md-12">
    <div class="page-header">
-     <h1>Yss <small>Система автоматики рабочего стола</small></h1>
+     
      </div>
    </div>
 </div>
-<div class="row">
-  <div class="col-md-12">
-  <a href="/log"  class="btn btn-normal">Log</a>
-  <a href="/upd" class="btn btn-normal">Update</a>
-  <a href="/main" class="btn btn-normal">Main</a>
-  </div>
-   </div>
-  </div>
-
-  </body>
+</body>
 </html>

@@ -24,6 +24,7 @@ void RELTask::setup()
     {
       //relay[i] = Relay();
       relay[i].setup(rpins[i],i<3?RELTYPE_SWICH:RELTYPE_BUTTON, _level);
+      if (relay[i].isButton()) continue;
       ev.button=104+i;
       xQueueSend(que,&ev,portMAX_DELAY);
       delay(100);
@@ -48,7 +49,11 @@ void RELTask::save(uint8_t idx){
         ev.state=MEM_EVENT;
         ev.button=204+idx;
         ev.count=relay[idx].isOn();
-        xQueueSend(que,&ev,portMAX_DELAY);        
+        xQueueSend(que,&ev,portMAX_DELAY);      
+        ev.state= DISP_EVENT;
+        ev.button=11+idx;
+        ev.count=relay[idx].isOn();
+        xQueueSend(que,&ev,portMAX_DELAY);      
 }
 
 void RELTask::loop()
@@ -62,58 +67,39 @@ void RELTask::loop()
     switch (comm)
     {
     case 1:
-      relay[0].setState(data>0);
-      if (!act) save(0);
-        break;
     case 2:
-      relay[1].setState(data>0);
-      if (!act) save(1);
-      break;
     case 3:
-      relay[2].setState(data>0);
-      if (!act) save(2);
-      break;
     case 4:
-      arm(3);
-      //if (!act) save(0);
-      break;
-    case 11:
-      relay[0].swc();
-      save(0);
-      break;
-    case 12:
-      relay[1].swc();
-      save(1);
-      break;
-    case 13:
-      relay[2].swc();
-      save(2);
-      break;
-    case 14:
-      //arm(3);
-      //save(0);
-      
-       event_t ev;
-    ev.state= MEM_EVENT;
-    for (uint8_t i = 0; i < 4; i++)
-    if (rpins[i] > 0)
+    if (!relay[comm-1].isButton())
     {
-      ev.button=104+i;
-      xQueueSend(que,&ev,portMAX_DELAY);
-      delay(100);
+      relay[comm-1].setState(data>0);
+      if (!act) save(comm-1);
     }
+    else{
+      arm(comm-1);
+    }
+    break;
+    case 11:
+    case 12:
+    case 13:
+    case 14:
+      if (relay[comm-11].isButton()) {
+        arm(comm-11);
+      }else{
+      relay[comm-11].swc();
+      save(comm-11);
+      }
       break;
     case 20:
-    
-      relay[0].setOff();
-      save(0);
-      relay[1].setOff();
-      save(1);
-      relay[2].setOff();
-      save(2);
-      relay[3].setOff();
-      //save(3);
-    break;
+    Serial.println("All off");
+    for (uint8_t i=0;i<4;i++){
+    if (!relay[i].isButton())
+    {
+      relay[i].setOff();
+      save(i);
+    }
+    }
+  break;
   }
   }
 }

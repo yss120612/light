@@ -14,14 +14,6 @@ void Relay::setup(uint8_t p,uint8_t tp,bool lvl)
 
 void Relay::setState(bool s){
     ison=(s?true:false);
-    uint8_t iso=(s?1:0);
-    iso=1;
-    Serial.print("s=");
-    Serial.print(s);
-    Serial.print(" iso=");
-    Serial.print(iso);
-    Serial.print(" ISON=");
-    Serial.println(ison);
     syncro();
 }
 
@@ -67,6 +59,9 @@ void Relay::arm()
     }
 }
 
+bool Relay::isButton(){
+    return type == RELTYPE_BUTTON;
+}
 
 void Relay::disarm()
 {
