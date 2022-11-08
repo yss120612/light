@@ -36,7 +36,7 @@ void write(uint16_t index, const uint8_t* buf, uint16_t len);
 	}
 
 QueueHandle_t que;
-uint8_t _address;
+//uint8_t _address;
 
 };
 #endif

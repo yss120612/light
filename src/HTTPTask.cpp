@@ -1,6 +1,7 @@
 #include "HTTPTask.h"
 #include <Update.h>
 #include "Events.h"
+#include <Wire.h>
 
 void HTTPTask::cleanup(){
 	server->end();
@@ -222,6 +223,26 @@ void HTTPTask::var(String n, String v)
 }
 
 
+String HTTPTask::getI2Cdevices(){
+    int error;
+	String res="\"I2C device found at address ";
+	uint8_t count=0;
+    for (uint8_t address = 1; address < 127; address++ )  {
+    Wire.beginTransmission(address);
+    error = Wire.endTransmission();
+    if (error == 0)    {
+		if (count>0) res+="; ";
+		res+=String(address);
+		count++;
+      
+    }
+    }
+    res+=" Ttal devices|";
+	res+=String(count);
+	res+="\"";
+}
+
+
 void HTTPTask::handleA2W(AsyncWebServerRequest * request)
 {
 	if (request->params()<1 || !(request->getParam(0)->name()).equals("page")){
@@ -252,6 +273,9 @@ void HTTPTask::handleA2W(AsyncWebServerRequest * request)
 		str+=F(",");
 		str+=F("\"BAND_WW\":");
 		str+=String(128);
+		str+=F(",");
+		str+=F("\"DEVSHOW\":");
+		str+="'HUI'";
 		str+=F("}");
 
 		request->send(200, "text/json",str); // Oтправляем ответ No Reset

@@ -27,6 +27,7 @@ void handleUpd(AsyncWebServerRequest * request);
 void handleUpdate(AsyncWebServerRequest *request, const String& filename, size_t index, uint8_t *data, size_t len, bool final);
 void handleSpiffs(AsyncWebServerRequest *request, const String& filename, size_t index, uint8_t *data, size_t len, bool final);
 void handleLog(AsyncWebServerRequest * request);
+String getI2Cdevices();
 QueueHandle_t que;
 EventGroupHandle_t flg;
 AsyncWebServer * server;

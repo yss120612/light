@@ -84,6 +84,15 @@
 				<div class="col-md-4">
 					<form>
 						<h2>2. Customs Radios</h2>
+
+						<div class="form-button">
+							<a type="button" class="btn btn-lg btn-success" id="DEVICES"><i class="fa fa-bed fa-2x pull-left">Devices</i></a>
+						</div>
+
+						<div class="alert alert-success" role="alert" id="DEVSHOW">
+							
+						</div>
+
 						<div class="form-check">
 							<label>
 								<input type="radio" name="radio" checked> <span class="label-text">Option 01</span>
@@ -186,6 +195,18 @@
                 return false;  
 			});  
 			
+			$('#DEVICES').on('click',function(){  
+			$.ajax({  
+                    type: "POST",  
+                    url: "/post",  
+                    data: "page=main&DEVICES=true",  
+                    success: function(html){  
+                    }  
+			}); 
+                return false;  
+			});  
+
+
 			$('#LIGHT_CW').on('change',function(){  
 			$.ajax({  
                     type: "POST",  
@@ -235,6 +256,7 @@
 			$('#LIGHT_CW').prop('value', data['LIGHT_CW']);
 			$('#LIGHT_NW').prop('value', data['LIGHT_NW']);
 			$('#LIGHT_WW').prop('value', data['LIGHT_WW']);
+			$('#DEVSHOW').html(data['DEVSHOW']);
 
 		});
 		setTimeout('process()',2000);

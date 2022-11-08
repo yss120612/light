@@ -10,15 +10,15 @@ AppData::AppData()
 void AppData::setup(MqttClient * mq)
 {
   
-  if (!conf.setup())
-  {
-    logg.logging("AT24C32 ERROR!");
-  }
-  else{
-    logg.logging("AT24C32 OK!");
-  }
-  conf.upload();
-  conf.print();
+  // if (!conf.setup())
+  // {
+  //   logg.logging("AT24C32 ERROR!");
+  // }
+  // else{
+  //   logg.logging("AT24C32 OK!");
+  // }
+  // conf.upload();
+  // conf.print();
   // relays[0].setup(&conf.notebook_on);
   // relays[1].setup();
   // relays[2].setup(&conf.lamp_on);
@@ -90,9 +90,9 @@ void AppData::ir_sleep()
   //ir.sleep_sometime();
 }
 
-uint8_t AppData::getCW() { return conf.cw; }
-uint8_t AppData::getNW() { return conf.nw; }
-uint8_t AppData::getWW() { return conf.ww; }
+// uint8_t AppData::getCW() { return conf.cw; }
+// uint8_t AppData::getNW() { return conf.nw; }
+// uint8_t AppData::getWW() { return conf.ww; }
 
 
 void AppData::relaySwitchOff(unsigned long t)
@@ -298,14 +298,14 @@ void AppData::ProcessEvents(unsigned long t)
 }
 
 void AppData::getI2Cdevices(){
-    int error;
-    for (int address = 1; address < 127; address++ )  {
-    Wire.beginTransmission(address);
-    error = Wire.endTransmission();
-    if (error == 0)    {
-      logg.logging("I2C device found at address "+String(address));
-    }
-    }
+    // int error;
+    // for (int address = 1; address < 127; address++ )  {
+    // Wire.beginTransmission(address);
+    // error = Wire.endTransmission();
+    // if (error == 0)    {
+    //   logg.logging("I2C device found at address "+String(address));
+    // }
+    // }
 }
 void AppData::setOneBand(uint8_t cannel, uint8_t val)
 {
@@ -326,6 +326,6 @@ void AppData::tuneLight(boolean dir, uint8_t cannel)
 
 void AppData::logConf()
 {
-  conf.print();
+ // conf.print();
 }
 

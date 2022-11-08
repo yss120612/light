@@ -56,7 +56,7 @@ gpio_set_level((gpio_num_t)PIN_CW, ! _level);
     };
     ledc_channel_config(&ledc_channel);
     ledc_channel.gpio_num=PIN_NW;
-    ledc_channel.channel=CANNEL_CW;
+    ledc_channel.channel=CANNEL_NW;
     ledc_channel_config(&ledc_channel);
     ledc_channel.gpio_num=PIN_WW;
     ledc_channel.channel=CANNEL_WW;
