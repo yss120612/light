@@ -72,11 +72,11 @@
 					<form>
 						<h2>2. Лампа</h2>
 						<label for="LIGHT_CW" class="form-label">Свет CW</label>
-						<input type="range" class="form-range" min="0" max="255" step="32" id="LIGHT_CW">
+						<input type="range" class="form-range" min="0" max="256" step="32" id="LIGHT_CW">
 						<label for="LIGHT_NW" class="form-label">Свет NW</label>
-						<input type="range" class="form-range" min="0" max="255" step="32" id="LIGHT_NW">
+						<input type="range" class="form-range" min="0" max="256" step="32" id="LIGHT_NW">
 						<label for="LIGHT_WW" class="form-label">Свет WW</label>
-						<input type="range" class="form-range" min="0" max="255" step="32" id="LIGHT_WW">
+						<input type="range" class="form-range" min="0" max="256" step="32" id="LIGHT_WW">
 					</form>
 				</div>
 
@@ -86,12 +86,11 @@
 						<h2>2. Customs Radios</h2>
 
 						<div class="form-button">
-							<a type="button" class="btn btn-lg btn-success" id="DEVICES"><i class="fa fa-bed fa-2x pull-left">Devices</i></a>
+							<a type="button" class="btn btn-lg btn-success" id="DEVICES" onclick="getI2CDevs()"><i class="fa fa-bed fa-2x pull-left">I2C Devices</i></a>
 						</div>
 
-						<div class="alert alert-success" role="alert" id="DEVSHOW">
+						<div class="alert alert-success" role="alert" id="DEVSHOW" ></div>
 							
-						</div>
 
 						<div class="form-check">
 							<label>
@@ -211,7 +210,7 @@
 			$.ajax({  
                     type: "POST",  
                     url: "/post",  
-                    data: "page=main&LIGHT_CW="+$('#LIGHT_CW').prop("value"),  
+                    data: "page=main&LIGHT_CW="+($('#LIGHT_CW').prop("value")>255?255:$('#LIGHT_CW').prop("value")),  
                     success: function(html){  
                     }  
 			}); 
@@ -222,7 +221,7 @@
 			$.ajax({  
                     type: "POST",  
                     url: "/post",  
-                    data: "page=main&LIGHT_NW="+$('#LIGHT_NW').prop("value"),  
+                    data: "page=main&LIGHT_NW="+($('#LIGHT_NW').prop("value")>255?255:$('#LIGHT_NW').prop("value")),  
                     success: function(html){  
                     }  
 			}); 
@@ -233,7 +232,7 @@
 			$.ajax({  
                     type: "POST",  
                     url: "/post",  
-                    data: "page=main&LIGHT_WW="+$('#LIGHT_WW').prop("value"),  
+                    data: "page=main&LIGHT_WW="+($('#LIGHT_WW').prop("value")>255?255:$('#LIGHT_WW').prop("value")),  
                     success: function(html){  
                     }  
 			}); 
@@ -256,11 +255,21 @@
 			$('#LIGHT_CW').prop('value', data['LIGHT_CW']);
 			$('#LIGHT_NW').prop('value', data['LIGHT_NW']);
 			$('#LIGHT_WW').prop('value', data['LIGHT_WW']);
-			$('#DEVSHOW').html(data['DEVSHOW']);
+			
 
 		});
 		setTimeout('process()',2000);
 	}
+
+	function getI2CDevs(){
+		$.getJSON(
+		"/getdata",
+		{page:"main1"},
+		function(data){
+			$('#DEVSHOW').html(data['DEVSHOW']);
+    	});
+	}
+
 	</script>
 	</body>
 </html>
