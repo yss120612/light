@@ -225,21 +225,25 @@ void HTTPTask::var(String n, String v)
 
 String HTTPTask::getI2Cdevices(){
     int error;
-	String res="\"I2C device found at address ";
+	String res="I2C device found at address<ul>";
+	
+	
 	uint8_t count=0;
     for (uint8_t address = 1; address < 127; address++ )  {
     Wire.beginTransmission(address);
     error = Wire.endTransmission();
     if (error == 0)    {
-		if (count>0) res+="; ";
-		res+=String(address);
+		res+="<li>";
+		res+=String(address,16);
+		res+="</li>";
 		count++;
       
     }
     }
-    res+=" Ttal devices|";
+    res+="<li><b>Ttal devices ";
 	res+=String(count);
-	res+="\"";
+	res+="</b></li></ul>";
+	return res;
 }
 
 
@@ -275,10 +279,18 @@ void HTTPTask::handleA2W(AsyncWebServerRequest * request)
 		str+=String(128);
 		str+=F(",");
 		str+=F("\"DEVSHOW\":");
-		str+="'HUI'";
+		str+="\"HUI\"";
 		str+=F("}");
 
 		request->send(200, "text/json",str); // Oтправляем ответ No Reset
+	}else if (request->getParam(0)->value().equals(F("main1"))){
+		str+=F("\"DEVSHOW\":\"");
+		str+=getI2Cdevices();
+		//str+="AAS";
+		str+=F("\"}");
+		//Serial.println(str);
+		request->send(200, "text/json",str); // Oтправляем ответ No Reset
+	
 	}else if (request->getParam(0)->value().equals(F("update"))){
 		
 		str+=F("\"ALL\":");
@@ -302,6 +314,7 @@ void HTTPTask::handleA2W(AsyncWebServerRequest * request)
 			str+=F("OK");
 		}
 		str+=F("}");
+
 		//logg.logging(str);
 		request->send(200, "text/json",str); // Oтправляем ответ No Reset
 	}
