@@ -203,6 +203,13 @@ void HTTPTask::var(String n, String v)
 		ev.button=PULT_4;
 		ev.count=v.equals(F("true"));
 	}
+	else if (n.equals("FUNC1"))
+	{
+		ev.state=PULT_BUTTON;
+		ev.button=PULT_STOP;
+		ev.count=IR_DEVICE;
+		
+	}
 	else if (n.equals("LIGHT_CW"))
 	{
 		ev.button=WEB_CANNEL_CW;

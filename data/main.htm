@@ -49,13 +49,13 @@
 							  Рэле 1
 							</label>
 						  </div>
-						  <div class="form-check">
+						  <div class="form-check form-switch">
 							<input class="form-check-input" name="REL2" type="checkbox" value="" id="REL2">
 							<label class="form-check-label" for="REL2">
 							  Рэле 2
 							</label>
 						  </div>
-						  <div class="form-check">
+						  <div class="form-check form-switch">
 							<input class="form-check-input" type="checkbox" value="" name="REL3" id="REL3">
 							<label class="form-check-label" for="REL3">
 							  Рэле 3
@@ -91,6 +91,9 @@
 
 						<div class="alert alert-success" role="alert" id="DEVSHOW" ></div>
 							
+						<div class="form-button">
+							<a type="button" class="btn btn-lg btn-success" id="FUNC1"><i class="fa fa-bed fa-2x pull-left">FUNCTION-1</i></a>
+						</div>
 
 						<div class="form-check">
 							<label>
@@ -194,16 +197,18 @@
                 return false;  
 			});  
 			
-			$('#DEVICES').on('click',function(){  
+			$('#FUNC1').on('click',function(){  
 			$.ajax({  
                     type: "POST",  
                     url: "/post",  
-                    data: "page=main&DEVICES=true",  
+                    data: "page=main&FUNC1=true",  
                     success: function(html){  
                     }  
 			}); 
                 return false;  
 			});  
+
+			
 
 
 			$('#LIGHT_CW').on('change',function(){  

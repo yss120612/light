@@ -150,6 +150,10 @@ if (xQueueReceive(queue,&command,portMAX_DELAY))
         case 1://CW
         case 2://NW
         case 3://WW
+         Serial.print("restore band ");
+         Serial.print(command.button);
+         Serial.print(" state=");
+         Serial.println(command.count);
         result=makePacket(10,command.button-1,command.count);
         band->notify(result);
         break;
@@ -158,6 +162,7 @@ if (xQueueReceive(queue,&command,portMAX_DELAY))
         case 5://relay 2
         case 6://relay 3
         case 7://relay 4
+          delay(100);
           result=makePacket(command.button-3,1,command.count>0?1:0);
           relay->notify(result);
         break;
@@ -175,40 +180,7 @@ if (xQueueReceive(queue,&command,portMAX_DELAY))
           mem->notify(result);
           delay(800);
         break;
-        // case 101://request CW
-        //   result=makePacket(1,0,1);
-        //   //result=1<<24 & 0xFF000000 | 1 & 0x0000FFFF;
-        //   mem->notify(result);
-        // break;
-        // case 102://request NW
-        //   result=makePacket(1,0,2);
-        //   //result=1<<24 & 0xFF000000 | 2 & 0x0000FFFF;
-        //   mem->notify(result);
-        // break;
-        // case 103://request WW
-        //   result=makePacket(1,0,3);
-        //   //result=1<<24 & 0xFF000000 | 3 & 0x0000FFFF;
-        //   mem->notify(result);
-        // break;
-        // case 104://request Relay1
-        //   result=makePacket(1,0,0);
-        //   //result=1<<24 & 0xFF000000 | 4 & 0x0000FFFF;
-        //   mem->notify(result);
-        // break;
-        // case 105://request Relay2
-        //   result=1<<24 & 0xFF000000 | 5 & 0x0000FFFF;
-        //   mem->notify(result);
-        // break;
-        // case 106://request Relay3
-        //   result=1<<24 & 0xFF000000 | 6 & 0x0000FFFF;
-        //   mem->notify(result);
-        // break;
-        // case 107://request Relay4
-        //   result=1<<24 & 0xFF000000 | 7 & 0x0000FFFF;
-        //   mem->notify(result);
-        // break;
-
-         ///// request for write
+        ///// request for write
         case 200://
         case 201:
         case 202:
@@ -217,41 +189,10 @@ if (xQueueReceive(queue,&command,portMAX_DELAY))
         case 205:
         case 206:
         case 207:
-          result=makePacket(2,command.count,command.button-200);
-          
-          //result=2<<24 & 0xFF000000 | command.count <16 & 0x000FF0000 | 0 & 0x0000FFFF;
-          mem->notify(result);
+             result=makePacket(2,command.count,command.button-200);
+             mem->notify(result);
+             delay(800);
         break;
-        // case 201://request CW
-        //   result=2<<24 & 0xFF000000 | command.count <16 & 0x000FF0000 | 1 & 0x0000FFFF;
-        //   mem->notify(result);
-        // break;
-        // case 202://request NW
-        //   result=2<<24 & 0xFF000000 | command.count <16 & 0x000FF0000 | 2 & 0x0000FFFF;
-        //   mem->notify(result);
-        // break;
-        // case 203://request WW
-        //   result=2<<24 & 0xFF000000 | command.count <16 & 0x000FF0000 | 3 & 0x0000FFFF;
-        //   mem->notify(result);
-        // break;
-        // case 204://request Relay1
-        //   result=2<<24 & 0xFF000000 | command.count <16 & 0x000FF0000 | 4 & 0x0000FFFF;
-        //   mem->notify(result);
-        // break;
-        // case 205://request Relay2
-        //   result=2<<24 & 0xFF000000 | command.count <16 & 0x000FF0000 | 5 & 0x0000FFFF;
-        //   mem->notify(result);
-        // break;
-        // case 206://request Relay3
-        //   result=2<<24 & 0xFF000000 | command.count <16 & 0x000FF0000 | 6 & 0x0000FFFF;
-        //   mem->notify(result);
-        // break;
-        // case 207://request Relay4
-        //   result=2<<24 & 0xFF000000 | command.count <16 & 0x000FF0000 | 7 & 0x0000FFFF;
-        //   mem->notify(result);
-        // break;
-
-
       }
   
   break;

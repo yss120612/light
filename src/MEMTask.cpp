@@ -22,32 +22,25 @@ uint32_t command;
     uint8_t comm,value;
     uint16_t addr;
 	readPacket(command,&comm,&value,&addr);
-    //comm=1 read, com=2 write
+	//comm=1 read, com=2 write
+		   Serial.print(comm==1?"read":"write");
+		   Serial.print(" addr=");
+		   Serial.print(addr);
+		   Serial.print(" value=");
+		   Serial.println(value);
     switch (comm)
     {
 
       case 1:
-	  		//lock();
            	read(addr,&value,sizeof(value)); 
-			//unlock();
-           	event_t ev;
+          	event_t ev;
            	ev.state=MEM_EVENT;
            	ev.button=addr;
            	ev.count=value;
-	        Serial.print("Addr="); 
-    	    Serial.print(ev.button);
-        	Serial.print(" Value="); 
-        	Serial.println(ev.count);
         	xQueueSend(que,&ev,portMAX_DELAY);
       break;
       case 2:
-	  	   Serial.print("Save addr=");
-		   Serial.print(addr);
-		   Serial.print(" save value=");
-		   Serial.println(value);
-		   //lock();
            write(addr,&value,sizeof(value)); 
-		   //unlock();
       break;
     }
   }
