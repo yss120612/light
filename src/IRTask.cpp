@@ -17,13 +17,13 @@ void IRTask::loop(){
         ev.state=PULT_BUTTON;
         ev.button=(uint8_t)dres.command;
         ev.count=(uint8_t)dres.address;
-        ev.type=(int8_t)dres.decode_type;
+        ev.data=dres.decode_type<0?999:(int32_t)dres.decode_type;
         Serial.print("IR Command="); 
         Serial.print(ev.button);
         Serial.print(" Address="); 
         Serial.print(ev.count);
         Serial.print(" Type="); 
-        Serial.println(ev.type);
+        Serial.println(ev.data);
         xQueueSend(que,&ev,portMAX_DELAY);
         
         }

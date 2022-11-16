@@ -18,7 +18,7 @@ if (!server){
 }
 server->on("/", std::bind(&HTTPTask::handleRoot, this, std::placeholders::_1));
 server->on("/upd", std::bind(&HTTPTask::handleUpd, this, std::placeholders::_1));
-server->on("/log", std::bind(&HTTPTask::handleUpd, this, std::placeholders::_1));
+//server->on("/log", std::bind(&HTTPTask::handleUpd, this, std::placeholders::_1));
 server->on("/reboot", std::bind(&HTTPTask::handleReboot, this, std::placeholders::_1));
 server->on("/main", std::bind(&HTTPTask::handleMain, this, std::placeholders::_1));
 server->on("/post", HTTP_ANY, std::bind(&HTTPTask::handleW2A, this, std::placeholders::_1));

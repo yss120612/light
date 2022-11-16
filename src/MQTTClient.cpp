@@ -54,38 +54,38 @@ void MqttClient::callback(char *topic, uint8_t *payload, unsigned int length)
     mess += (char)payload[i];
   }
   
-  if (top.indexOf("/rel3")>0)
-  {
-    if (ignore_relay3){ignore_relay3=false;mess+="(ignor)";}
-    else {data->putWebEvent(PULT_3,mess.equals("1"));mess+="Put in MQTT";};
-  }
-  else if (top.indexOf("/rel2")>0)
-  {
-    if (ignore_relay2){ignore_relay2=false;mess+="(ignor)";}
-    else {data->putWebEvent(PULT_2,mess.equals("1"));mess+="Put in MQTT";};
-  }
-  else if (top.indexOf("/rel1")>0)
-  {
-    if (ignore_relay1){ignore_relay1=false;mess+="(ignor)";}
-    else {data->putWebEvent(PULT_1,mess.equals("1"));mess+="Put in MQTT";};
-  }
-  else if (top.indexOf("/ww")>0)
-  {
-    if (ignore_ww){ignore_ww=false;mess+="(ignor)";}
-    else {data->putWebEvent(WEB_CANNEL_WW,mess.toInt());mess+="Put in MQTT";};
-   // ws_sys->disalarm();
-  }
-  else if (top.indexOf("/cw")>0)
-  {
-    if (ignore_cw){ignore_cw=false;mess+="(ignor)";}
-    else {data->putWebEvent(WEB_CANNEL_CW,mess.toInt());mess+="Put in MQTT";};
-  }
-  else if (top.indexOf("/nw")>0)
-  {
-    if (ignore_nw){ignore_nw=false;mess+="(ignor)";}
-    else {data->putWebEvent(WEB_CANNEL_NW,mess.toInt());mess+="Put in MQTT";};
-  }
-  logg.logging("[" + String(topic) + String("] = ") + mess);
+  // if (top.indexOf("/rel3")>0)
+  // {
+  //   if (ignore_relay3){ignore_relay3=false;mess+="(ignor)";}
+  //   else {data->putWebEvent(PULT_3,mess.equals("1"));mess+="Put in MQTT";};
+  // }
+  // else if (top.indexOf("/rel2")>0)
+  // {
+  //   if (ignore_relay2){ignore_relay2=false;mess+="(ignor)";}
+  //   else {data->putWebEvent(PULT_2,mess.equals("1"));mess+="Put in MQTT";};
+  // }
+  // else if (top.indexOf("/rel1")>0)
+  // {
+  //   if (ignore_relay1){ignore_relay1=false;mess+="(ignor)";}
+  //   else {data->putWebEvent(PULT_1,mess.equals("1"));mess+="Put in MQTT";};
+  // }
+  // else if (top.indexOf("/ww")>0)
+  // {
+  //   if (ignore_ww){ignore_ww=false;mess+="(ignor)";}
+  //   else {data->putWebEvent(WEB_CANNEL_WW,mess.toInt());mess+="Put in MQTT";};
+  //  // ws_sys->disalarm();
+  // }
+  // else if (top.indexOf("/cw")>0)
+  // {
+  //   if (ignore_cw){ignore_cw=false;mess+="(ignor)";}
+  //   else {data->putWebEvent(WEB_CANNEL_CW,mess.toInt());mess+="Put in MQTT";};
+  // }
+  // else if (top.indexOf("/nw")>0)
+  // {
+  //   if (ignore_nw){ignore_nw=false;mess+="(ignor)";}
+  //   else {data->putWebEvent(WEB_CANNEL_NW,mess.toInt());mess+="Put in MQTT";};
+  // }
+  // logg.logging("[" + String(topic) + String("] = ") + mess);
   
 }
 

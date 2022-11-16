@@ -1,5 +1,6 @@
 #ifndef _RTCTASK_h
 #define _RTCASK_h
+#include <Arduino.h>
 #include "Task.h"
 #include "Settings.h"
 #include <WiFiUdp.h>
@@ -30,6 +31,7 @@ protected:
     EventGroupHandle_t flg;
     RTC_DS3231 * rtc;
     const char * NTPServer = "pool.ntp.org";
+    
 };
 
 

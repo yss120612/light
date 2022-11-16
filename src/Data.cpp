@@ -31,11 +31,11 @@ void AppData::setup(MqttClient * mq)
   // conf.notebook_on=false;
   // conf.heater_on=true;
   // conf.lamp_on=false;
-  btns.setEvents(&evts);
-  if (btns.add(BUTTON_1, HIGH)==0xFF)
-  {
-    logg.logging("error add button");
-  }
+  // btns.setEvents(&evts);
+  // if (btns.add(BUTTON_1, HIGH)==0xFF)
+  // {
+  //   logg.logging("error add button");
+  // }
   
   //ir.enable();
   
@@ -158,9 +158,9 @@ boolean AppData::isOn()
 
 void AppData::ProcessEvents(unsigned long t)
 {
-  event_t ev;
-  if (evts.getEvent(&ev, t))
-  {
+  // event_t ev;
+  // if (evts.getEvent(&ev, t))
+  // {
   //   switch (ev.state)
   //   {
   //   case BTN_CLICK:
@@ -293,8 +293,8 @@ void AppData::ProcessEvents(unsigned long t)
 
   //     break;
   //   }
-  // }
-}
+  // }//
+//}
 }
 
 void AppData::getI2Cdevices(){

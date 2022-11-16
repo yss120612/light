@@ -1,4 +1,5 @@
 #include "WiFiTask.h"
+#include "Events.h"
 
 void WiFiTask::setup(){
   WiFi.persistent(false);
@@ -44,7 +45,9 @@ void WiFiTask::wifiOnEvent(WiFiEvent_t event) {
 void WiFiTask::loop(){
 const uint32_t WIFI_CONNECT_WAIT = 5000; // 5sec.    
 const uint32_t WIFI_TIMEOUT = 30000; // 30 sec.
-uint32_t result;
+event_t result;
+result.state=LED_EVENT;
+
     if (! WiFi.isConnected()) {
       WiFi.begin(WIFI_SSID, WIFI_PSWD);
       portENTER_CRITICAL(&_mutex);
@@ -52,7 +55,8 @@ uint32_t result;
       Serial.print(WIFI_SSID);
       Serial.println("\"...");
       portEXIT_CRITICAL(&_mutex);
-      result=111;
+      result.button=111;
+
       xQueueSend(que,&result,portMAX_DELAY);
       {// wait connection WIFI_CONNECT_WAIT
         uint32_t start = millis();
@@ -61,11 +65,12 @@ uint32_t result;
         }
       }
       if (WiFi.isConnected()) {
-        
+        result.button=113;
+        xQueueSend(que,&result,portMAX_DELAY);
         } else {
         WiFi.disconnect();
         Serial.println("Failed to connect to WiFi!");
-        result=113;
+        result.button=113;
         xQueueSend(que,&result,portMAX_DELAY);
         vTaskDelay(pdMS_TO_TICKS(WIFI_TIMEOUT));
       }

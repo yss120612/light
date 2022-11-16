@@ -7,7 +7,7 @@
 //#include "BandLED.h"
 #include "Settings.h"
 //include "Config.h"
-#include "buttons.h"
+//#include "buttons.h"
 #include "Events.h"
 #include "Config.h"
 
@@ -36,15 +36,15 @@ public:
     void logConf();
     void ProcessEvents(unsigned long t);
     void ir_sleep();
-    void putWebEvent(uint8_t n, uint8_t nn){evts.putWebEvent(n,nn);};
+    //void putWebEvent(uint8_t n, uint8_t nn){evts.putWebEvent(n,nn);};
     void getI2Cdevices();
 private:
     
    
 
    // boolean update_time_from_inet();
-    Events evts;
-    Buttons btns;
+    //Events evts;
+    //Buttons btns;
     //IRreceiver  ir=IRreceiver(IRPIN);
     //Relay relays[4] = {Relay(RELAY1), Relay(RELAY2), Relay(RELAY3), Relay(RELAY4)};
     //const uint8_t lgh = sizeof(relays) / sizeof(Relay);

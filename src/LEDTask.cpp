@@ -63,55 +63,58 @@ void LEDTask::setup()
 
 void LEDTask::loop()
 {
+  uint16_t val;
+  uint8_t com,btn;
   uint32_t command;
   if (xTaskNotifyWait(0, 0, &command, portMAX_DELAY))
   {
-    switch (command)
+    readPacket(command,&com,&btn,&val);
+    switch (com)
     {
     case 17:
-      setLedMode(1, BLINK_FADEINOUT);
+      setLedMode(val, BLINK_FADEINOUT);
       break;
     case 18:
-      setLedMode(1, BLINK_FADEIN);
+      setLedMode(val, BLINK_FADEIN);
       break;
     case 19:
-      setLedMode(1, BLINK_FADEOUT);
+      setLedMode(val, BLINK_FADEOUT);
       break;
     case 20:
-      setLedMode(1, BLINK_1HZ);
+      setLedMode(val, BLINK_1HZ);
       break;
     case 21:
-      setLedMode(0, BLINK_OFF);
-      setLedMode(1, BLINK_OFF);
+      setLedMode(val, BLINK_OFF);
+      //setLedMode(1, BLINK_OFF);
       break;
     case 23:
-      setLedMode(0, BLINK_05HZ);
-      setLedMode(1, BLINK_OFF);
+      setLedMode(val, BLINK_05HZ);
+      //setLedMode(1, BLINK_OFF);
       break;
     case 24:
-      setLedMode(0, BLINK_2HZ);
-      setLedMode(1, BLINK_OFF);
+      setLedMode(val, BLINK_2HZ);
+      //setLedMode(1, BLINK_OFF);
       break;
     case 25:
-      setLedMode(0, BLINK_4HZ);
-      setLedMode(1, BLINK_OFF);
+      setLedMode(val, BLINK_4HZ);
+      //setLedMode(1, BLINK_OFF);
       break;
     case 33:
-      setLedMode(0, BLINK_4HZ);
+      setLedMode(val, BLINK_4HZ);
     break;
 
     case 111:
-      //setLedMode(0, BLINK_4HZ);
-      setLedMode(1, BLINK_4HZ);
+      
+      setLedMode(val, BLINK_4HZ);
       break;
     
     case 112:
-      //setLedMode(0, BLINK_4HZ);
-      setLedMode(1, BLINK_FADEINOUT);
+      
+      setLedMode(val, BLINK_FADEINOUT);
       break;
     case 113:
-      //setLedMode(0, BLINK_4HZ);
-      setLedMode(1, BLINK_OFF);
+      
+      setLedMode(0, BLINK_OFF);
       break;
   }
   }
