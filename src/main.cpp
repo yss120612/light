@@ -6,7 +6,7 @@
 //#include "Httphelper.h"
 #include "Settings.h"
 #include "Data.h"
-#include "buttons.h"
+//#include "buttons.h"
 //#include "Blinker.h"
 #include "MEMTask.h"
 #include "WiFiTask.h"
@@ -17,6 +17,7 @@
 #include "BANDTask.h"
 #include "DISPTask.h"
 #include "RTCTask.h"
+#include "BTNTask.h"
 
 
 
@@ -51,6 +52,7 @@ DISPTask * display;
 RTCTask * rtc;
 RELTask * relay;
 BANDTask * band;
+BTNTask * btn;
 //extern void init_networks();
 
 
@@ -72,7 +74,7 @@ flags=xEventGroupCreate();
 //SPIFFS.begin();
 mem= new MEMTask("Memory",2048,queue);  
 mem->resume();
-leds = new LEDTask("Leds",3072,queue,LOW);
+leds = new LEDTask("Leds",3072,queue,HIGH);
 leds->resume();
 wifi=new WiFiTask("WiFi",4096,queue,flags);
 wifi->resume();
@@ -88,6 +90,8 @@ relay= new RELTask("Relay",3072,queue);
 relay->resume();
 band= new BANDTask("Band",2048, queue, HIGH);  
 band->resume();
+btn= new BTNTask("Buttons",2048, queue);  
+btn->resume();
 }
 
 
@@ -142,6 +146,29 @@ if (xQueueReceive(queue,&command,portMAX_DELAY))
       }
   break;
   case BTN_CLICK:
+  switch (command.button){
+  case 0:
+      Serial.print("Click0=");
+      Serial.println(command.count);
+  break;
+  case 1:
+      Serial.print("Click1=");
+      Serial.println(command.count);
+  break;
+  }
+  break;
+  case BTN_LONGCLICK:
+  switch (command.button){
+  case 0:
+      Serial.print("Long click after ");
+      Serial.println(command.count);
+      if (command.count=3){
+        ESP.restart();
+      }
+  break;
+  case 1:
+  break;
+  }
   break;
   case MEM_EVENT:
       switch (command.button)
@@ -150,12 +177,9 @@ if (xQueueReceive(queue,&command,portMAX_DELAY))
         case 1://CW
         case 2://NW
         case 3://WW
-         Serial.print("restore band ");
-         Serial.print(command.button);
-         Serial.print(" state=");
-         Serial.println(command.count);
-        result=makePacket(10,command.button-1,command.count);
-        band->notify(result);
+         delay(100);
+         result=makePacket(10,command.button-1,command.count);
+         band->notify(result);
         break;
         
         case 4://relay 1
@@ -206,8 +230,26 @@ if (xQueueReceive(queue,&command,portMAX_DELAY))
     result=makePacket(command.button-10,0,command.count);
     display->notify(result);
     break;
+    case 20://show time
+    break;
       }
   break;
+  case LED_EVENT:
+  switch (command.button)
+      {
+    case 111:
+    result=makePacket(command.button,0,0);
+    leds->notify(result);
+    break;
+    case 113:
+    result=makePacket(command.button,0,0);
+    leds->notify(result);
+    
+    
+    break;
+      }
+  break;
+
   case PULT_BUTTON:
       if (learn_command){
         //display.showString("Dev."+String(command.count)+(command.count==IR_DEVICE?" MY":" ALIEN"),"Code "+String(command.button),"type="+String(command.type));
@@ -216,28 +258,22 @@ if (xQueueReceive(queue,&command,portMAX_DELAY))
       switch (command.button)
       {
       case PULT_1:
-        result=makePacket(11,0,0);
+         result=makePacket(11,0,0);
          relay->notify(result);
-         //display->notify(result);
         break;
       case PULT_2:
-        result=makePacket(12,0,0);
-        //display->notify(result);
-        relay->notify(result);
+         result=makePacket(12,0,0);
+         relay->notify(result);
         break;
       case PULT_3:
-        result=makePacket(13,0,0);
-        //display->notify(result);
-        relay->notify(result);
+         result=makePacket(13,0,0);
+         relay->notify(result);
         break;
       case PULT_4:
-        result=makePacket(14,0,0);
-        //display->notify(result);
-        relay->notify(result);
+         result=makePacket(14,0,0);
+         relay->notify(result);
         break;
-      // case PULT_INFO:
-      //   conf.print();
-      //   break;
+      
       case PULT_POWER:
         result=makePacket(20,0,0);
         relay->notify(result);
@@ -249,10 +285,11 @@ if (xQueueReceive(queue,&command,portMAX_DELAY))
       case PULT_VOLUP:
         break;
       case PULT_FASTBACK:
-        //tuneLight(false, CANNEL_NW);
+          result=makePacket(10,0,0);//request time;
+          rtc->notify(result);
         break;
       case PULT_FASTFORWARD:
-        //tuneLight(true, CANNEL_NW);
+      
         break;
  
       case PULT_PREV: //ultra low

@@ -1,4 +1,5 @@
 #include "RTCTask.h"
+#include "Events.h"
 
 void RTCTask::setup()
 {
@@ -21,9 +22,21 @@ void RTCTask::loop()
         uint8_t comm, act;
         uint16_t data;
         readPacket(command, &comm, &act, &data);
+        event_t ev;
         switch (comm)
         {
-        case 1:
+        case 10:
+              ev.state=DISP_EVENT;
+              ev.button=20;
+            if (fast_time_interval){
+              
+              ev.data=0;
+            }else{
+              DateTime dt=rtc->now();
+              ev.data=dt.hour()<<27 & 31<<27 | dt.minute()<<21 & 63 << 21 | dt.second() << 15 & 63<<15 | dt.day() << 10 & 31<<10 | dt.month() << 6 & 15 << 6 | (dt.year()-2000)<<1 & 31<<1;
+            }
+            xQueueSend(que,&ev,portMAX_DELAY);
+            
             break;
         }
     }
