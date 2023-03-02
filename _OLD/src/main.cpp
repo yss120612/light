@@ -101,123 +101,7 @@ btn= new BTNTask("Buttons",2048, queue);
 btn->resume();
 }
 
-void web_event(event_t event){
-  notify_t notify;
-  uint32_t command;  
-  switch (event.button){
-    case 1://set alarm from web
-     notify.title=1;
-     notify.alarm=event.alarm;
-     memcpy(&command,&notify,sizeof(command));
-     
-     //Serial.printf("from web %d:%d Period=%d Wday=%d Action=%d \n",nt.alarm.hour,nt.alarm.minute,nt.alarm.period, nt.alarm.wday,nt.alarm.action);
-     rtc->notify(command);
-  break;
-  case 2://print all alarms
-     notify.title=11;
-     notify.packet.var=0;
-     notify.packet.value=0;
-     memcpy(&command,&notify,sizeof(command));
-     rtc->notify(command);
-  break;
-  case 3://print active alarm
-     notify.title=12;
-     notify.packet.var=0;
-     notify.packet.value=0;
-     memcpy(&command,&notify,sizeof(command));
-     rtc->notify(command);
-  break;
-  case 4://reset all alarms
-     notify.title=13;
-     notify.packet.var=0;
-     notify.packet.value=0;
-     memcpy(&command,&notify,sizeof(command));
-     rtc->notify(command);
-  break;
-  case 11:
-  case 12:
-  case 13:
-  case 14://set relays from web
-     notify.title=event.button-10;
-     notify.packet.var=0;//save in memory
-     notify.packet.value=event.count;
-     memcpy(&command,&notify,sizeof(command));
-     relay->notify(command);
-  break;
 
-      case WEB_CANNEL_CW:
-      case WEB_CANNEL_NW:
-      case WEB_CANNEL_WW:
-        notify.title=1;
-        notify.packet.var=event.button-100;
-        notify.packet.value=event.count;
-        memcpy(&command,&notify,sizeof(command));
-        band->notify(command);
-        break;
-  }
-}
-
-
-void mem_event(event_t event){
-  notify_t notify;
-  uint32_t command;  
-  switch (event.button){
-        //read result processing
-        case 1://CW
-        case 2://NW
-        case 3://WW
-         notify.title=10;
-         notify.packet.var=event.button-1;
-         notify.packet.value=event.count;
-         memcpy(&command,&notify,sizeof(command));
-         band->notify(command);
-        break;
-        
-        case 4://relay 1
-        case 5://relay 2
-        case 6://relay 3
-        case 7://relay 4
-          notify.title=event.button-3;
-         notify.packet.var=1;
-         notify.packet.value=event.count>0?1:0;
-         memcpy(&command,&notify,sizeof(command));
-         relay->notify(command);
-        break;
-
-        ///// request for read
-        case 100://
-        case 101:
-        case 102:
-        case 103:
-        case 104:
-        case 105:
-        case 106:
-        case 107:
-          notify.title=1;
-          notify.packet.var=0;
-          notify.packet.value=event.button-100;
-          memcpy(&command,&notify,sizeof(command));
-          mem->notify(command);
-          
-        break;
-        ///// request for write
-        case 200://
-        case 201:
-        case 202:
-        case 203:
-        case 204:
-        case 205:
-        case 206:
-        case 207:
-             notify.title=2;
-             notify.packet.var=event.count;
-             notify.packet.value=event.button-200;
-             memcpy(&command,&notify,sizeof(command));
-             mem->notify(command);
-        break;
-      
-  }
-}
 
 void loop()
 {
@@ -231,7 +115,42 @@ if (xQueueReceive(queue,&command,portMAX_DELAY))
   switch(command.state)
   {
   case WEB_EVENT:
-      web_event(command);
+      switch (command.button)
+      {
+      case PULT_1:
+        result=makePacket(1,0,command.count > 0?1:0);
+        relay->notify(result);
+        display->notify(result);
+        break;
+      case PULT_2:
+        result=makePacket(2,0,command.count > 0?1:0);
+        relay->notify(result);
+        display->notify(result);
+        break;
+      case PULT_3:
+        result=makePacket(3,0,command.count > 0?1:0);
+        relay->notify(result);
+        display->notify(result);
+        break;
+      case PULT_4:
+        result=makePacket(4,0,command.count > 0?1:0);
+        relay->notify(result);
+        display->notify(result);
+        break;
+      case WEB_CANNEL_CW:
+        //setOneBand(CANNEL_CW, ev.count);
+        result=makePacket(1,CANNEL_CW,command.count);
+        band->notify(result);
+        break;
+      case WEB_CANNEL_NW:
+        result=makePacket(1,CANNEL_NW,command.count);
+        band->notify(result);
+        break;
+      case WEB_CANNEL_WW:
+        result=makePacket(1,CANNEL_WW,command.count);
+        band->notify(result);
+        break;
+      }
   break;
   case BTN_CLICK:
   switch (command.button){
@@ -259,7 +178,53 @@ if (xQueueReceive(queue,&command,portMAX_DELAY))
   }
   break;
   case MEM_EVENT:
-      mem_event(command);
+      switch (command.button)
+      {
+        //read result processing
+        case 1://CW
+        case 2://NW
+        case 3://WW
+         delay(100);
+         result=makePacket(10,command.button-1,command.count);
+         band->notify(result);
+        break;
+        
+        case 4://relay 1
+        case 5://relay 2
+        case 6://relay 3
+        case 7://relay 4
+          delay(100);
+          result=makePacket(command.button-3,1,command.count>0?1:0);
+          relay->notify(result);
+        break;
+
+        ///// request for read
+        case 100://
+        case 101:
+        case 102:
+        case 103:
+        case 104:
+        case 105:
+        case 106:
+        case 107:
+          result=makePacket(1,0,command.button-100);
+          mem->notify(result);
+          delay(800);
+        break;
+        ///// request for write
+        case 200://
+        case 201:
+        case 202:
+        case 203:
+        case 204:
+        case 205:
+        case 206:
+        case 207:
+             result=makePacket(2,command.count,command.button-200);
+             mem->notify(result);
+             delay(800);
+        break;
+      }
   
   break;
   case DISP_EVENT:

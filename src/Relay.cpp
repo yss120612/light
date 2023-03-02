@@ -1,72 +1,75 @@
 #include "Relay.h"
 
 
-void Relay::setup(uint8_t p,uint8_t tp,bool lvl)
+void Relay::setup(uint8_t p,rel_t tp,bool lvl)
 {
     pin=p;
-    level=lvl;
-    pinMode(pin, OUTPUT_OPEN_DRAIN);
-    //syncro();
-    type = tp;
-    armed=false;
+    state.level=lvl;
+    //pinMode(pin, OUTPUT_OPEN_DRAIN);
+    pinMode(pin, OUTPUT);
+    
+    state.type = tp;
+    state.armed=false;
 }
 
 
 void Relay::setState(bool s){
-    ison=(s?true:false);
+    state.ison=s;
     syncro();
 }
 
 bool Relay::isOn()
 {   
-    return ison;
+    return state.ison;
 }
 
 void Relay::setOn()
 {
-    if (!ison)
-    {
+   //if (!state.ison)
+   // {
         setState(true);
-    }
+   // }
 }
 
 void Relay::setOff()
 {
-    if (ison)
-    {
+   //if (state.ison)
+   // {
         setState(false);
-    }
+   // }
 }
 
 void Relay::syncro(){
-    digitalWrite(pin, ison?level:!level);
+    //Serial.print("relay set ");
+    //Serial.println(state.ison);
+    digitalWrite(pin, state.ison?state.level:!state.level);
 }
 
 
 
 bool Relay::swc()
 {
-   if (ison) setState(false);
-   else setState(true);
-   return ison;
+ if (state.ison) setState(false);
+      else setState(true);
+   return state.ison;
 }
 
 void Relay::arm()
 {
-    if (type == RELTYPE_BUTTON){
-        armed=true;   
+    if (state.type == RELTYPE_BUTTON){
+        state.armed=true;   
         setOn();
     }
 }
 
 bool Relay::isButton(){
-    return type == RELTYPE_BUTTON;
+    return state.type == RELTYPE_BUTTON;
 }
 
 void Relay::disarm()
 {
-    if (type == RELTYPE_BUTTON){
-        armed=false;   
+    if (state.type == RELTYPE_BUTTON){
+        state.armed=false;   
         setOff();
     }
 }

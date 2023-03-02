@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Система автоматики Yss</title>
+    <meta name="description" content="Версия 0.2">
+    <meta name="author" content="Yss">
+	<link href="/css/bootstrap.min.css" type="text/css" rel="stylesheet" />
+	<script type="text/javascript" src="/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="/js/jquery.min.js"></script>
+	
+	
+</head>
+<body>
+	<nav class="navbar navbar-light bg-light navbar-expand-lg">
+		<div class="container-fluid">
+			<a class="navbar-brand" href="#">Параметры системы</a>
+		<ul class="nav nav-pills">
+			<li class="nav-item">
+			  <a class="nav-link" href="/">Home</a>
+			</li>
+			<li class="nav-item">
+			  <a class="nav-link active"  aria-current="page" href="#">Main</a>
+			</li>
+			<li class="nav-item">
+			  <a class="nav-link" href="/upd">Update</a>
+			</li>
+			<li class="nav-item">
+			  <a class="nav-link" href="/log">Log</a>
+			</li>
+			<li class="nav-item">
+			  <a class="nav-link" href="/reboot">Reboot</a>
+			</li>
+		  </ul>
+		  </div>
+		</nav>
+		
+		
+		
+		<div class="panel panel-default col-md-offset-1 col-md-10">
+			
+			<div class="panel-body">		
+				<div class="col-md-4">
+					<form>
+						<h2>1. Релейный блок</h2>
+						<div class="form-check form-switch">
+							<input class="form-check-input" name="REL1" type="checkbox" value="" id="REL1">
+							<label class="form-check-label" for="REL1">
+							  Рэле 1
+							</label>
+						  </div>
+						  <div class="form-check form-switch">
+							<input class="form-check-input" name="REL2" type="checkbox" value="" id="REL2">
+							<label class="form-check-label" for="REL2">
+							  Рэле 2
+							</label>
+						  </div>
+						  <div class="form-check form-switch">
+							<input class="form-check-input" type="checkbox" value="" name="REL3" id="REL3">
+							<label class="form-check-label" for="REL3">
+							  Рэле 3
+							</label>
+						  </div>
+												
+						<div class="form-button">
+							<a type="button" class="btn btn-lg btn-success" id="REL4"><i class="fa fa-bed fa-2x pull-left">Sleep</i></a>
+						</div>
+					</form>
+				</div>
+
+				<div class="col-md-4">
+					<form>
+						<h2>2. Лампа</h2>
+						<label for="LIGHT_CW" class="form-label">Свет CW</label>
+						<input type="range" class="form-range" min="0" max="256" step="32" id="LIGHT_CW">
+						<label for="LIGHT_NW" class="form-label">Свет NW</label>
+						<input type="range" class="form-range" min="0" max="256" step="32" id="LIGHT_NW">
+						<label for="LIGHT_WW" class="form-label">Свет WW</label>
+						<input type="range" class="form-range" min="0" max="256" step="32" id="LIGHT_WW">
+					</form>
+				</div>
+
+
+				<div class="col-md-4">
+					<form>
+						<h2>2. Customs Radios</h2>
+
+						<div class="form-button">
+							<a type="button" class="btn btn-lg btn-success" id="DEVICES" onclick="getI2CDevs()"><i class="fa fa-bed fa-2x pull-left">I2C Devices</i></a>
+						</div>
+
+						<div class="alert alert-success" role="alert" id="DEVSHOW" ></div>
+							
+						<div class="form-button">
+							<a type="button" class="btn btn-lg btn-success" id="FUNC1"><i class="fa fa-bed fa-2x pull-left">FUNCTION-1</i></a>
+						</div>
+
+						<div class="form-check">
+							<label>
+								<input type="radio" name="radio" checked> <span class="label-text">Option 01</span>
+							</label>
+						</div>
+						<div class="form-check">
+							<label>
+								<input type="radio" name="radio"> <span class="label-text">Option 02</span>
+							</label>
+						</div>
+						<div class="form-check">
+							<label>
+								<input type="radio" name="radio"> <span class="label-text">Option 03</span>
+							</label>
+						</div>
+						<div class="form-check">
+							<label>
+								<input type="radio" name="radio" disabled> <span class="label-text">Option 04</span>
+							</label>
+						</div>
+					</form>
+				</div>
+				<div class="col-md-4">
+					<form>
+						<h2>3.Radios Toggles</h2>
+						<div class="form-check">
+							<label class="toggle">
+								<input type="radio" name="toggle" checked> <span class="label-text">Option 01</span>
+							</label>
+						</div>
+						<div class="form-check">
+							<label class="toggle">
+								<input type="radio" name="toggle"> <span class="label-text">Option 02</span>
+							</label>
+						</div>
+						<div class="form-check">
+							<label class="toggle">
+								<input type="radio" name="toggle"> <span class="label-text">Option 03</span>
+							</label>
+						</div>
+						<div class="form-check">
+							<label class="toggle">
+								<input type="radio" name="toggle" disabled> <span class="label-text">Option 04</span>
+							</label>
+						</div>
+						
+					</form>
+				</div>
+			</div>
+		</div>
+	
+ 
+ <script type="text/javascript">
+	$(document).ready(function(){
+	process();
+	
+	$('#REL1').on('input',function(){  
+			
+			$.ajax({  
+                    type: "POST",  
+                    url: "/post",  
+                    data: "page=main&REL1="+$('#REL1').prop("checked"),  
+                    success: function(html){  
+                    }  
+			}); 
+                return false;  
+            });  
+			
+			$('#REL2').on('input',function(){  
+			$.ajax({  
+                    type: "POST",  
+                    url: "/post",  
+                    data: "page=main&REL2="+$('#REL2').prop("checked"),  
+                    success: function(html){  
+                    }  
+			}); 
+                return false;  
+            });  
+
+			$('#REL3').on('input',function(){  
+			
+			$.ajax({  
+                    type: "POST",  
+                    url: "/post",  
+                    data: "page=main&REL3="+$('#REL3').prop("checked"),  
+                    success: function(html){  
+                    }  
+			}); 
+                return false;  
+			});  
+			
+			$('#REL4').on('click',function(){  
+			$.ajax({  
+                    type: "POST",  
+                    url: "/post",  
+                    data: "page=main&REL4=true",  
+                    success: function(html){  
+                    }  
+			}); 
+                return false;  
+			});  
+			
+			$('#FUNC1').on('click',function(){  
+			$.ajax({  
+                    type: "POST",  
+                    url: "/post",  
+                    data: "page=main&FUNC1=true",  
+                    success: function(html){  
+                    }  
+			}); 
+                return false;  
+			});  
+
+			
+
+
+			$('#LIGHT_CW').on('change',function(){  
+			$.ajax({  
+                    type: "POST",  
+                    url: "/post",  
+                    data: "page=main&LIGHT_CW="+($('#LIGHT_CW').prop("value")>255?255:$('#LIGHT_CW').prop("value")),  
+                    success: function(html){  
+                    }  
+			}); 
+                return false;  
+			});  
+
+			$('#LIGHT_NW').on('change',function(){  
+			$.ajax({  
+                    type: "POST",  
+                    url: "/post",  
+                    data: "page=main&LIGHT_NW="+($('#LIGHT_NW').prop("value")>255?255:$('#LIGHT_NW').prop("value")),  
+                    success: function(html){  
+                    }  
+			}); 
+                return false;  
+			});  
+
+			$('#LIGHT_WW').on('change',function(){  
+			$.ajax({  
+                    type: "POST",  
+                    url: "/post",  
+                    data: "page=main&LIGHT_WW="+($('#LIGHT_WW').prop("value")>255?255:$('#LIGHT_WW').prop("value")),  
+                    success: function(html){  
+                    }  
+			}); 
+                return false;  
+			});  
+
+	});
+	
+	
+
+
+	function process(){
+		$.getJSON(
+		"/getdata",
+		{page:"main"},
+		function(data){
+			$('#REL1').prop('checked', data['REL1']==1);
+			$('#REL2').prop('checked', data['REL2']==1);
+			$('#REL3').prop('checked', data['REL3']==1);
+			$('#LIGHT_CW').prop('value', data['LIGHT_CW']);
+			$('#LIGHT_NW').prop('value', data['LIGHT_NW']);
+			$('#LIGHT_WW').prop('value', data['LIGHT_WW']);
+			
+
+		});
+		setTimeout('process()',2000);
+	}
+
+	function getI2CDevs(){
+		$.getJSON(
+		"/getdata",
+		{page:"main1"},
+		function(data){
+			$('#DEVSHOW').html(data['DEVSHOW']);
+    	});
+	}
+
+	</script>
+	</body>
+</html>

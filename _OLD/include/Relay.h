@@ -7,7 +7,7 @@
 class Relay{
     public:
     //Relay();
-    void setup(uint8_t p, rel_t tp=RELTYPE_SWICH, bool lvl=false);
+    void setup(uint8_t p, uint8_t tp=RELTYPE_SWICH,bool lvl=false);
     bool isOn();
     void setOn();
     void setOff();
@@ -17,13 +17,12 @@ class Relay{
     bool isButton();
     void setState(boolean s);
     protected :
-    void syncro();
-    //rel_t type;
-    relState_t state;
-    //bool ison;
+    uint8_t type;
+    bool ison;
     uint8_t pin;
-    //bool level;
-    //bool armed;
+    void syncro();
+    bool level;
+    bool armed;
 };
 
 

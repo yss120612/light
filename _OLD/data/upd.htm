@@ -1,0 +1,58 @@
+	<!DOCTYPE html>
+    <html>
+    <head>
+	<meta charset = "utf-8">
+		<title>Yss desctop FW update</title>
+	<meta name = "description" content = "Версия 0.1">
+	<meta name = "author" content = "Yss">
+	<link href = "/css/bootstrap.min.css" type = "text/css" rel = "stylesheet">
+	<link href = "/css/progress.css" type = "text/css" rel = "stylesheet">
+	<script type = "text/javascript" src = "/js/jquery.min.js"></script>
+	<script type = "text/javascript" src = "/js/bootstrap.min.js"></script>
+	
+	</head>
+    <body>
+		<nav class="navbar navbar-light bg-light navbar-expand-lg">
+		<div class="container-fluid">
+			<a class="navbar-brand" href="#">Firmware update</a>
+		<ul class="nav nav-pills">
+			<li class="nav-item">
+			  <a class="nav-link" href="/">Home</a>
+			</li>
+			<li class="nav-item">
+			  <a class="nav-link" href="/main">Main</a>
+			</li>
+			<li class="nav-item">
+			  <a class="nav-link active"  aria-current="page" href="#">Update</a>
+			</li>
+			<li class="nav-item">
+			  <a class="nav-link" href="/log">Log</a>
+			</li>
+			<li class="nav-item">
+			  <a class="nav-link" href="/reboot">Reboot</a>
+			</li>
+		  </ul>
+		  </div>
+		</nav>
+	<div class = "alert alert-info" role = "alert">
+	<h3>Прошивка</h3>
+	<form method = "POST" action = "/update" enctype = "multipart/form-data" class="form-inline">
+	<div class = "btn-group">
+	<input type = "file" class = "btn" name = "update">
+	<input type = "submit" class = "btn" value = "Прошить" onclick = "this.value = 'Подождите...';">
+	</div>
+	</form>
+	</div>
+	<div class = "alert alert-success" role = "alert">
+	<h3>WEB сервер</h3>
+	<form method = "POST" action = "/spiffs" enctype = "multipart/form-data" class="form-inline">
+	<div class = "btn-group">
+	<input type = "file" class = "btn" name = "spiffs">
+	<input type = "submit" class = "btn" value = "Прошить" onclick = "this.value = 'Подождите...';">
+	</div>
+	</form>
+	</div>
+	</body>
+    </html>
+
+

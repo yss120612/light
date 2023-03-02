@@ -1,7 +1,6 @@
 #ifndef _SETTINGS_h
 #define _SETTINGS_h
 #include <driver/ledc.h>
-#define DEBUGG
 
 #define LED     2
 #define IRPIN   4
@@ -48,8 +47,8 @@
 #define CHECKPERIOD 100
 #define CHECKWIFI 300000
 
-
-
+#define RELTYPE_SWICH 0
+#define RELTYPE_BUTTON 1
 
 //PWM
 #define RESOLUTION  8
@@ -112,21 +111,6 @@ const bool blevels[]={true,false,false,false};
 //static const char * dayofweek[] ={"Воскресенье","Понедельник","Вторник","Среда","Четверг","Пятница","Суббота"};
 static const char dayofweek[] = "SunMonTueWedThuFriSat";
 
-enum rel_t
-{
-    RELTYPE_SWICH,
-    RELTYPE_BUTTON
-};
-
-struct __attribute__((__packed__)) relState_t
-{
-    bool ison : 1;
-    bool level : 1;
-    bool armed : 1;
-    rel_t type : 1;
-    uint8_t dumm : 4;
-};
-
 
 enum flags_t : uint8_t { FLAG_WIFI = 1, FLAG_MQTT = 2 };
 
@@ -157,8 +141,6 @@ enum period_t : uint8_t
     WD5_ALARM,
     WD6_ALARM
 };
-
-
 
 
 #define ALARMS_COUNT 10

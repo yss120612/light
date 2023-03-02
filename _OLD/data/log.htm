@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Система автоматики Yss</title>
+    <meta name="description" content="Версия 0.1">
+    <meta name="author" content="Yss">
+    <link href="/css/bootstrap.min.css" type="text/css" rel="stylesheet" />
+    <script type="text/javascript" src="/js/jquery.min.js"></script>
+    <script type="text/javascript" src="/js/bootstrap.min.js"></script>
+</head>
+<body>
+	<nav class="navbar navbar-light bg-light navbar-expand-lg">
+		<div class="container-fluid">
+			<a class="navbar-brand" href="#">Лог системы</a>
+		<ul class="nav nav-pills">
+			<li class="nav-item">
+			  <a class="nav-link" href="/">Home</a>
+			</li>
+			<li class="nav-item">
+			  <a class="nav-link" href="/main">Main</a>
+			</li>
+			<li class="nav-item">
+			  <a class="nav-link" href="/upd">Update</a>
+			</li>
+			<li class="nav-item">
+			  <a class="nav-link active"  aria-current="page" href="#">Log</a>
+			</li>
+			<li class="nav-item">
+			  <a class="nav-link" href="/reboot">Reboot</a>
+			</li>
+		  </ul>
+		  </div>
+		</nav>
+	<div class="container-fluid">
+	
+	<div class="row">
+			<div class="col-md-offset-1 col-md-10">
+			<input type="submit" class="btn btn-success" value="clear" onclick="clearlog()">
+			</div>
+
+		<div class="col-md-offset-1 col-md-10">
+			<h3>Последние события</h3>
+			<div id="Textarea1"></div>		
+		</div>
+	</div>
+	</div>
+ </body>
+ <script type="text/javascript">
+	$(document).ready(function(){
+	process();
+	});
+	
+	function process(){
+		$.getJSON(
+		"/getdata",
+		{page:'log'},
+		function(data){
+		$('#Textarea1').html(data['logdata']);
+		});
+		setTimeout('process()',3000);
+	}
+	function clearlog(){
+		$.ajax({  
+                    type: "POST",  
+                    url: "/post",  
+                    data: "page=log&ACTION=clear",  
+                    success: function(html){  
+                    }  
+			}); 
+		process();
+	}
+
+	</script>
+</html>

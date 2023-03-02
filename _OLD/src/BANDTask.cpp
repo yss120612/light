@@ -108,16 +108,13 @@ void BANDTask::loop()
   
   if (xTaskNotifyWait(0, 0, &command, portMAX_DELAY))
   {
-    //uint8_t comm,val;
-    //uint16_t data;
-    notify_t notify;
-
-    //readPacket(command,&comm,&val,&data);
-    memcpy(&notify,&command,sizeof(notify));
-    switch (notify.title)
+    uint8_t comm,val;
+    uint16_t data;
+    readPacket(command,&comm,&val,&data);
+    switch (comm)
     {
     case 1://set one channel
-      setOne(notify.packet.var,notify.packet.value);
+      setOne(val,data);
       break;
     case 2://all on
        setOne(0,255);
@@ -160,7 +157,7 @@ void BANDTask::loop()
       setOne(2,128);
       break;
     case 10://set one channel
-      setOne(notify.packet.var,notify.packet.value,false);
+      setOne(val,data,false);
       break;
   }
   }

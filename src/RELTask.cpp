@@ -1,5 +1,5 @@
 #include "RELTask.h"
-#include "Events.h"
+//#include "Events.h"
 
 void RELTask::setup()
 {
@@ -15,25 +15,30 @@ void RELTask::setup()
     return;
   }
 
-    event_t ev;
-    ev.state= MEM_EVENT;
-    
+    // event_t ev;
+    // ev.state= MEM_EVENT;
+    // ev.button=1;
   
   for (uint8_t i = 0; i < 4; i++)
     if (rpins[i] > 0)
     {
       //relay[i] = Relay();
-      relay[i].setup(rpins[i],i<3?RELTYPE_SWICH:RELTYPE_BUTTON, _level);
-      if (relay[i].isButton()) continue;
-      ev.button=104+i;
-      xQueueSend(que,&ev,portMAX_DELAY);
-      delay(100);
+      relay[i].setup(rpins[i],RELTYPE_SWICH, _level);
+      //if (relay[i].isButton()) continue;
+      //ev.count=i;
+      //xQueueSend(que,&ev,portMAX_DELAY);//запрос состояния реле
+      //xQueueSend(que,&ev,portTICK_PERIOD_MS);
+      //vTaskDelay(pdMS_TO_TICKS(500));
     }
     else
     {
       //relay[i] = NULL;
     }
-  
+  //relay[0].setOff();
+  //relay[1].setOn();
+  //relay[2].setOff();
+  //relay[3].setOff();
+
 }
 
 void RELTask::arm(uint8_t i) {
@@ -47,58 +52,81 @@ if (esp_timer_start_periodic(_timer, 500000) != ESP_OK) {
 void RELTask::save(uint8_t idx){
         event_t ev;
         ev.state=MEM_EVENT;
-        ev.button=204+idx;
+        ev.button=10+idx;
         ev.count=relay[idx].isOn();
-        xQueueSend(que,&ev,portMAX_DELAY);      
-        ev.state= DISP_EVENT;
-        ev.button=11+idx;
-        ev.count=relay[idx].isOn();
-        xQueueSend(que,&ev,portMAX_DELAY);      
+        xQueueSend(que,&ev,portMAX_DELAY);    
+        //xQueueSend(que,&ev,portTICK_PERIOD_MS);
+       // vTaskDelay(pdMS_TO_TICKS(500));  
 }
 
 void RELTask::loop()
 {
   uint32_t command;
+  notify_t nt;
+  event_t ev;
+  uint8_t i;
   if (xTaskNotifyWait(0, 0, &command, portMAX_DELAY))
   {
-    uint8_t comm,act;
-    uint16_t data;
-    readPacket(command,&comm,&act,&data);
-    switch (comm)
+    //uint8_t comm,act;
+    //uint16_t data;
+    memcpy(&nt,&command,sizeof(nt));
+    //readPacket(command,&comm,&act,&data);
+    switch (nt.title)
     {
     case 1:
     case 2:
     case 3:
     case 4:
-    if (!relay[comm-1].isButton())
+    if (relay[nt.title-1].isButton())
     {
-      relay[comm-1].setState(data>0);
-      if (!act) save(comm-1);
+      arm(nt.title-1);
     }
     else{
-      arm(comm-1);
+      relay[nt.title-1].setState(nt.packet.value>0);
+      if (!nt.packet.var) save(nt.title-1);
     }
     break;
     case 11:
     case 12:
     case 13:
     case 14:
-      if (relay[comm-11].isButton()) {
-        arm(comm-11);
+      if (relay[nt.title-11].isButton()) {
+        arm(nt.title-11);
       }else{
-      relay[comm-11].swc();
-      save(comm-11);
+        relay[nt.title-11].swc();
+        save(nt.title-11);
       }
       break;
     case 20:
+    #ifdef DEBUGG
     Serial.println("All off");
-    for (uint8_t i=0;i<4;i++){
+    #endif
+    for (i=0;i<4;i++){
     if (!relay[i].isButton())
     {
       relay[i].setOff();
       save(i);
+      vTaskDelay(pdMS_TO_TICKS(1000));
     }
     }
+  break;
+  case 21://ask relay states
+    ev.state=WEB_EVENT;
+    ev.button=21;
+    ev.data=relay[3].isOn()<<3 & 8 || relay[2].isOn()<<2 & 4 || relay[1].isOn()<<1 & 2 || relay[0].isOn() & 1;
+    xQueueSend(que,&ev,portMAX_DELAY);
+  break;
+  case 23:
+   
+    for (i=0;i<4;i++){
+    if (!relay[i].isButton())
+    {
+      relay[i].setState(nt.packet.value>>i & 1);
+      Serial.printf("Relay%d %d \n",i,relay[i].isOn());
+    }
+    }
+    
+    
   break;
   }
   }
