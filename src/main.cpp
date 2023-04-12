@@ -140,7 +140,7 @@ void web_event(event_t event){
       case 22:
       case 23:
       case 24:
-      notify.title=event.button=20;
+      notify.title=event.button-20;
       notify.packet.var=0;
       notify.packet.value=event.count;
       relay->notify(notify);
@@ -210,6 +210,7 @@ void mem_event(event_t event){
         case 206:
           notify.title=event.button-203+10;
           notify.packet.value=event.count;
+          mem->notify(notify);
         break;
       
   }
