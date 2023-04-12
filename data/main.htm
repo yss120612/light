@@ -8,7 +8,7 @@
 	<link href="/css/bootstrap.min.css" type="text/css" rel="stylesheet" />
 	<script type="text/javascript" src="/js/bootstrap.min.js"></script>
     <script type="text/javascript" src="/js/jquery.min.js"></script>
-	
+	<script type="text/javascript" src="/js/timepicker.min.js"></script>
 	
 </head>
 <body>
@@ -67,6 +67,9 @@
 						</div>
 					</form>
 				</div>
+				
+
+	
 
 				<div class="col-md-4">
 					<form>
@@ -85,6 +88,74 @@
 						</div>
 					</form>
 				</div>
+
+				<div class="col-md-4" id="LOGSHOW">
+						
+				</div>
+
+				<div class ="col-md-4">	
+					<form>
+						<div class="input-group mb-3">			
+							<label class="input-group-text" for="time">Время</label>  
+							<input class="time form-control" id="time" type="text" value="" />
+							</div>
+		
+							<div class="input-group mb-3">
+							<label class="input-group-text" for="PERIOD">Периодичность</label>
+							<select id="PERIOD" name="PERIOD" class="form-select" aria-label="Выбор периода">
+								<option value="1">Единожды</option>
+								<option value="2">Ежечасно</option>
+								<option value="3">Ежедневно</option>
+								<option value="4">Рабочие дни</option>
+								<option value="5">Выходные дни</option>
+								<option value="7">Понедельник</option>
+								<option value="8">Вторник</option>
+								<option value="9">Среда</option>
+								<option value="10">Четверг</option>
+								<option value="11">Пятница</option>
+								<option value="12">Суббота</option>
+								<option value="6">Воскресенье</option>
+							</select>
+						</div>
+							<div class="input-group mb-3">
+							<label class="input-group-text" for="TIMERNO">Будильнк №</label>
+							<select id="TIMERNO" name="TIMERNO" class="form-select" aria-label="Выбор будильника">
+								<option value="0">1</option>
+								<option value="1">2</option>
+								<option value="2">3</option>
+								<option value="3">4</option>
+								<option value="4">5</option>
+								<option value="5">6</option>
+								<option value="6">7</option>
+								<option value="7">8</option>
+								<option value="8">9</option>
+								<option value="9">10</option>
+							</select>
+						</div>
+					<div class="input-group mb-3">			
+						
+						<a type="button" class="btn btn-lg btn-success" id="BTN1"><i class="fa fa-bed fa-2x pull-left">Set an alarm</i></a>
+					</div>
+
+					<div class="input-group mb-3">			
+						<a type="button" class="btn btn-lg btn-success" id="BTN2"><i class="fa fa-bed fa-2x pull-left">All alarms</i></a>
+					</div>
+
+					<div class="input-group mb-3">			
+						<a type="button" class="btn btn-lg btn-success" id="BTN3"><i class="fa fa-bed fa-2x pull-left">Active alarm</i></a>
+					</div>
+
+					<div class="input-group mb-3">			
+						<a type="button" class="btn btn-lg btn-success" id="BTN4"><i class="fa fa-bed fa-2x pull-left">Reset alarms</i></a>
+					</div>
+
+
+					<div class="input-group mb-3">		
+						<a type="button" class="btn btn-lg btn-success" id="BTN5"><i class="fa fa-bed fa-2x pull-left">Sleep</i></a>
+					</div>
+				</form>
+				</div>
+
 
 
 				<div class="col-md-4">
@@ -156,7 +227,60 @@
  <script type="text/javascript">
 	$(document).ready(function(){
 	process();
-	
+	$('.time').clockTimePicker({
+		precision:5
+	});
+
+	$('.time').prop('value','12:00');
+
+	$('#BTN1').on('click',function(){  
+			
+			$.ajax({  
+                    type: "POST",  
+                    url: "/post",  
+                    data: "page=main&BTN1="+$('#time').prop('value')+"*"+$('#PERIOD').prop('value')+"-"+$('#TIMERNO').prop('value'),  
+                    success: function(html){  
+                    }  
+			}); 
+                return false;  
+            });  
+
+			$('#BTN2').on('click',function(){  
+			
+			$.ajax({  
+                    type: "POST",  
+                    url: "/post",  
+                    data: "page=main&BTN2=0",  
+                    success: function(html){  
+                    }  
+			}); 
+                return false;  
+            });
+
+			$('#BTN3').on('click',function(){  
+			$.ajax({  
+                    type: "POST",  
+                    url: "/post",  
+                    data: "page=main&BTN3=0",  
+                    success: function(html){  
+                    }  
+			}); 
+                return false;  
+            });
+
+
+			$('#BTN4').on('click',function(){  
+			$.ajax({  
+                    type: "POST",  
+                    url: "/post",  
+                    data: "page=main&BTN4=0",  
+                    success: function(html){  
+                    }  
+			}); 
+                return false;  
+            });
+
+
 	$('#REL1').on('input',function(){  
 			
 			$.ajax({  
@@ -266,6 +390,7 @@
 			$('#LIGHT_CW').prop('value', data['LIGHT_CW']);
 			$('#LIGHT_NW').prop('value', data['LIGHT_NW']);
 			$('#LIGHT_WW').prop('value', data['LIGHT_WW']);
+			$('#LOGSHOW').html("LOG HERE:"+JSON.stringify(data,null,'<br>'));
 			
 
 		});

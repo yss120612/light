@@ -161,7 +161,7 @@ void BANDTask::loop()
       setOne(1,0);
       setOne(2,128);
       break;
-    case 10://set one channel
+    case 10://set one channel wo save
       setOne(notify.packet.var,notify.packet.value,false);
       break;
   }

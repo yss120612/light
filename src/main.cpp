@@ -101,6 +101,23 @@ btn= new BTNTask("Buttons",2048, queue);
 btn->resume();
 }
 
+void relay_set(uint8_t r, bool st,uint8_t save=1){//r (1..4 set - st true|false) (11..14 switch - st ignore)
+    notify_t notify;
+    notify.title=r;
+    notify.packet.var=!save;//0 save 1 dont save
+    notify.packet.value=st;
+    relay->notify(notify);
+}
+
+void band_set(uint8_t b, uint8_t val,uint8_t save=1)//b 0..2 val 0..255
+{
+         notify_t notify;
+         notify.title=save?1:10;
+         notify.packet.var=b;
+         notify.packet.value=val;
+         band->notify(notify);
+}
+
 void web_event(event_t event){
   notify_t notify;
   switch (event.button){
@@ -131,10 +148,7 @@ void web_event(event_t event){
   case 12:
   case 13:
   case 14://set relays from web
-     notify.title=event.button-10;
-     notify.packet.var=0;//save in memory
-     notify.packet.value=event.count;
-     rtc->notify(notify);
+     relay_set(event.button-10,event.count);
   break;
       case 21:
       case 22:
@@ -157,6 +171,7 @@ void web_event(event_t event){
 }
 
 
+
 void mem_event(event_t event){
   notify_t notify;
   
@@ -165,52 +180,46 @@ void mem_event(event_t event){
         case 1://CW
         case 2://NW
         case 3://WW
-         notify.title=10;
-         notify.packet.var=event.button-1;
-         notify.packet.value=event.count;
-         band->notify(notify);
+         band_set(event.button-1,event.count,false);
         break;
         
         case 4://relay 1
         case 5://relay 2
         case 6://relay 3
         case 7://relay 4
-          notify.title=event.button-3;
-         notify.packet.var=1;
-         notify.packet.value=event.count>0?1:0;
-         relay->notify(notify);
+        relay_set(event.button-3,event.count>0?1:0,false);
         break;
 
         ///// request for read
-        case 100://
-        case 101:
-        case 102:
-        case 103:
-        case 104:
-        case 105:
-        case 106:
-        case 107:
-          notify.title=1;
-          notify.packet.var=0;
-          notify.packet.value=event.button-100;
-          mem->notify(notify);
-        break;
+        // case 100://
+        // case 101:
+        // case 102:
+        // case 103:
+        // case 104:
+        // case 105:
+        // case 106:
+        // case 107:
+        //   notify.title=1;
+        //   notify.packet.var=0;
+        //   notify.packet.value=event.button-100;
+        //   mem->notify(notify);
+        // break;
         ///// request for write
         case 200://
         case 201:
         case 202:
-             notify.title=event.button-200+20;
-             notify.packet.var=(uint8_t)BLINK_ON;
-             notify.packet.value=event.count;
-             mem->notify(notify);
+            notify.title=event.button-200+20;
+            notify.packet.var=(uint8_t)BLINK_ON;
+            notify.packet.value=event.count;
+            mem->notify(notify);
         break;
         case 203:
         case 204:
         case 205:
         case 206:
-          notify.title=event.button-203+10;
-          notify.packet.value=event.count;
-          mem->notify(notify);
+            notify.title=event.button-203+10;
+            notify.packet.value=event.count;
+            mem->notify(notify);
         break;
       
   }
@@ -227,7 +236,7 @@ void buton_event(event_t nt){
       if (nt.count==1){
         notify.title=10;
         rtc->notify(notify);
-      }
+      }//show date and time
   break;
   case 1:
       
@@ -237,9 +246,12 @@ void buton_event(event_t nt){
   case BTN_LONGCLICK:
   switch (nt.button){
   case 0:
-      Serial.print("Long click after ");
-      Serial.println(nt.count);
-      if (nt.count=3){
+      //Serial.print("Long click after ");
+      //Serial.println(nt.count);
+      if (nt.count>0 && nt.count<5){
+        relay_set(nt.count+10,1);//switch
+      }
+      if (nt.count=5){
         ESP.restart();
       }
   break;
@@ -248,6 +260,7 @@ void buton_event(event_t nt){
   }
   }
 }
+
 void display_event(event_t command)
 {
 notify_t nt;  
@@ -279,23 +292,12 @@ if (learn_command){
       switch (command.button)
       {
       case PULT_1:
-         result=makePacket(11,0,0);
-         relay->notify(result);
-        break;
       case PULT_2:
-         result=makePacket(12,0,0);
-         relay->notify(result);
-        break;
       case PULT_3:
-         result=makePacket(13,0,0);
-         relay->notify(result);
-        break;
       case PULT_4:
-         result=makePacket(14,0,0);
-         relay->notify(result);
+         relay_set(10+command.button,0);
         break;
-      
-      case PULT_POWER:
+      case PULT_POWER://all off
         result=makePacket(20,0,0);
         relay->notify(result);
         break;

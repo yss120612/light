@@ -27,6 +27,7 @@ server->onNotFound(std::bind(&HTTPTask::handleNotFound, this, std::placeholders:
 server->serveStatic("/css/bootstrap.min.css",SPIFFS,"/css/bootstrap.min.css");
 server->serveStatic("/js/jquery.min.js",SPIFFS,"/js/jquery.min.js");
 server->serveStatic("/js/bootstrap.min.js",SPIFFS,"/js/bootstrap.min.js");
+server->serveStatic("/js/timepicker.min.js",SPIFFS,"/js/timepicker.min.js");
 server->serveStatic("/css/font-awesome.min.css",SPIFFS,"/css/font-awesome.min.css");
 server->serveStatic("/css/radio.css",SPIFFS,"/css/radio.css");
 server->serveStatic("/fonts/fontawesome-webfont.woff2",SPIFFS,"/fonts/fontawesome-webfont.woff2");
@@ -183,24 +184,56 @@ void HTTPTask::var(String n, String v)
 {
      event_t ev;
      ev.state=WEB_EVENT;
-  	if (n.equals("REL1"))
+	uint8_t h=9,m=50,d=3,nn=0;
+	if (n.equals("BTN1"))
 	{
-		ev.button=PULT_1;
+		ev.button=1;
+		//Serial.println(v);
+		h=v.substring(0,v.indexOf(':')).toInt();
+		m=v.substring(v.indexOf(':')+1,v.indexOf('*')).toInt();
+		d=v.substring(v.indexOf('*')+1,v.indexOf('-')).toInt();
+		nn=v.substring(v.indexOf('-')+1).toInt();
+		ev.alarm.hour=h;
+		ev.alarm.minute=m;
+		ev.alarm.period=(period_t)d;
+		ev.alarm.action=nn;
+	}
+	else if (n.equals("BTN2"))
+	{
+		ev.button=2;
+		//=makeAlarm(20,d,h,m); 
+		//ev.count=v.equals(F("true"));
+	}
+	else if (n.equals("BTN3"))
+	{
+		ev.button=3;
+		//=makeAlarm(20,d,h,m); 
+		//ev.count=v.equals(F("true"));
+	}
+	else if (n.equals("BTN4"))
+	{
+		ev.button=4;
+		//=makeAlarm(20,d,h,m); 
+		//ev.count=v.equals(F("true"));
+	}
+	else if (n.equals("REL1"))
+	{
+		ev.button=11;
 		ev.count=v.equals(F("true"));
 	}
 	else if (n.equals("REL2"))
 	{
-		ev.button=PULT_2;
+		ev.button=12;
 		ev.count=v.equals(F("true"));
 	}
 	else if (n.equals("REL3"))
 	{
-		ev.button=PULT_3;
+		ev.button=13;
 		ev.count=v.equals(F("true"));
 	}
 	else if (n.equals("REL4"))
 	{
-		ev.button=PULT_4;
+		ev.button=14;
 		ev.count=v.equals(F("true"));
 	}
 	else if (n.equals("FUNC1"))
@@ -286,17 +319,35 @@ void HTTPTask::handleA2W(AsyncWebServerRequest * request)
 			str+=String(st.rel[i]?1:0);
 			str+=F(",");
 		}
-		str+=F("\"BAND_CW\":");
+		str+=F("\"BAND_CW\":\"");
 		str+=String(st.br[0].value);
-		str+=F(",");
-		str+=F("\"BAND_NW\":");
+		str+=F("\",");
+		str+=F("\"BAND_NW\":\"");
 		str+=String(st.br[1].value);
-		str+=F(",");
-		str+=F("\"BAND_WW\":");
+		str+=F("\",");
+		str+=F("\"BAND_WW\":\"");
 		str+=String(st.br[2].value);
-		str+=F(",");
-		str+=F("\"DEVSHOW\":");
-		str+="\"HUI\"";
+		str+=F("\"");
+		for (uint8_t i=0;i<ALARMS_COUNT;i++)
+		{
+    		str+=(",\"ALRM");
+			str+=String(i+1);
+			str+=("\":\"");
+			if (st.alr[i].active)
+			{
+			 str+=(st.alr[i].hour>9?String(st.alr[i].hour):"0"+String(st.alr[i].hour));
+			 str+=("-");
+			 str+=(st.alr[i].minute>9?String(st.alr[i].minute):"0"+String(st.alr[i].minute));
+			 str+=(" Per=");
+			 str+=String(st.alr[i].period);
+			 str+=(" WD=");
+			 str+=String(st.alr[i].wday);
+			}
+			else{
+			 str+=("NONE");
+			}
+			str+=("\"");
+		}
 		str+=F("}");
 
 		request->send(200, "text/json",str); // Oтправляем ответ No Reset
