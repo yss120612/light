@@ -212,18 +212,18 @@ void HTTPTask::var(String n, String v)
 	}
 	else if (n.equals("LIGHT_CW"))
 	{
-		ev.button=WEB_CANNEL_CW;
+		ev.button=31;
 		ev.count=v.toInt();
 		
 	}
 	else if (n.equals("LIGHT_NW"))
 	{
-		ev.button=WEB_CANNEL_NW;
+		ev.button=32;
 		ev.count=v.toInt();
 	}
 	else if (n.equals("LIGHT_WW"))
 	{
-		ev.button=WEB_CANNEL_WW;
+		ev.button=33;
 		ev.count=v.toInt();
 	}
 	 xQueueSend(que,&ev,portMAX_DELAY);

@@ -136,15 +136,23 @@ void web_event(event_t event){
      notify.packet.value=event.count;
      rtc->notify(notify);
   break;
-
-      case WEB_CANNEL_CW:
-      case WEB_CANNEL_NW:
-      case WEB_CANNEL_WW:
+      case 21:
+      case 22:
+      case 23:
+      case 24:
+      notify.title=event.button=20;
+      notify.packet.var=0;
+      notify.packet.value=event.count;
+      relay->notify(notify);
+      break;
+      case 31:
+      case 32:
+      case 33:
         notify.title=1;
-        notify.packet.var=event.button-100;
+        notify.packet.var=event.button-31;
         notify.packet.value=event.count;
-        rtc->notify(notify);
-        break;
+        band->notify(notify);
+      break;
   }
 }
 
