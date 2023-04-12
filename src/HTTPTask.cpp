@@ -260,6 +260,8 @@ void HTTPTask::handleA2W(AsyncWebServerRequest * request)
 			request->send(500, F("text/plain"),F("ERROR PAGE PARAMETR")); // Oтправляем ответ No Reset
 			return;
 	}
+	SystemState_t st;
+	event_t ev;
 	String str = F("{");
 	if (request->getParam(0)->value().equals(F("log"))){
 		//String str = F("{\"logdata\":\"<ul>")+logg.getAll2Web()+F("</ul>\"}");
@@ -268,28 +270,37 @@ void HTTPTask::handleA2W(AsyncWebServerRequest * request)
 		str+=F("</ul>\"}");
 		request->send(200, "text/json",str); // Oтправляем ответ No Reset
 	}else if (request->getParam(0)->value().equals(F("main"))){
+		ev.button=199;
+		ev.state=MEM_EVENT;
+		xQueueSend(que,&ev,portMAX_DELAY);
+		vTaskDelay(pdTICKS_TO_MS(100));
+		//if (xMessageBufferReceive(web_mess,&st,SSTATE_LENGTH,portMAX_DELAY)==SSTATE_LENGTH){
+		//if (xMessageBufferReceive(web_mess,&st,SSTATE_LENGTH,3000)==SSTATE_LENGTH){
+		if (xMessageBufferReceive(web_mess,&st,SSTATE_LENGTH,100)==SSTATE_LENGTH)
+		{
 		for (uint8_t i=0;i<4;i++)
 		{
 			str+=F("\"REL");
 			str+=String(i+1);
 			str+=F("\":");
-			//str+=String(data->isOn(i)?1:0);
+			str+=String(st.rel[i]?1:0);
 			str+=F(",");
 		}
 		str+=F("\"BAND_CW\":");
-		str+=String(128);
+		str+=String(st.br[0].value);
 		str+=F(",");
 		str+=F("\"BAND_NW\":");
-		str+=String(128);
+		str+=String(st.br[1].value);
 		str+=F(",");
 		str+=F("\"BAND_WW\":");
-		str+=String(128);
+		str+=String(st.br[2].value);
 		str+=F(",");
 		str+=F("\"DEVSHOW\":");
 		str+="\"HUI\"";
 		str+=F("}");
 
 		request->send(200, "text/json",str); // Oтправляем ответ No Reset
+		}
 	}else if (request->getParam(0)->value().equals(F("main1"))){
 		str+=F("\"DEVSHOW\":\"");
 		str+=getI2Cdevices();

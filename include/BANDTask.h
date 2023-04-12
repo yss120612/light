@@ -9,7 +9,7 @@
 class BANDTask: public Task{
     
 public:    
-BANDTask(const char *name, uint32_t stack, QueueHandle_t q, bool lv=HIGH ):Task(name, stack){que=q;_level=lv;};
+BANDTask(const char *name, uint32_t stack, QueueHandle_t q,  MessageBufferHandle_t mess, bool lv=HIGH ):Task(name, stack){que=q;_level=lv;disp_mess=mess;};
 
 protected:
 void cleanup() override;
@@ -29,6 +29,7 @@ void setOne(uint8_t cannel, uint8_t value,bool sav=true);
 bool _level;
 //esp_timer_handle_t _timer;
 QueueHandle_t que;
+MessageBufferHandle_t disp_mess;
 };
 
 

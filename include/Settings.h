@@ -2,6 +2,7 @@
 #define _SETTINGS_h
 #include <driver/ledc.h>
 #define DEBUGG
+#define VER 5
 
 #define LED     2
 #define IRPIN   4
@@ -110,7 +111,8 @@ const uint8_t rpins[]={RELAY1,RELAY2,RELAY3,RELAY4};
 const uint8_t bpins[]={BUTTON_1,0,0,0};
 const bool blevels[]={true,false,false,false};
 //static const char * dayofweek[] ={"Воскресенье","Понедельник","Вторник","Среда","Четверг","Пятница","Суббота"};
-static const char dayofweek[] = "SunMonTueWedThuFriSat";
+static const char  dayofweek[] ="Вс.Пн.Вт.Ср.Чт.Пт.Сб.";
+//static const char dayofweek[] = "SunMonTueWedThuFriSat";
 
 enum rel_t
 {
@@ -162,6 +164,9 @@ enum period_t : uint8_t
 
 
 #define ALARMS_COUNT 10
+#define RELAYS_COUNT 4
+#define LEDS_COUNT 3
+
 const uint16_t WEEK = 10080; // minutes in week
 const uint16_t DAY = 1440;   // minutes in day
 
@@ -181,11 +186,17 @@ struct __attribute__((__packed__)) bool1_t
    bool anyth :1;
 };
 
+struct __attribute__((__packed__)) led_state_t
+{
+  uint8_t value:8;
+  blinkmode_t stste:8;
+};
+
 struct __attribute__((__packed__)) SystemState_t
 {
     uint8_t version : 8;
-    bool rel[4];
-    uint8_t br[3];
+    bool rel[RELAYS_COUNT];
+    led_state_t br[LEDS_COUNT];
     alarm_t alr[ALARMS_COUNT];
     uint8_t crc;
 };
@@ -235,9 +246,9 @@ static void getNext(alarm_t &at)
     }
 }
 
-static std::string printAlarm(alarm_t at)
+static String printAlarm(alarm_t at)
 {
-    std::string per = at.active ? "+" : "-";
+    String per = at.active ? "+" : "-";
 
     switch (at.period)
     {
@@ -280,7 +291,7 @@ static std::string printAlarm(alarm_t at)
     }
     char buf[30];
     uint8_t res = snprintf(buf, sizeof(buf), "%d %02d:%02d %s (%d)\n", at.action, at.hour, at.minute, per.c_str(), at.wday);
-    std::string str = "error!";
+    String str = "error!";
     if (res >= 0 && res < sizeof(buf))
         str = buf;
     return str;
@@ -332,4 +343,7 @@ static uint8_t crc8(uint8_t *buffer, uint16_t size) {
 }
 
 
+
+
+#define DISP_MESSAGE_LENGTH 120
 #endif

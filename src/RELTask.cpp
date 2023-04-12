@@ -52,8 +52,10 @@ if (esp_timer_start_periodic(_timer, 500000) != ESP_OK) {
 void RELTask::save(uint8_t idx){
         event_t ev;
         ev.state=MEM_EVENT;
-        ev.button=10+idx;
+        ev.button=203+idx;
         ev.count=relay[idx].isOn();
+        String s="B"+String(idx)+(relay[idx].isOn()?"*ON*":"*OFF*");
+        xMessageBufferSend(disp_mess,s.c_str(),s.length(),portMAX_DELAY);
         xQueueSend(que,&ev,portMAX_DELAY);    
         //xQueueSend(que,&ev,portTICK_PERIOD_MS);
        // vTaskDelay(pdMS_TO_TICKS(500));  

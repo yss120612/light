@@ -231,16 +231,19 @@ void RTCTask::loop()
           refreshAlarms();
           break;
         case 10:{
-            char buf[100];
+            char buf[DISP_MESSAGE_LENGTH];
             size_t si;
             int res;
             if (fast_time_interval){
               res = snprintf(buf, sizeof(buf), "%s","Time is not*syncronized**");
             }else{
+              char str[30];
+              //snprintf(str, sizeof(str), "%s%d\xB0 %d%% %d
               DateTime dt=rtc->now();
+              //int8_t temp=rint(rtc->getTemperature());
               char p [3];
               strncpy(p,dayofweek+3 * dt.dayOfTheWeek(),3);
-              res = snprintf(buf, sizeof(buf), "Time %d:%02d:%02d*Date %d-%02d-%d*%s", dt.hour(),dt.minute(),dt.second(),dt.day(),dt.month(),dt.year(),p);
+              res = snprintf(buf, sizeof(buf), "ATime %d:%02d:%02d*Date %d-%02d-%d*%s T=%d\xB0", dt.hour(),dt.minute(),dt.second(),dt.day(),dt.month(),dt.year(),p,rint(rtc->getTemperature()));
             }
             si=xMessageBufferSend(disp_mess,buf,res,portMAX_DELAY);
             break;}

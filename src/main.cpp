@@ -26,7 +26,7 @@ AppData data;
 
 //const char* WIFI_SSID = "Yss_GIGA";
 //const char* WIFI_PASS = "bqt3bqt3";
-const char* fw = "Running firmware v. 2.2";
+const char* fw = "Running firmware v. 3.0";
 
 
 
@@ -42,7 +42,7 @@ unsigned long ms;
 QueueHandle_t queue;
 SemaphoreHandle_t btn_semaphore;
 EventGroupHandle_t flags;
-MessageBufferHandle_t message,alarm_messages,web_messages;
+MessageBufferHandle_t display_message,alarm_messages,web_messages;
 
 
 
@@ -71,7 +71,7 @@ void setup() {
 queue= xQueueCreate(16,sizeof(event_t));
 btn_semaphore=xSemaphoreCreateBinary();
 flags=xEventGroupCreate();
-message=xMessageBufferCreate(100);
+display_message=xMessageBufferCreate(DISP_MESSAGE_LENGTH+4);
 alarm_messages=xMessageBufferCreate(SSTATE_LENGTH+4);//=length label
 web_messages=xMessageBufferCreate(SSTATE_LENGTH+4);
 #ifdef _SERIAL
@@ -79,7 +79,7 @@ web_messages=xMessageBufferCreate(SSTATE_LENGTH+4);
 #endif
 
 //SPIFFS.begin();
-mem= new MEMTask("Memory",2048,queue);  
+mem= new MEMTask("Memory",2048,queue,alarm_messages,web_messages);  
 mem->resume();
 leds = new LEDTask("Leds",3072,queue,HIGH);
 leds->resume();
@@ -87,15 +87,15 @@ wifi=new WiFiTask("WiFi",4096,queue,flags);
 wifi->resume();
 ir= new IRTask("IR",2048,queue);  
 ir->resume();
-http = new HTTPTask("http",4096,queue,flags);
+http = new HTTPTask("http",4096,queue,flags,web_messages);
 http->resume();
-rtc = new RTCTask("Clock",2048,flags,queue, message,alarm_messages);  
+rtc = new RTCTask("Clock",2048,flags,queue, display_message,alarm_messages);  
 rtc->resume();
-display= new DISPTask("Display",2048, message);  
+display= new DISPTask("Display",2048, display_message);  
 display->resume();
-relay= new RELTask("Relay",3072,queue);  
+relay= new RELTask("Relay",3072,queue,display_message);  
 relay->resume();
-band= new BANDTask("Band",2048, queue, HIGH);  
+band= new BANDTask("Band",2048, queue,display_message, HIGH);  
 band->resume();
 btn= new BTNTask("Buttons",2048, queue);  
 btn->resume();
@@ -103,36 +103,29 @@ btn->resume();
 
 void web_event(event_t event){
   notify_t notify;
-  uint32_t command;  
   switch (event.button){
     case 1://set alarm from web
      notify.title=1;
      notify.alarm=event.alarm;
-     memcpy(&command,&notify,sizeof(command));
-     
-     //Serial.printf("from web %d:%d Period=%d Wday=%d Action=%d \n",nt.alarm.hour,nt.alarm.minute,nt.alarm.period, nt.alarm.wday,nt.alarm.action);
-     rtc->notify(command);
+     rtc->notify(notify);
   break;
   case 2://print all alarms
      notify.title=11;
      notify.packet.var=0;
      notify.packet.value=0;
-     memcpy(&command,&notify,sizeof(command));
-     rtc->notify(command);
+     rtc->notify(notify);
   break;
   case 3://print active alarm
      notify.title=12;
      notify.packet.var=0;
      notify.packet.value=0;
-     memcpy(&command,&notify,sizeof(command));
-     rtc->notify(command);
+     rtc->notify(notify);
   break;
   case 4://reset all alarms
      notify.title=13;
      notify.packet.var=0;
      notify.packet.value=0;
-     memcpy(&command,&notify,sizeof(command));
-     rtc->notify(command);
+     rtc->notify(notify);
   break;
   case 11:
   case 12:
@@ -141,8 +134,7 @@ void web_event(event_t event){
      notify.title=event.button-10;
      notify.packet.var=0;//save in memory
      notify.packet.value=event.count;
-     memcpy(&command,&notify,sizeof(command));
-     relay->notify(command);
+     rtc->notify(notify);
   break;
 
       case WEB_CANNEL_CW:
@@ -151,8 +143,7 @@ void web_event(event_t event){
         notify.title=1;
         notify.packet.var=event.button-100;
         notify.packet.value=event.count;
-        memcpy(&command,&notify,sizeof(command));
-        band->notify(command);
+        rtc->notify(notify);
         break;
   }
 }
@@ -160,7 +151,7 @@ void web_event(event_t event){
 
 void mem_event(event_t event){
   notify_t notify;
-  uint32_t command;  
+  
   switch (event.button){
         //read result processing
         case 1://CW
@@ -169,8 +160,7 @@ void mem_event(event_t event){
          notify.title=10;
          notify.packet.var=event.button-1;
          notify.packet.value=event.count;
-         memcpy(&command,&notify,sizeof(command));
-         band->notify(command);
+         band->notify(notify);
         break;
         
         case 4://relay 1
@@ -180,8 +170,7 @@ void mem_event(event_t event){
           notify.title=event.button-3;
          notify.packet.var=1;
          notify.packet.value=event.count>0?1:0;
-         memcpy(&command,&notify,sizeof(command));
-         relay->notify(command);
+         relay->notify(notify);
         break;
 
         ///// request for read
@@ -196,107 +185,88 @@ void mem_event(event_t event){
           notify.title=1;
           notify.packet.var=0;
           notify.packet.value=event.button-100;
-          memcpy(&command,&notify,sizeof(command));
-          mem->notify(command);
-          
+          mem->notify(notify);
         break;
         ///// request for write
         case 200://
         case 201:
         case 202:
+             notify.title=event.button-200+20;
+             notify.packet.var=(uint8_t)BLINK_ON;
+             notify.packet.value=event.count;
+             mem->notify(notify);
+        break;
         case 203:
         case 204:
         case 205:
         case 206:
-        case 207:
-             notify.title=2;
-             notify.packet.var=event.count;
-             notify.packet.value=event.button-200;
-             memcpy(&command,&notify,sizeof(command));
-             mem->notify(command);
+          notify.title=event.button-203+10;
+          notify.packet.value=event.count;
         break;
       
   }
 }
 
-void loop()
-{
 
-event_t command;
-if (xQueueReceive(queue,&command,portMAX_DELAY))
-{
-  bool learn_command=true;
-  uint32_t result;
-
-  switch(command.state)
-  {
-  case WEB_EVENT:
-      web_event(command);
-  break;
+void buton_event(event_t nt){
+  notify_t notify;
+  uint32_t command;
+  switch (nt.state){
   case BTN_CLICK:
-  switch (command.button){
+  switch (nt.button){
   case 0:
-      Serial.print("Click0=");
-      Serial.println(command.count);
+      if (nt.count==1){
+        notify.title=10;
+        rtc->notify(notify);
+      }
   break;
   case 1:
-      Serial.print("Click1=");
-      Serial.println(command.count);
+      
   break;
   }
   break;
   case BTN_LONGCLICK:
-  switch (command.button){
+  switch (nt.button){
   case 0:
       Serial.print("Long click after ");
-      Serial.println(command.count);
-      if (command.count=3){
+      Serial.println(nt.count);
+      if (nt.count=3){
         ESP.restart();
       }
   break;
   case 1:
   break;
   }
-  break;
-  case MEM_EVENT:
-      mem_event(command);
-  
-  break;
-  case DISP_EVENT:
-  switch (command.button)
+  }
+}
+void display_event(event_t command)
+{
+notify_t nt;  
+switch (command.button)
       {
     case 11:
     case 12:
     case 13:
     case 14:
-    result=makePacket(command.button-10,0,command.count);
-    display->notify(result);
+    //uint32_t result=makePacket(command.button-10,0,command.count);
+    //nt.title=command.button-10;
+    //display->notify(nt);
     break;
     case 20://show time
     break;
       }
-  break;
-  case LED_EVENT:
-  switch (command.button)
-      {
-    case 111:
-    result=makePacket(command.button,0,0);
-    leds->notify(result);
-    break;
-    case 113:
-    result=makePacket(command.button,0,0);
-    leds->notify(result);
-    
-    
-    break;
-      }
-  break;
+}
 
-  case PULT_BUTTON:
-      if (learn_command){
+void pult_event(event_t command)
+{
+
+bool learn_command=true;
+uint32_t result;
+
+if (learn_command){
         //display.showString("Dev."+String(command.count)+(command.count==IR_DEVICE?" MY":" ALIEN"),"Code "+String(command.button),"type="+String(command.type));
       }
-      if (command.count!=IR_DEVICE) break;
+      if (command.count!=IR_DEVICE) return;
       switch (command.button)
       {
       case PULT_1:
@@ -333,7 +303,6 @@ if (xQueueReceive(queue,&command,portMAX_DELAY))
       case PULT_FASTFORWARD:
       
         break;
- 
       case PULT_PREV: //ultra low
         result=makePacket(9,0,0);
         band->notify(result);
@@ -351,8 +320,55 @@ if (xQueueReceive(queue,&command,portMAX_DELAY))
         band->notify(result);
         break;
       }
-      break;
-    }
+}
+
+void led_event(event_t command){
+uint32_t result;
+switch (command.button)
+    {
+    case 111:
+    result=makePacket(command.button,0,0);
+    leds->notify(result);
+    break;
+    case 113:
+    result=makePacket(command.button,0,0);
+    leds->notify(result);
+    
+    
+    break;
+      }
+}
+
+void loop()
+{
+
+event_t command;
+if (xQueueReceive(queue,&command,portMAX_DELAY))
+{
+  
+
+  switch(command.state)
+  {
+  case WEB_EVENT:
+      web_event(command);
+  break;
+  case BTN_CLICK:
+  case BTN_LONGCLICK:
+      buton_event(command);
+  break;
+  case MEM_EVENT:
+      mem_event(command);
+  break;
+  case DISP_EVENT:
+      display_event(command);
+  break;
+  case LED_EVENT:
+      led_event(command);
+  break;
+  case PULT_BUTTON:
+      pult_event(command);
+  break;
+ }
 }//if queue
 
 }

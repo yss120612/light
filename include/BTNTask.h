@@ -18,7 +18,7 @@ struct button_t {
 class BTNTask: public Task{
     
 public:    
-BTNTask(const char *name, uint32_t stack, QueueHandle_t q):Task(name, stack){que=q;};
+BTNTask(const char *name, uint32_t stack, QueueHandle_t q):Task(name, stack){que=q; };
 
 protected:
 bool add(uint8_t pin, bool level);
@@ -30,7 +30,7 @@ void loop() override;
 void _isr();
 button_t btns[4];
 QueueHandle_t que;
-
+ 
 };
 
 

@@ -10,7 +10,7 @@
 
 class HTTPTask: public Task{
 public:
-HTTPTask(const char *name, uint32_t stack,QueueHandle_t q,EventGroupHandle_t f):Task(name, stack){que=q;flg=f;}
+HTTPTask(const char *name, uint32_t stack,QueueHandle_t q,EventGroupHandle_t f,MessageBufferHandle_t mess):Task(name, stack){que=q;flg=f;web_mess=mess;}
 
 protected:
 void cleanup() override;
@@ -32,5 +32,6 @@ String getI2Cdevices();
 QueueHandle_t que;
 EventGroupHandle_t flg;
 AsyncWebServer * server;
+MessageBufferHandle_t web_mess;
 };
 #endif

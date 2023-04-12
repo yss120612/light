@@ -33,7 +33,7 @@ protected:
     String toShow,toShow1,toShow2;
     int32_t last_time;
     MessageBufferHandle_t mess;
-    char buf[100];
+    char buf[DISP_MESSAGE_LENGTH];
 };
 
 

@@ -58,6 +58,15 @@ void Task::notify(uint32_t value) {
   }
 }
 
+
+void Task::notify(notify_t nt) {
+  uint32_t value;
+  memcpy(&value,&nt, sizeof(value));
+  if (_task) {
+    xTaskNotify(_task, value, eSetValueWithOverwrite);
+  }
+}
+
 void Task::lock() {
   portENTER_CRITICAL(&_mutex);
 }

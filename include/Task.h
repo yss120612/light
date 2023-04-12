@@ -7,6 +7,7 @@
 #include <freertos/message_buffer.h>
 #include <freertos/portmacro.h>
 #include <HardwareSerial.h>
+#include "Settings.h"
 
 class Task {
 public:
@@ -25,6 +26,7 @@ public:
   void resume();
   void destroy();
   void notify(uint32_t value);
+  void notify(notify_t nt);
 
   static void lock();
   static void unlock();

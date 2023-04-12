@@ -1,50 +1,150 @@
 #include "MEMTask.h"
+//#include "Events.h"
 
-
-void MEMTask::setup(){
-//_address = AT24C32_ADDRESS;
- Wire.begin();  
+void MEMTask::setup()
+{
+	Wire.begin();
+	read_state();
 }
 
-
-void MEMTask::cleanup(){
-
+void MEMTask::cleanup()
+{
 }
 
+void MEMTask::reset_memory(){
+uint8_t i;
+		for(i=0;i<RELAYS_COUNT;i++) sstate.rel[i] = false;
+		for(i=0;i<LEDS_COUNT;i++) {sstate.br[i].value = 0;sstate.br[i].stste=BLINK_ON;}
+		for (i = 0; i < ALARMS_COUNT; i++)
+		{
+			sstate.alr[i].action = 0;
+			sstate.alr[i].period = ONCE_ALARM;
+			sstate.alr[i].active = false;
+			sstate.alr[i].hour = 0;
+			sstate.alr[i].minute = 0;
+			sstate.alr[i].wday = 0;
+		}
+		sstate.version = VER;
+		write_state();
+}
 
+void MEMTask::read_state()
+{
+	read(0, (uint8_t *)&sstate, sizeof(sstate));
+	uint8_t crc=crc8((uint8_t *)&sstate,sizeof(sstate));
 
+	if (crc!=0)//second attempt to read
+	{
+		read(0, (uint8_t *)&sstate, sizeof(sstate));
+		crc=crc8((uint8_t *)&sstate,sizeof(sstate));
+	}
 
-void MEMTask::loop(){
-uint32_t command;
-  
-  if (xTaskNotifyWait(0, 0, &command, portMAX_DELAY))
-  {
-    uint8_t comm,value;
-    uint16_t addr;
-	readPacket(command,&comm,&value,&addr);
-	//comm=1 read, com=2 write
-		   Serial.print(comm==1?"read":"write");
-		   Serial.print(" addr=");
-		   Serial.print(addr);
-		   Serial.print(" value=");
-		   Serial.println(value);
-    switch (comm)
-    {
+	#ifdef DEBUGG
+	if (crc!=0)	Serial.println("BAD CRC!!!");
+	// Serial.print("SState length=");
+	// Serial.println(sizeof(sstate));
+	#endif
+			
 
-      case 1:
-           	read(addr,&value,sizeof(value)); 
-          	event_t ev;
-           	ev.state=MEM_EVENT;
-           	ev.button=addr;
-           	ev.count=value;
-        	xQueueSend(que,&ev,portMAX_DELAY);
-      break;
-      case 2:
-           write(addr,&value,sizeof(value)); 
-      break;
-    }
-  }
-  
+	if (VER!=sstate.version || crc!=0)
+	{
+		reset_memory();
+	}
+}
+
+void MEMTask::write_state()
+{
+	sstate.crc=crc8((uint8_t *)&sstate, sizeof(sstate)-1);
+	write(0, (uint8_t *)&sstate, sizeof(sstate));
+}
+
+void MEMTask::loop()
+{
+	uint32_t command;
+	event_t ev;
+	notify_t nt;
+	if (xTaskNotifyWait(0, 0, &command, portMAX_DELAY))
+	//if (xTaskNotifyWait(0, 0, &command, pdMS_TO_TICKS(1000)))
+	{
+		
+		memcpy(&nt,&command,sizeof(command));
+		
+		switch (nt.title)
+		{
+		
+	
+		case 10:	
+		case 11:
+		case 12:
+		case 13:
+		sstate.rel[nt.title-10]=nt.packet.value;
+		#ifdef DEBUGG
+		Serial.print("Relay");
+        Serial.print(nt.title-10);
+        Serial.print(" set ");
+        Serial.println(nt.packet.value);
+		#endif
+		write_state();
+		//xTaskNotifyStateClear(NULL);
+		
+		break;
+		case 20:	
+		case 21:
+		case 22:
+		sstate.br[nt.title-20].stste=(blinkmode_t)nt.packet.var;
+		sstate.br[nt.title-20].value=nt.packet.value;
+		#ifdef DEBUGG
+		Serial.print("Leds band=");
+        Serial.print(nt.title-20);
+        Serial.print(" brightness is ");
+        Serial.print(nt.packet.value);
+		Serial.print(" mode is ");
+        Serial.println(nt.packet.var);
+		#endif
+		write_state();
+		//xTaskNotifyStateClear(NULL);
+		
+		break;
+		case 100:	
+		case 101:	
+		case 102:	
+		case 103:	
+		case 104:	
+		case 105:	
+		case 106:	
+		case 107:	
+		case 108:	
+		case 109:	
+		sstate.alr[nt.title-100]=nt.alarm;
+		write_state();
+		break;
+		case 199:
+	   		xMessageBufferSend(web_mess, &sstate, SSTATE_LENGTH, portMAX_DELAY);
+			break;
+		case 200:
+	   		xMessageBufferSend(alarm_mess, &sstate, SSTATE_LENGTH, portMAX_DELAY);
+					break;
+		case 201://reset alarms
+		for (uint8_t i = 0; i < ALARMS_COUNT; i++)
+			{
+			sstate.alr[i].action = 0;
+			sstate.alr[i].period = ONCE_ALARM;
+			sstate.alr[i].active = false;
+			sstate.alr[i].hour = 0;
+			sstate.alr[i].minute = 0;
+			sstate.alr[i].wday = 0;
+			}
+			write_state();
+	   		xMessageBufferSend(alarm_mess, &sstate, SSTATE_LENGTH, portMAX_DELAY);
+			break;	
+			case 202://reset all
+	   		 reset_memory();
+			 xMessageBufferSend(alarm_mess, &sstate, SSTATE_LENGTH, portMAX_DELAY);
+			break;
+			
+
+		}
+	}
 }
 
 void MEMTask::read(uint16_t index, uint8_t *buf, uint16_t len)
@@ -73,7 +173,7 @@ void MEMTask::read(uint16_t index, uint8_t *buf, uint16_t len)
 			}
 			
 			*buf = Wire.read();
-	//		 Serial.printf("%d=%d; ",idx,*buf);
+			 //Serial.printf("%d=%d; ",idx,*buf);
 			*buf ++;
 			
 
