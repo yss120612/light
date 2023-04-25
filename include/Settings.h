@@ -6,10 +6,11 @@
 
 #define LED     2
 #define IRPIN   4
-#define RELAY1  5
-#define RELAY2  18
+#define RELAY1  17
+#define RELAY2  5
 #define RELAY3  19
-#define RELAY4  17
+//#define RELAY4  18
+#define RELAY4  0
 
 #define BUTTON_1 13
 
@@ -69,7 +70,7 @@
 #define DBLCLICK_TIME 500       // 0.5 sec.
 
 #define  AT24C32_ADDRESS 0x57
-#define  AT24C32_OFFSET 0x78
+#define  AT24C32_OFFSET 192//0x78
 //#define  AT24C32_ADDRESS 0x78
 #define  EEPROM_PAGE_SIZE  32
 #define  EEPROM_WORK_SIZE  EEPROM_PAGE_SIZE / 2
@@ -110,8 +111,13 @@ enum blinkmode_t { BLINK_OFF, BLINK_ON, BLINK_TOGGLE, BLINK_05HZ, BLINK_1HZ, BLI
 const uint8_t rpins[]={RELAY1,RELAY2,RELAY3,RELAY4};
 const uint8_t bpins[]={BUTTON_1,0,0,0};
 const bool blevels[]={true,false,false,false};
+//const char * dayofweek[] ={"Вс.","Пн.","Вт.","Ср.","Чт.","Пт.","Сб."};
+//static const char  dayofweek[] ="Вс.Пн.Вт.Ср.Чт.Пт.Сб.";
+
 //static const char * dayofweek[] ={"Воскресенье","Понедельник","Вторник","Среда","Четверг","Пятница","Суббота"};
-static const char  dayofweek[] ="Вс.Пн.Вт.Ср.Чт.Пт.Сб.";
+
+static const char  dayofweek[] ="\xD0\x92\xD1\x81\x2E\xD0\x9F\xD0\xBD\x2E\xD0\x92\xD1\x82\x2E\xD0\xA1\xD1\x80\x2E\xD0\xA7\xD1\x82\x2E\xD0\x9F\xD1\x82\x2E\xD0\xA1\xD0\xB1\x2E";
+//static const char  dayofweek[] ="\xC2\xF1.\xCF\xED.\xC2\xF2.\xD1\xF0.\xD7\xF2.\xCF\xF2.\xD1\xE1.";
 //static const char dayofweek[] = "SunMonTueWedThuFriSat";
 
 enum rel_t
@@ -160,11 +166,8 @@ enum period_t : uint8_t
     WD6_ALARM
 };
 
-
-
-
 #define ALARMS_COUNT 10
-#define RELAYS_COUNT 4
+#define RELAYS_COUNT 3
 #define LEDS_COUNT 3
 
 const uint16_t WEEK = 10080; // minutes in week
@@ -342,8 +345,55 @@ static uint8_t crc8(uint8_t *buffer, uint16_t size) {
   return crc;
 }
 
-
-
+static String utf8rus(String source)
+{
+  int i, k;
+  String target;
+  unsigned char n;
+  char m[2] = {'0', '\0'};
+  k = source.length();
+  i = 0;
+  while (i < k)
+  {
+    n = source[i];
+    i++;
+    if (n >= 0xC0)
+    {
+      switch (n)
+      {
+      case 0xD0:
+      {
+          n = source[i];
+          i++;
+          if (n == 0x81)
+          {
+              n = 0xA8;
+              break;
+          }
+          if (n >= 0x90 && n <= 0xBF)
+              n = n + 0x30;
+          break;
+      }
+      case 0xD1:
+      {
+          n = source[i];
+          i++;
+          if (n == 0x91)
+          {
+              n = 0xB8;
+              break;
+          }
+          if (n >= 0x80 && n <= 0x8F)
+              n = n + 0x70;
+          break;
+      }
+      }
+    }
+    m[0] = n;
+    target = target + String(m);
+  }
+  return target;
+}
 
 #define DISP_MESSAGE_LENGTH 120
 #endif

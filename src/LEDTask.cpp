@@ -63,58 +63,54 @@ void LEDTask::setup()
 
 void LEDTask::loop()
 {
-  uint16_t val;
-  uint8_t com,btn;
+  notify_t com;
   uint32_t command;
   if (xTaskNotifyWait(0, 0, &command, portMAX_DELAY))
   {
-    readPacket(command,&com,&btn,&val);
-    switch (com)
+    //readPacket(command,&com,&btn,&val);
+    memcpy(&command,&com,sizeof(notify_t));
+    switch (com.title)
     {
     case 17:
-      setLedMode(val, BLINK_FADEINOUT);
+      setLedMode(com.packet.var, BLINK_FADEINOUT);
       break;
     case 18:
-      setLedMode(val, BLINK_FADEIN);
+      setLedMode(com.packet.var, BLINK_FADEIN);
       break;
     case 19:
-      setLedMode(val, BLINK_FADEOUT);
+      setLedMode(com.packet.var, BLINK_FADEOUT);
       break;
     case 20:
-      setLedMode(val, BLINK_1HZ);
+      setLedMode(com.packet.var, BLINK_1HZ);
       break;
     case 21:
-      setLedMode(val, BLINK_OFF);
+      setLedMode(com.packet.var, BLINK_OFF);
       //setLedMode(1, BLINK_OFF);
       break;
     case 23:
-      setLedMode(val, BLINK_05HZ);
+      setLedMode(com.packet.var, BLINK_05HZ);
       //setLedMode(1, BLINK_OFF);
       break;
     case 24:
-      setLedMode(val, BLINK_2HZ);
+      setLedMode(com.packet.var, BLINK_2HZ);
       //setLedMode(1, BLINK_OFF);
       break;
     case 25:
-      setLedMode(val, BLINK_4HZ);
+      setLedMode(com.packet.var, BLINK_4HZ);
       //setLedMode(1, BLINK_OFF);
       break;
     case 33:
-      setLedMode(val, BLINK_4HZ);
+      setLedMode(com.packet.var, BLINK_4HZ);
     break;
 
     case 111:
-      
-      setLedMode(val, BLINK_4HZ);
+      setLedMode(com.packet.var, BLINK_4HZ);
       break;
-    
     case 112:
-      
-      setLedMode(val, BLINK_FADEINOUT);
+      setLedMode(com.packet.var, BLINK_SUNRAISE);
       break;
     case 113:
-      
-      setLedMode(0, BLINK_OFF);
+      setLedMode(com.packet.var, BLINK_OFF);
       break;
   }
   }
@@ -224,10 +220,12 @@ void LEDTask::timerCallback()
 
         ledc_set_duty(SPEED_MODE, led[i]->getChannel(), val);
         ledc_update_duty(SPEED_MODE, led[i]->getChannel());
+        #ifdef DEBUGG
         Serial.print("val=");
         Serial.println(val);
         Serial.print("index=");
         Serial.println(index);
+        #endif
       }
     }
   }

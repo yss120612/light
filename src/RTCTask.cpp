@@ -7,7 +7,7 @@ rtc= new RTC_DS3231();
 rtc->begin();
 fast_time_interval=true;
 last_sync=0;
-vTaskDelay(pdMS_TO_TICKS(5000));
+vTaskDelay(pdMS_TO_TICKS(3000));
 initAlarms();
 init_complete=false;
 }
@@ -15,14 +15,14 @@ init_complete=false;
 void RTCTask::initAlarms(){
 event_t e;
 e.state=MEM_EVENT;
-e.button=200;
+e.button=170;
 xQueueSend(que,&e,portMAX_DELAY);
 }
 
 void RTCTask::resetAlarms(){
   event_t e;
   e.state=MEM_EVENT;
-  e.button=201;
+  e.button=171;
   init_complete=false;
   xQueueSend(que,&e,portMAX_DELAY);
 }
@@ -116,6 +116,9 @@ ev.state=MEM_EVENT;
 ev.button=idx+100;
 ev.alarm=alarms[idx];
 xQueueSend(que,&ev,portMAX_DELAY);
+String s="DSETUP ALARM*"+printAlarm(alarms[idx])+"**";
+xMessageBufferSend(disp_mess,s.c_str(),s.length()+1,portMAX_DELAY);
+
 }
 
 bool RTCTask::setupAlarm(uint8_t idx, uint8_t act, uint8_t h, uint8_t m,  period_t p){
@@ -204,11 +207,16 @@ void RTCTask::loop()
       if (xMessageBufferReceive(alarm_mess,&sst,SSTATE_LENGTH,!init_complete?pdMS_TO_TICKS(1000):0)==SSTATE_LENGTH){
       memcpy(alarms,sst.alr,sizeof(alarm_t)*ALARMS_COUNT);
       refreshAlarms();  
+      //Serial.println("Config recv");
       init_complete=true;
       event_t ev;
       ev.state=MEM_EVENT;//init other devices
-      ev.button=203;
+      ev.button=150;
       ev.data=sst.rel[0] & 1 | sst.rel[1]<<1 & 2 | sst.rel[2]<<2 & 4 | sst.rel[3]<<3 & 8; 
+      xQueueSend(que,&ev,portMAX_DELAY);
+      ev.button=151;
+      ev.data=sst.br[2].value<<24 & 0xFF000000 | sst.br[1].value<<16 & 0x00FF0000 | sst.br[0].value << 8 & 0x0000FF00 | sst.br[2].stste << 4 & 0x000000F0 | sst.br[1].stste  & 0x0000000F;
+      ev.count=sst.br[0].stste;
       xQueueSend(que,&ev,portMAX_DELAY);
     }
       
@@ -216,37 +224,45 @@ void RTCTask::loop()
     notify_t nt;   
     if (xTaskNotifyWait(0, 0, &command, init_complete?pdMS_TO_TICKS(1000):0))
     {
-         
         memcpy(&nt,&command,sizeof(command));
         switch (nt.title)
         {
         case 1:
         
           setupAlarm(nt.alarm.action,nt.alarm.action,nt.alarm.hour,nt.alarm.minute,nt.alarm.period);
-          #ifdef DEBUGG
-          portENTER_CRITICAL(&_mutex);
-          Serial.print(printAlarm(alarms[nt.alarm.action]).c_str());   
-          portEXIT_CRITICAL(&_mutex);
-        #endif
+        //  #ifdef DEBUGG
+        //   portENTER_CRITICAL(&_mutex);
+        //   Serial.print(printAlarm(alarms[nt.alarm.action]).c_str());   
+        //   portEXIT_CRITICAL(&_mutex);
+        // #endif
           refreshAlarms();
           break;
         case 10:{
-            char buf[DISP_MESSAGE_LENGTH];
+            char buf[DISP_MESSAGE_LENGTH]={0};
+            //Serial.println("In time req");
             size_t si;
             int res;
+            
             if (fast_time_interval){
               res = snprintf(buf, sizeof(buf), "%s","Time is not*syncronized**");
             }else{
-              char str[30];
               //snprintf(str, sizeof(str), "%s%d\xB0 %d%% %d
               DateTime dt=rtc->now();
+           
               //int8_t temp=rint(rtc->getTemperature());
-              char p [3];
-              strncpy(p,dayofweek+3 * dt.dayOfTheWeek(),3);
-              res = snprintf(buf, sizeof(buf), "ATime %d:%02d:%02d*Date %d-%02d-%d*%s T=%d\xB0", dt.hour(),dt.minute(),dt.second(),dt.day(),dt.month(),dt.year(),p,rint(rtc->getTemperature()));
+              
+              char p [6]={0};
+              char t [4]={0};
+              
+              strncpy(p,dayofweek+(5*sizeof(char)) * dt.dayOfTheWeek(),5*sizeof(char));
+              strncpy(t,"\xE2\x84\x83",3);
+              //res = snprintf(buf, sizeof(buf), "A%d:%02d:%02d*%d-%02d-%d*%s T=%.1f\xB0\x43", dt.hour(),dt.minute(),dt.second(),dt.day(),dt.month(),dt.year(),p,rtc->getTemperature());
+              res = snprintf(buf, sizeof(buf), "A%d:%02d:%02d*%d-%02d-%d*%s T=%.1f%s", dt.hour(),dt.minute(),dt.second(),dt.day(),dt.month(),dt.year(),p,rtc->getTemperature(),t);
             }
-            si=xMessageBufferSend(disp_mess,buf,res,portMAX_DELAY);
-            break;}
+            
+              si=xMessageBufferSend(disp_mess,buf,res,portMAX_DELAY);
+            }
+            break;
         case 11:
         {
           #ifdef DEBUGG

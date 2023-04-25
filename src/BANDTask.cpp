@@ -63,17 +63,17 @@ gpio_set_level((gpio_num_t)PIN_CW, ! _level);
     ledc_channel_config(&ledc_channel);
 
 
-    event_t ev;
+    // event_t ev;
 
-    ev.state= MEM_EVENT;
-    ev.button=101;
-    xQueueSend(que,&ev,portMAX_DELAY);
-    delay(100);
-    ev.button=102;
-    xQueueSend(que,&ev,portMAX_DELAY);
-    delay(100);
-    ev.button=103;
-    xQueueSend(que,&ev,portMAX_DELAY);
+    // ev.state= MEM_EVENT;
+    // ev.button=101;
+    // xQueueSend(que,&ev,portMAX_DELAY);
+    // delay(100);
+    // ev.button=102;
+    // xQueueSend(que,&ev,portMAX_DELAY);
+    // delay(100);
+    // ev.button=103;
+    // xQueueSend(que,&ev,portMAX_DELAY);
 
 }
 
@@ -92,15 +92,16 @@ void BANDTask::setOne(uint8_t cannel, uint8_t value, bool sav){
            ledc_update_duty(SPEED_MODE, CANNEL_WW);
           break;
         }
-        
+        //Serial.printf("Band %d set to %d save=%d \n",cannel,value,sav);
         if (sav){
         event_t ev;
         ev.state=MEM_EVENT;
-        ev.button=201+cannel;
+        ev.button=200+cannel;
         ev.count=value;
-        String s="CCannel " + String(cannel==0?"COOL":cannel==1?"NORMAL":"WARM") + "*set to "+String(value)+"**";
-        xMessageBufferSend(disp_mess,s.c_str(),s.length(),portMAX_DELAY);
         xQueueSend(que,&ev,portMAX_DELAY);
+        String s="CCannel " + String(cannel==0?"COOL":cannel==1?"NORMAL":"WARM") + "*set to "+String(value)+"*";
+        xMessageBufferSend(disp_mess,s.c_str(),s.length()+1,portMAX_DELAY);
+        
         }
        } 
 

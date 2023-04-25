@@ -22,6 +22,7 @@ public:
    
     //blinkmode_t get_blinkmode(uint8_t idx) {return led[idx]->getMode();}
 protected:
+    
     //void setLedMode(uint8_t ledN, blinkmode_t bm);
     //void alarm(uint8_t hh,uint8_t mm);
     //void alarm(uint8_t hh,uint8_t mm,uint8_t dw);

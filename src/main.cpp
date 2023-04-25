@@ -85,8 +85,6 @@ leds = new LEDTask("Leds",3072,queue,HIGH);
 leds->resume();
 wifi=new WiFiTask("WiFi",4096,queue,flags);
 wifi->resume();
-ir= new IRTask("IR",2048,queue);  
-ir->resume();
 http = new HTTPTask("http",4096,queue,flags,web_messages);
 http->resume();
 rtc = new RTCTask("Clock",2048,flags,queue, display_message,alarm_messages);  
@@ -99,6 +97,8 @@ band= new BANDTask("Band",2048, queue,display_message, HIGH);
 band->resume();
 btn= new BTNTask("Buttons",2048, queue);  
 btn->resume();
+ir= new IRTask("IRс",3072,queue);  
+ir->resume();
 }
 
 void relay_set(uint8_t r, bool st,uint8_t save=1){//r (1..4 set - st true|false) (11..14 switch - st ignore)
@@ -107,10 +107,12 @@ void relay_set(uint8_t r, bool st,uint8_t save=1){//r (1..4 set - st true|false)
     notify.packet.var=!save;//0 save 1 dont save
     notify.packet.value=st;
     relay->notify(notify);
+    
 }
 
 void band_set(uint8_t b, uint8_t val,uint8_t save=1)//b 0..2 val 0..255
 {
+        
          notify_t notify;
          notify.title=save?1:10;
          notify.packet.var=b;
@@ -133,10 +135,14 @@ void web_event(event_t event){
      rtc->notify(notify);
   break;
   case 3://print active alarm
-     notify.title=12;
-     notify.packet.var=0;
-     notify.packet.value=0;
+    //  notify.title=12;
+    //  notify.packet.var=0;
+    //  notify.packet.value=0;
+    //  rtc->notify(notify);
+    
+     notify.title=10;
      rtc->notify(notify);
+     
   break;
   case 4://reset all alarms
      notify.title=13;
@@ -154,18 +160,20 @@ void web_event(event_t event){
       case 22:
       case 23:
       case 24:
-      notify.title=event.button-20;
-      notify.packet.var=0;
-      notify.packet.value=event.count;
-      relay->notify(notify);
+      // notify.title=event.button-20;
+      // notify.packet.var=0;
+      // notify.packet.value=event.count;
+      // relay->notify(notify);
+      relay_set(event.button-20,event.count,true);
       break;
       case 31:
       case 32:
       case 33:
-        notify.title=1;
-        notify.packet.var=event.button-31;
-        notify.packet.value=event.count;
-        band->notify(notify);
+        // notify.title=1;
+        // notify.packet.var=event.button-31;
+        // notify.packet.value=event.count;
+        // band->notify(notify);
+        band_set(event.button-31,event.count);
       break;
   }
 }
@@ -177,20 +185,20 @@ void mem_event(event_t event){
   
   switch (event.button){
         //read result processing
-        case 1://CW
-        case 2://NW
-        case 3://WW
-         band_set(event.button-1,event.count,false);
-        break;
+        // case 1://CW
+        // case 2://NW
+        // case 3://WW
+        //  band_set(event.button-1,event.count,false);
+        // break;
         
-        case 4://relay 1
-        case 5://relay 2
-        case 6://relay 3
-        case 7://relay 4
-        relay_set(event.button-3,event.count>0?1:0,false);
-        break;
+        // case 4://relay 1
+        // case 5://relay 2
+        // case 6://relay 3
+        // case 7://relay 4
+        // relay_set(event.button-3,event.count>0?1:0,false);
+        // break;
 
-        ///// request for read
+        // /// request for read
         // case 100://
         // case 101:
         // case 102:
@@ -205,9 +213,68 @@ void mem_event(event_t event){
         //   mem->notify(notify);
         // break;
         ///// request for write
+
+   case 100:
+   case 101:
+   case 102:
+   case 103:
+   case 104:
+   case 105:
+   case 106:
+   case 107:
+   case 108:
+   case 109:
+        notify.title=event.button;
+        notify.alarm=event.alarm;
+        mem->notify(notify);
+   break;
+        case 150://init relay devices from memory
+      notify.title=23;
+      notify.packet.var=0;
+      notify.packet.value=event.data & 0xF;
+      //memcpy(&command,&nt,sizeof(nt));
+      relay->notify(notify);
+    break;
+     case 151://init led`s devices from memory
+     
+      band_set(0,event.data >> 8 & 0x00FF,false);
+      //notify.title=1;
+      //notify.packet.var=event.count;
+      //notify.packet.value=event.data >> 8 & 0x00FF;
+      //memcpy(&command,&nt,sizeof(nt));
+      //band->notify(event);
+      vTaskDelay(pdMS_TO_TICKS(100));
+      band_set(1,event.data >> 16 & 0x00FF,false);
+      //nt.title=2;
+      //nt.packet.var=e.data & 0x000F;
+      //nt.packet.value=e.data >> 16 & 0x00FF;
+      //memcpy(&command,&nt,sizeof(nt));
+      //leds->notify(command);
+      vTaskDelay(pdMS_TO_TICKS(100));
+      band_set(1,event.data >> 24 & 0x00FF,false);
+      //nt.title=3;
+      //nt.packet.var=e.data >> 4 & 0x000F;
+      //nt.packet.value=e.data >> 24 & 0x00FF;
+      //memcpy(&command,&nt,sizeof(nt));
+      //leds->notify(command);
+   break;
+        case 170:
+            notify.title=200;
+            
+            mem->notify(notify);
+        break;
+        case 171:
+            notify.title=201;
+            mem->notify(notify);
+        break;
+        case 199:
+            notify.title=199;
+            mem->notify(notify);
+        break;
         case 200://
         case 201:
         case 202:
+       
             notify.title=event.button-200+20;
             notify.packet.var=(uint8_t)BLINK_ON;
             notify.packet.value=event.count;
@@ -221,7 +288,8 @@ void mem_event(event_t event){
             notify.packet.value=event.count;
             mem->notify(notify);
         break;
-      
+       
+   
   }
 }
 
@@ -233,6 +301,7 @@ void buton_event(event_t nt){
   case BTN_CLICK:
   switch (nt.button){
   case 0:
+      //Serial.println(nt.count);
       if (nt.count==1){
         notify.title=10;
         rtc->notify(notify);
@@ -281,73 +350,65 @@ switch (command.button)
 
 void pult_event(event_t command)
 {
-
-bool learn_command=true;
-uint32_t result;
-
-if (learn_command){
-        //display.showString("Dev."+String(command.count)+(command.count==IR_DEVICE?" MY":" ALIEN"),"Code "+String(command.button),"type="+String(command.type));
-      }
-      if (command.count!=IR_DEVICE) return;
-      switch (command.button)
+      notify_t result;
+      bool show_me = false;
+      if ((command.count) == IR_DEVICE)
       {
-      case PULT_1:
-      case PULT_2:
-      case PULT_3:
-      case PULT_4:
-         relay_set(10+command.button,0);
-        break;
-      case PULT_POWER://all off
-        result=makePacket(20,0,0);
-        relay->notify(result);
-        break;
-      case PULT_SOUND:
-        break;
-      case PULT_VOLDOWN:
-        break;
-      case PULT_VOLUP:
-        break;
-      case PULT_FASTBACK:
-          result=makePacket(10,0,0);//request time;
-          rtc->notify(result);
-        break;
-      case PULT_FASTFORWARD:
-      
-        break;
-      case PULT_PREV: //ultra low
-        result=makePacket(9,0,0);
-        band->notify(result);
-        break;
-      case PULT_PAUSE: //low
-        result=makePacket(5,0,0);
-        band->notify(result);
-        break;
-      case PULT_STOP: //middle
-        result=makePacket(4,0,0);
-        band->notify(result);
-        break;
-      case PULT_NEXT: //full
-        result=makePacket(2,0,0);
-        band->notify(result);
-        break;
+    switch (command.button)
+    {
+    case PULT_1:
+    case PULT_2:
+    case PULT_3:
+    case PULT_4:
+  relay_set(10 + command.button, 1);
+  break;
+    case PULT_POWER: // all off
+  result.title = 20;
+  relay->notify(result);
+  break;
+    case PULT_FASTBACK:
+  result.title = 10;
+  rtc->notify(result);
+  break;
+   case PULT_PREV: // ultra low
+  result.title = 9;
+  band->notify(result);
+  break;
+    case PULT_PAUSE: // low
+  result.title = 5;
+  band->notify(result);
+  break;
+    case PULT_STOP: // middle
+  result.title = 4;
+  band->notify(result);
+  break;
+    case PULT_NEXT: // full
+  result.title = 2;
+  band->notify(result);
+  break;
+    default:
+  show_me = true;
+    }
+      }
+      if ((command.count) != IR_DEVICE || show_me)
+      {
+    String s = "EDevice " + String(command.count) + (command.count == IR_DEVICE ? "(MY)" : "(ALIEN)") + "*Command " + String(command.button) + "*type " + String(command.data);
+    xMessageBufferSend(display_message, s.c_str(), s.length() + 1, portMAX_DELAY);
       }
 }
 
 void led_event(event_t command){
-uint32_t result;
+notify_t result;
 switch (command.button)
     {
     case 111:
-    result=makePacket(command.button,0,0);
-    leds->notify(result);
-    break;
+    case 112:
     case 113:
-    result=makePacket(command.button,0,0);
+    result.title=command.button;
+    result.packet.var=0;
     leds->notify(result);
-    
-    
     break;
-      }
+    }
 }
 
 void loop()

@@ -185,6 +185,7 @@ void HTTPTask::var(String n, String v)
      event_t ev;
      ev.state=WEB_EVENT;
 	uint8_t h=9,m=50,d=3,nn=0;
+	
 	if (n.equals("BTN1"))
 	{
 		ev.button=1;
@@ -201,7 +202,7 @@ void HTTPTask::var(String n, String v)
 	else if (n.equals("BTN2"))
 	{
 		ev.button=2;
-		//=makeAlarm(20,d,h,m); 
+		//makeAlarm(20,d,h,m); 
 		//ev.count=v.equals(F("true"));
 	}
 	else if (n.equals("BTN3"))
@@ -231,11 +232,11 @@ void HTTPTask::var(String n, String v)
 		ev.button=13;
 		ev.count=v.equals(F("true"));
 	}
-	else if (n.equals("REL4"))
-	{
-		ev.button=14;
-		ev.count=v.equals(F("true"));
-	}
+	// else if (n.equals("REL4"))
+	// {
+	// 	ev.button=14;
+	// 	ev.count=v.equals(F("true"));
+	// }
 	else if (n.equals("FUNC1"))
 	{
 		ev.state=PULT_BUTTON;
@@ -245,17 +246,20 @@ void HTTPTask::var(String n, String v)
 	}
 	else if (n.equals("LIGHT_CW"))
 	{
+		
 		ev.button=31;
 		ev.count=v.toInt();
 		
 	}
 	else if (n.equals("LIGHT_NW"))
 	{
+		
 		ev.button=32;
 		ev.count=v.toInt();
 	}
 	else if (n.equals("LIGHT_WW"))
 	{
+		
 		ev.button=33;
 		ev.count=v.toInt();
 	}
@@ -311,21 +315,21 @@ void HTTPTask::handleA2W(AsyncWebServerRequest * request)
 		//if (xMessageBufferReceive(web_mess,&st,SSTATE_LENGTH,3000)==SSTATE_LENGTH){
 		if (xMessageBufferReceive(web_mess,&st,SSTATE_LENGTH,100)==SSTATE_LENGTH)
 		{
-		for (uint8_t i=0;i<4;i++)
+		for (uint8_t i=0;i<RELAYS_COUNT;i++)
 		{
 			str+=F("\"REL");
 			str+=String(i+1);
-			str+=F("\":");
+			str+=F("\":\"");
 			str+=String(st.rel[i]?1:0);
-			str+=F(",");
+			str+=F("\",");
 		}
-		str+=F("\"BAND_CW\":\"");
+		str+=F("\"LIGHT_CW\":\"");
 		str+=String(st.br[0].value);
 		str+=F("\",");
-		str+=F("\"BAND_NW\":\"");
+		str+=F("\"LIGHT_NW\":\"");
 		str+=String(st.br[1].value);
 		str+=F("\",");
-		str+=F("\"BAND_WW\":\"");
+		str+=F("\"LIGHT_WW\":\"");
 		str+=String(st.br[2].value);
 		str+=F("\"");
 		for (uint8_t i=0;i<ALARMS_COUNT;i++)

@@ -26,6 +26,8 @@ protected:
     void setup() override;
     void loop() override;
     void drawText();
+    static void onTick(TimerHandle_t tm);
+    void onMyTick();
     void showString(String s,String s1,String s2);
     U8G2_SH1106_128X64_VCOMH0_1_HW_I2C u8g2=U8G2_SH1106_128X64_VCOMH0_1_HW_I2C(U8G2_R2,U8X8_PIN_NONE);
     boolean display_on;
@@ -34,6 +36,7 @@ protected:
     int32_t last_time;
     MessageBufferHandle_t mess;
     char buf[DISP_MESSAGE_LENGTH];
+    TimerHandle_t _timer;
 };
 
 

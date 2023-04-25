@@ -30,21 +30,24 @@ uint8_t i;
 
 void MEMTask::read_state()
 {
+	uint8_t counter=0;
+	uint8_t crc=1;
+	while (counter<2 && crc!=0){
+	try{
 	read(0, (uint8_t *)&sstate, sizeof(sstate));
-	uint8_t crc=crc8((uint8_t *)&sstate,sizeof(sstate));
-
-	if (crc!=0)//second attempt to read
-	{
-		read(0, (uint8_t *)&sstate, sizeof(sstate));
-		crc=crc8((uint8_t *)&sstate,sizeof(sstate));
 	}
-
+	catch (const char * error_message){
+	#ifdef DEBUGG	
+	Serial.println(error_message);
+	#endif	
+	}
+	crc=crc8((uint8_t *)&sstate,sizeof(sstate));
+	counter++;
+	}
+	
 	#ifdef DEBUGG
 	if (crc!=0)	Serial.println("BAD CRC!!!");
-	// Serial.print("SState length=");
-	// Serial.println(sizeof(sstate));
 	#endif
-			
 
 	if (VER!=sstate.version || crc!=0)
 	{
@@ -76,12 +79,12 @@ void MEMTask::loop()
 		case 10:	
 		case 11:
 		case 12:
-		case 13:
+		//case 13:
 		sstate.rel[nt.title-10]=nt.packet.value;
 		#ifdef DEBUGG
-		Serial.print("Relay");
+		Serial.print("Save relay");
         Serial.print(nt.title-10);
-        Serial.print(" set ");
+        Serial.print("=");
         Serial.println(nt.packet.value);
 		#endif
 		write_state();
@@ -94,14 +97,21 @@ void MEMTask::loop()
 		sstate.br[nt.title-20].stste=(blinkmode_t)nt.packet.var;
 		sstate.br[nt.title-20].value=nt.packet.value;
 		#ifdef DEBUGG
-		Serial.print("Leds band=");
+		Serial.print("Save leds band=");
         Serial.print(nt.title-20);
         Serial.print(" brightness is ");
         Serial.print(nt.packet.value);
 		Serial.print(" mode is ");
         Serial.println(nt.packet.var);
 		#endif
+		try{
 		write_state();
+		//Serial.println("Saved");
+		}catch (const char * error_message){
+			#ifdef DEBUGG
+			Serial.println(error_message);
+			#endif
+		}
 		//xTaskNotifyStateClear(NULL);
 		
 		break;
@@ -115,15 +125,34 @@ void MEMTask::loop()
 		case 107:	
 		case 108:	
 		case 109:	
+		#ifdef DEBUGG
+		Serial.print("Save alarm=");
+        Serial.print(nt.title-100);
+        Serial.print(" per=");
+        Serial.print(nt.alarm.period);
+		Serial.print(" ");
+		Serial.print(nt.alarm.hour);
+		Serial.print(":");
+		Serial.print(nt.alarm.minute);
+		Serial.print(" ACTIVE:");
+		Serial.println(nt.alarm.active?"YES":"NO");
+        #endif
 		sstate.alr[nt.title-100]=nt.alarm;
+		try{
 		write_state();
+		//Serial.println("Saved");
+		}catch (const char * error_message){
+			#ifdef DEBUGG
+			Serial.println(error_message);
+			#endif
+		}
 		break;
 		case 199:
 	   		xMessageBufferSend(web_mess, &sstate, SSTATE_LENGTH, portMAX_DELAY);
 			break;
 		case 200:
 	   		xMessageBufferSend(alarm_mess, &sstate, SSTATE_LENGTH, portMAX_DELAY);
-					break;
+			break;
 		case 201://reset alarms
 		for (uint8_t i = 0; i < ALARMS_COUNT; i++)
 			{
@@ -137,12 +166,10 @@ void MEMTask::loop()
 			write_state();
 	   		xMessageBufferSend(alarm_mess, &sstate, SSTATE_LENGTH, portMAX_DELAY);
 			break;	
-			case 202://reset all
-	   		 reset_memory();
-			 xMessageBufferSend(alarm_mess, &sstate, SSTATE_LENGTH, portMAX_DELAY);
-			break;
-			
-
+		case 202://reset all
+	   		reset_memory();
+			xMessageBufferSend(alarm_mess, &sstate, SSTATE_LENGTH, portMAX_DELAY);
+		break;
 		}
 	}
 }
@@ -202,7 +229,7 @@ void MEMTask::write(uint16_t index, const uint8_t *buf, uint16_t len)
 			vTaskDelay(pdMS_TO_TICKS(EEPROM_WRITE_TIMEOUT));
 			}
 			Wire.write(*buf);
-			 //Serial.printf("%d=%d; ",idx,*buf);
+			// Serial.printf("%d=%d; ",idx,*buf);
 			*buf ++;
 	}
 	//Serial.println(".");

@@ -19,7 +19,7 @@ void RELTask::setup()
     // ev.state= MEM_EVENT;
     // ev.button=1;
   
-  for (uint8_t i = 0; i < 4; i++)
+  for (uint8_t i = 0; i < RELAYS_COUNT; i++)
     if (rpins[i] > 0)
     {
       //relay[i] = Relay();
@@ -54,9 +54,18 @@ void RELTask::save(uint8_t idx){
         ev.state=MEM_EVENT;
         ev.button=203+idx;
         ev.count=relay[idx].isOn();
-        String s="B"+String(idx)+(relay[idx].isOn()?"*ON*":"*OFF*");
-        xMessageBufferSend(disp_mess,s.c_str(),s.length(),portMAX_DELAY);
-        xQueueSend(que,&ev,portMAX_DELAY);    
+        xQueueSend(que,&ev,portMAX_DELAY);  
+        String s;
+        try{  
+        s="BRelay "+String(idx+1)+(relay[idx].isOn()?"*set ON*":"*set OFF*");
+        }catch (char * error_message){
+          s=error_message;
+        #ifdef DEBUGG
+          Serial.println(error_message);
+        #endif
+        }
+        xMessageBufferSend(disp_mess,s.c_str(),s.length()+1,portMAX_DELAY);
+        
         //xQueueSend(que,&ev,portTICK_PERIOD_MS);
        // vTaskDelay(pdMS_TO_TICKS(500));  
 }
@@ -78,7 +87,7 @@ void RELTask::loop()
     case 1:
     case 2:
     case 3:
-    case 4:
+    //case 4:
     if (relay[nt.title-1].isButton())
     {
       arm(nt.title-1);
@@ -91,7 +100,7 @@ void RELTask::loop()
     case 11:
     case 12:
     case 13:
-    case 14:
+    //case 14:
       if (relay[nt.title-11].isButton()) {
         arm(nt.title-11);
       }else{
@@ -103,7 +112,7 @@ void RELTask::loop()
     #ifdef DEBUGG
     Serial.println("All off");
     #endif
-    for (i=0;i<4;i++){
+    for (i=0;i<RELAYS_COUNT;i++){
     if (!relay[i].isButton())
     {
       relay[i].setOff();
@@ -115,16 +124,16 @@ void RELTask::loop()
   case 21://ask relay states
     ev.state=WEB_EVENT;
     ev.button=21;
-    ev.data=relay[3].isOn()<<3 & 8 || relay[2].isOn()<<2 & 4 || relay[1].isOn()<<1 & 2 || relay[0].isOn() & 1;
+    ev.data=relay[2].isOn()<<2 & 4 || relay[1].isOn()<<1 & 2 || relay[0].isOn() & 1;
     xQueueSend(que,&ev,portMAX_DELAY);
   break;
   case 23:
    
-    for (i=0;i<4;i++){
+    for (i=0;i<RELAYS_COUNT;i++){
     if (!relay[i].isButton())
     {
       relay[i].setState(nt.packet.value>>i & 1);
-      Serial.printf("Relay%d %d \n",i,relay[i].isOn());
+      //Serial.printf("Relay%d %d \n",i,relay[i].isOn());
     }
     }
     
@@ -140,7 +149,7 @@ void RELTask::cleanup()
   {
     esp_timer_stop(_timer);
     esp_timer_delete(_timer);
-    for (uint8_t i = 0; i < 4; i++)
+    for (uint8_t i = 0; i < RELAYS_COUNT; i++)
     {
       if (rpins[i] <= 0)
         break;
@@ -152,7 +161,7 @@ void RELTask::cleanup()
 
 void RELTask::timerCallback()
 {
-for (uint8_t i = 0; i < 4; i++)
+for (uint8_t i = 0; i < RELAYS_COUNT; i++)
     if (rpins[i]>0)
     {
       relay[i].disarm();

@@ -29,7 +29,7 @@ protected:
     void save(uint8_t idx);
     int32_t last_time;
     uint16_t _step;
-    Relay  relay[4]; 
+    Relay  relay[RELAYS_COUNT]; 
     esp_timer_handle_t _timer;
     QueueHandle_t que;
     //bool need_timer;
