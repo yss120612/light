@@ -1,36 +1,27 @@
 #include <Arduino.h>
-
-
-#include <SPIFFS.h>
-
-#include "Log.h"
-//#include "Httphelper.h"
 #include "Settings.h"
-#include "Data.h"
-//#include "buttons.h"
-//#include "Blinker.h"
-#include "MEMTask.h"
-#include "WiFiTask.h"
-#include "IRTask.h"
-#include "LEDTask.h"
-#include "HTTPTask.h"
-#include "RELTask.h"
-#include "BANDTask.h"
-#include "DISPTask.h"
-#include "RTCTask.h"
-#include "BTNTask.h"
+
+#include <MEMTask.h>
+#include <WiFiTask.h>
+#include <IRTask.h>
+#include <ENCTask.h>
+#include <LEDTask.h>
+#include <RELTask.h>
+#include <DISPTask.h>
+#include <RTCTask.h>
+
+#include "HTTP2Task.h"
 
 
-
-AppData data;
+//AppData data;
 
 //const char* WIFI_SSID = "Yss_GIGA";
 //const char* WIFI_PASS = "bqt3bqt3";
-const char* fw = "Running firmware v. 3.0";
+//const char* fw = "Running firmware v. 3.0";
 
 
 
-unsigned long ms;
+//unsigned long ms;
 //unsigned long msWiFi;
 //boolean forceWiFi;//если не задалось с первого раза повторять каждые Х минут или нет
 //BandLED band;
@@ -55,8 +46,8 @@ HTTPTask * http;
 DISPTask * display;
 RTCTask * rtc;
 RELTask * relay;
-BANDTask * band;
-BTNTask * btn;
+//BANDTask * band;
+ENCTask * btn;
 //extern void init_networks();
 
 
@@ -74,106 +65,74 @@ flags=xEventGroupCreate();
 display_message=xMessageBufferCreate(DISP_MESSAGE_LENGTH+4);
 alarm_messages=xMessageBufferCreate(SSTATE_LENGTH+4);//=length label
 web_messages=xMessageBufferCreate(SSTATE_LENGTH+4);
-#ifdef _SERIAL
+#ifdef DEBUGG
    Serial.begin(115200);
 #endif
 
 //SPIFFS.begin();
-mem= new MEMTask("Memory",2048,queue,alarm_messages,web_messages);  
+mem= new MEMTask("Memory",2048,queue,alarm_messages,web_messages,VERSION,AT24C32_ADDRESS,AT24C32_OFFSET);  
 mem->resume();
-leds = new LEDTask("Leds",3072,queue,HIGH);
+leds = new LEDTask("Leds",3072,queue,leds_pins, HIGH);
 leds->resume();
 wifi=new WiFiTask("WiFi",4096,queue,flags);
 wifi->resume();
-http = new HTTPTask("http",4096,queue,flags,web_messages);
+http = new HTTP2Task("http",4096,queue,flags,web_messages);
 http->resume();
 rtc = new RTCTask("Clock",2048,flags,queue, display_message,alarm_messages);  
 rtc->resume();
 display= new DISPTask("Display",2048, display_message);  
 display->resume();
-relay= new RELTask("Relay",3072,queue,display_message);  
+relay= new RELTask("Relay",3072,queue,relays_pins);  
 relay->resume();
-band= new BANDTask("Band",2048, queue,display_message, HIGH);  
-band->resume();
-btn= new BTNTask("Buttons",2048, queue);  
-btn->resume();
-ir= new IRTask("IRс",3072,queue);  
+// band= new BANDTask("Band",2048, queue,display_message, HIGH);  
+// band->resume();
+// btn= new BTNTask("Buttons",2048, queue);  
+// btn->resume();
+ir= new IRTask("IRс",3072,queue,IR_PIN,IR_DEVICE);  
 ir->resume();
-}
 
-void relay_set(uint8_t r, bool st,uint8_t save=1){//r (1..4 set - st true|false) (11..14 switch - st ignore)
-    notify_t notify;
-    notify.title=r;
-    notify.packet.var=!save;//0 save 1 dont save
-    notify.packet.value=st;
-    relay->notify(notify);
-    
-}
+btn = new ENCTask("Encoder",2048,queue,ENCBTN,ENCS1,ENCS2,LOW);
+btn->resume();
 
-void band_set(uint8_t b, uint8_t val,uint8_t save=1)//b 0..2 val 0..255
-{
-        
-         notify_t notify;
-         notify.title=save?1:10;
-         notify.packet.var=b;
-         notify.packet.value=val;
-         band->notify(notify);
+
+
 }
 
 void web_event(event_t event){
   notify_t notify;
   switch (event.button){
-    case 1://set alarm from web
-     notify.title=1;
+    case ALARMSETUP://set alarm from web
+     notify.title=event.button;
      notify.alarm=event.alarm;
      rtc->notify(notify);
   break;
-  case 2://print all alarms
-     notify.title=11;
+
+  case ALARMSPRINT://print all alarms
+  case ALARMACTIVEPRINT://print active alarm
+  case ALARMSRESET://reset all alarms
+     notify.title=event.button;
      notify.packet.var=0;
      notify.packet.value=0;
      rtc->notify(notify);
   break;
-  case 3://print active alarm
-    //  notify.title=12;
-    //  notify.packet.var=0;
-    //  notify.packet.value=0;
-    //  rtc->notify(notify);
-    
-     notify.title=10;
-     rtc->notify(notify);
-     
+  
+  case RELAYSET1:
+  case RELAYSET2:
+  case RELAYSET3:
+  case RELAYSET4://set relays from web
+    notify.title=event.button;
+    notify.packet.var=0;//0 save 1 dont save
+    notify.packet.value=event.count;
+    relay->notify(notify);
   break;
-  case 4://reset all alarms
-     notify.title=13;
-     notify.packet.var=0;
-     notify.packet.value=0;
-     rtc->notify(notify);
-  break;
-  case 11:
-  case 12:
-  case 13:
-  case 14://set relays from web
-     relay_set(event.button-10,event.count);
-  break;
-      case 21:
-      case 22:
-      case 23:
-      case 24:
-      // notify.title=event.button-20;
-      // notify.packet.var=0;
-      // notify.packet.value=event.count;
-      // relay->notify(notify);
-      relay_set(event.button-20,event.count,true);
-      break;
-      case 31:
-      case 32:
-      case 33:
-        // notify.title=1;
-        // notify.packet.var=event.button-31;
-        // notify.packet.value=event.count;
-        // band->notify(notify);
-        band_set(event.button-31,event.count);
+      
+      case LEDBRIGHTNESS1:
+      case LEDBRIGHTNESS2:
+      case LEDBRIGHTNESS3:
+         notify.title=event.button;
+         notify.packet.var=1;
+         notify.packet.value=event.count;
+         leds->notify(notify);
       break;
   }
 }
@@ -181,38 +140,27 @@ void web_event(event_t event){
 
 
 void mem_event(event_t event){
-  notify_t notify;
-  
+  notify_t nt;
   switch (event.button){
-        //read result processing
-        // case 1://CW
-        // case 2://NW
-        // case 3://WW
-        //  band_set(event.button-1,event.count,false);
-        // break;
-        
-        // case 4://relay 1
-        // case 5://relay 2
-        // case 6://relay 3
-        // case 7://relay 4
-        // relay_set(event.button-3,event.count>0?1:0,false);
-        // break;
-
-        // /// request for read
-        // case 100://
-        // case 101:
-        // case 102:
-        // case 103:
-        // case 104:
-        // case 105:
-        // case 106:
-        // case 107:
-        //   notify.title=1;
-        //   notify.packet.var=0;
-        //   notify.packet.value=event.button-100;
-        //   mem->notify(notify);
-        // break;
-        ///// request for write
+   case RELWRITE1:
+   case RELWRITE2:
+   case RELWRITE3:
+   case RELWRITE4://write relays (it works)
+      nt.title=event.button;
+      nt.packet.var=0;
+      nt.packet.value=event.count;
+      
+      mem->notify(nt);
+   break;
+   case LEDWRITE1://save led state
+   case LEDWRITE2:
+   case LEDWRITE3:
+   case LEDWRITE4:
+      nt.title=event.button;
+      nt.packet.var=event.count;
+      nt.packet.value=event.data;
+      mem->notify(nt);
+   break;
 
    case 100:
    case 101:
@@ -224,129 +172,78 @@ void mem_event(event_t event){
    case 107:
    case 108:
    case 109:
-        notify.title=event.button;
-        notify.alarm=event.alarm;
-        mem->notify(notify);
+        nt.title=event.button;
+        nt.alarm=event.alarm;
+        mem->notify(nt);
    break;
-        case 150://init relay devices from memory
-      notify.title=23;
-      notify.packet.var=0;
-      notify.packet.value=event.data & 0xF;
-      //memcpy(&command,&nt,sizeof(nt));
-      relay->notify(notify);
-    break;
-     case 151://init led`s devices from memory
-     
-      band_set(0,event.data >> 8 & 0x00FF,false);
-      //notify.title=1;
-      //notify.packet.var=event.count;
-      //notify.packet.value=event.data >> 8 & 0x00FF;
-      //memcpy(&command,&nt,sizeof(nt));
-      //band->notify(event);
-      vTaskDelay(pdMS_TO_TICKS(100));
-      band_set(1,event.data >> 16 & 0x00FF,false);
-      //nt.title=2;
-      //nt.packet.var=e.data & 0x000F;
-      //nt.packet.value=e.data >> 16 & 0x00FF;
-      //memcpy(&command,&nt,sizeof(nt));
-      //leds->notify(command);
-      vTaskDelay(pdMS_TO_TICKS(100));
-      band_set(1,event.data >> 24 & 0x00FF,false);
-      //nt.title=3;
-      //nt.packet.var=e.data >> 4 & 0x000F;
-      //nt.packet.value=e.data >> 24 & 0x00FF;
-      //memcpy(&command,&nt,sizeof(nt));
-      //leds->notify(command);
+   case 199://request packed on WWW
+      nt.title=199;
+      nt.packet.var=0;
+      nt.packet.value=0;
+      mem->notify(nt);
    break;
-        case 170:
-            notify.title=200;
-            
-            mem->notify(notify);
-        break;
-        case 171:
-            notify.title=201;
-            mem->notify(notify);
-        break;
-        case 199:
-            notify.title=199;
-            mem->notify(notify);
-        break;
-        case 200://
-        case 201:
-        case 202:
-       
-            notify.title=event.button-200+20;
-            notify.packet.var=(uint8_t)BLINK_ON;
-            notify.packet.value=event.count;
-            mem->notify(notify);
-        break;
-        case 203:
-        case 204:
-        case 205:
-        case 206:
-            notify.title=event.button-203+10;
-            notify.packet.value=event.count;
-            mem->notify(notify);
-        break;
-       
-   
+   case 200://request packed in init from Mem
+      nt.title=200;
+      nt.packet.var=0;
+      nt.packet.value=0;
+      mem->notify(nt);
+   break;
+   case 201://reset and request packed reset
+      nt.title=201;
+      nt.packet.var=0;
+      nt.packet.value=0;
+      mem->notify(nt);
+   break;
+    case INITRELAYS://init relay devices from memory
+      nt.title=INITRELAYS;
+      nt.packet.var=0;
+      nt.packet.value=event.data & 0xF;
+      relay->notify(nt);
+   break;
+    case INITLEDS://init led`s devices from memory
+      nt.title=LEDSETPARAM1;
+      nt.packet.var=event.count & 0X000F;
+      nt.packet.value=event.data & 0x000000FF;
+      leds->notify(nt);
+      vTaskDelay(pdMS_TO_TICKS(100));
+      nt.title=LEDSETPARAM2;
+      nt.packet.var=event.data >> 4 & 0x000F;
+      nt.packet.value=event.data >> 8 & 0x000000FF;
+      leds->notify(nt);
+      vTaskDelay(pdMS_TO_TICKS(100));
+      nt.title=LEDSETPARAM3;
+      nt.packet.var=event.data   >> 8 & 0x000F;
+      nt.packet.value=event.data >> 16 & 0x000000FF;
+      leds->notify(nt);
+      vTaskDelay(pdMS_TO_TICKS(100));
+      nt.title=LEDSETPARAM4;
+      nt.packet.var=event.data   >> 12 & 0x000F;
+      nt.packet.value=event.data >> 24 & 0x000000FF;
+      leds->notify(nt);
+   break;
   }
+
 }
 
-
-void buton_event(event_t nt){
-  notify_t notify;
-  uint32_t command;
-  switch (nt.state){
-  case BTN_CLICK:
-  switch (nt.button){
-  case 0:
-      //Serial.println(nt.count);
-      if (nt.count==1){
-        notify.title=10;
-        rtc->notify(notify);
-      }//show date and time
-  break;
-  case 1:
-      
-  break;
-  }
-  break;
-  case BTN_LONGCLICK:
-  switch (nt.button){
-  case 0:
-      //Serial.print("Long click after ");
-      //Serial.println(nt.count);
-      if (nt.count>0 && nt.count<5){
-        relay_set(nt.count+10,1);//switch
-      }
-      if (nt.count=5){
-        ESP.restart();
-      }
-  break;
-  case 1:
-  break;
-  }
-  }
-}
-
-void display_event(event_t command)
+void all_rel_off()
 {
-notify_t nt;  
-switch (command.button)
-      {
-    case 11:
-    case 12:
-    case 13:
-    case 14:
-    //uint32_t result=makePacket(command.button-10,0,command.count);
-    //nt.title=command.button-10;
-    //display->notify(nt);
-    break;
-    case 20://show time
-    break;
-      }
+  
+  notify_t nt; 
+  nt.title=RELAYALLOFF;
+  nt.packet.var=0;
+  nt.packet.value=0;
+  relay->notify(nt);
 }
+
+void all_leds_off()
+{
+  notify_t nt; 
+  nt.title=LEDALLOFF;
+  nt.packet.var=0;
+  nt.packet.value=0;
+  leds->notify(nt);
+ }
+
 
 void pult_event(event_t command)
 {
@@ -360,31 +257,43 @@ void pult_event(event_t command)
     case PULT_2:
     case PULT_3:
     case PULT_4:
-  relay_set(10 + command.button, 1);
+     result.title = RELAYSWITCH1+command.button-PULT_1;
+     relay->notify(result);
+
+  
   break;
     case PULT_POWER: // all off
-  result.title = 20;
-  relay->notify(result);
+  all_rel_off();
   break;
-    case PULT_FASTBACK:
-  result.title = 10;
+
+  case PULT_FASTBACK:
+  result.title = RTCGETTIME;
   rtc->notify(result);
   break;
-   case PULT_PREV: // ultra low
-  result.title = 9;
-  band->notify(result);
+
+  case PULT_PREV: // ultra low
+   result.title=LEDBRIGHTNESSALL3;
+   result.packet.value=8<<64 & 0xFF00|  0 & 0x00FF;
+   result.packet.var=0; 
+   leds->notify(result);
   break;
-    case PULT_PAUSE: // low
-  result.title = 5;
-  band->notify(result);
+  case PULT_PAUSE: // low
+    result.title=LEDBRIGHTNESSALL3;
+   result.packet.value=8<<64 & 0xFF00|  64 & 0x00FF;
+   result.packet.var=64; 
+   leds->notify(result);
   break;
     case PULT_STOP: // middle
-  result.title = 4;
-  band->notify(result);
+  result.title=LEDBRIGHTNESSALL3;
+   result.packet.value=8<<128 & 0xFF00|  128 & 0x00FF;
+   result.packet.var=128; 
+   leds->notify(result);
   break;
-    case PULT_NEXT: // full
-  result.title = 2;
-  band->notify(result);
+   case PULT_NEXT: // full
+  result.title=LEDBRIGHTNESSALL3;
+   result.packet.value=0xFFFF;
+   result.packet.var=0xFF; 
+   leds->notify(result);
   break;
     default:
   show_me = true;
@@ -411,6 +320,21 @@ switch (command.button)
     }
 }
 
+void button_event(event_t command){
+notify_t result;
+switch (command.button)
+    {
+    case 111:
+    case 112:
+    case 113:
+    result.title=command.button;
+    result.packet.var=0;
+    leds->notify(result);
+    break;
+    }
+}
+
+
 void loop()
 {
 
@@ -426,13 +350,13 @@ if (xQueueReceive(queue,&command,portMAX_DELAY))
   break;
   case BTN_CLICK:
   case BTN_LONGCLICK:
-      buton_event(command);
+      button_event(command);
   break;
   case MEM_EVENT:
       mem_event(command);
   break;
   case DISP_EVENT:
-      display_event(command);
+      //display_event(command);
   break;
   case LED_EVENT:
       led_event(command);
