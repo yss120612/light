@@ -28,10 +28,10 @@ const uint8_t IR_PIN = GPIO_NUM_4; // pin for IR receiver
 const uint8_t IR_DEVICE = 162;
 const uint8_t BMP280_ADDRESS=0x67;//BMP280 ADDRESS in I2C
 const int8_t ENCBTN = GPIO_NUM_13;//ENCODER BUTTON
-const int8_t ENCS1 = GPIO_NUM_27;//ENCODER A
-const int8_t ENCS2 = GPIO_NUM_26;//ENCODER B
+const int8_t ENCS1 = 0;//ENCODER A
+const int8_t ENCS2 = 0;//ENCODER B
 const uint8_t AT24C32_ADDRESS = 0x57;
-const uint8_t AT24C32_OFFSET = 0x100;
+const uint8_t AT24C32_OFFSET = 0x80;
 
 #define VERSION 5
 
@@ -39,6 +39,10 @@ const uint8_t AT24C32_OFFSET = 0x100;
 #define PULT_2      2
 #define PULT_3      3
 #define PULT_4      4
+#define PULT_5      5
+#define PULT_6      6
+#define PULT_7      7
+#define PULT_8      8
 #define PULT_POWER  28
 #define PULT_SOUND  18
 #define PULT_VOLUP  10
