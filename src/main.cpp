@@ -36,7 +36,7 @@ EventGroupHandle_t flags;
 MessageBufferHandle_t display_message,alarm_messages,web_messages;
 
 //Blinker * blinker;
-MEMTask * mem;
+MEMTask<SystemState_t> * mem;
 LEDTask * leds;
 WiFiTask * wifi;
 IRTask * ir;
@@ -80,7 +80,8 @@ http->resume();
 //rtc = new RTCTask("Clock",2048,flags,queue, display_message,alarm_messages);  
 //rtc->resume();
 rtc=new RTCTask("RTC",2048,flags,queue,web_messages);
-  rtc->resume();
+rtc->resume();
+
 display= new DISPTask("Display",2048, display_message);  
 display->resume();
 relay= new RELTask("Relay",3072,queue,relays_pins);  
@@ -159,85 +160,110 @@ void web_event(event_t event){
 void mem_event(event_t event){
   notify_t nt;
   switch (event.button){
-   case RELWRITE1:
-   case RELWRITE2:
-   case RELWRITE3:
-   case RELWRITE4://save relays (it works)
-      nt.title=event.button;
-      nt.packet.var=0;
-      nt.packet.value=event.count;
-      
-      mem->notify(nt);
-   break;
-   case LEDWRITE1://save led state
-   case LEDWRITE2:
-   case LEDWRITE3:
-   case LEDWRITE4:
-      nt.title=event.button;
-      nt.packet.var=event.count;
+   case MEM_SAVE_00:  
+   case MEM_SAVE_01:
+   case MEM_SAVE_02:
+   case MEM_SAVE_03:
+   case MEM_SAVE_04:
+   case MEM_SAVE_05:
+   case MEM_SAVE_06:
+   case MEM_SAVE_07:
+   case MEM_SAVE_08:
+   case MEM_SAVE_09:
+   nt.title=event.button;
+   nt.alarm=event.alarm;
+   mem->notify(nt);
+ break;  
+   case MEM_SAVE_10:
+   case MEM_SAVE_11:
+   case MEM_SAVE_12:
+   case MEM_SAVE_13:
+   nt.title=event.button;
+   nt.packet.value=event.data;
+   mem->notify(nt);
+   if (event.count==1){//инициатор процесс
+      http->notify(nt);
+   }else{//инициатор веб
+      nt.title=event.button-150;
       nt.packet.value=event.data;
-      mem->notify(nt);
-   break;
+      relay->notify(nt); 
+   }
+  break; 
 
-   case 100:
-   case 101:
-   case 102:
-   case 103:
-   case 104:
-   case 105:
-   case 106:
-   case 107:
-   case 108:
-   case 109:
-        nt.title=event.button;
-        nt.alarm=event.alarm;
-        mem->notify(nt);
-   break;
-   case 199://request packed on WWW
-      nt.title=199;
-      nt.packet.var=0;
-      nt.packet.value=0;
+   case MEM_SAVE_14:
+   case MEM_SAVE_15:
+   case MEM_SAVE_16:
+   nt.title=event.button;
+   nt.packet.value=event.data;
+   mem->notify(nt);
+   if (event.count==1){//инициатор процесс
+      http->notify(nt);
+   }else{//инициатор веб
+      nt.title=event.button-150;
+      nt.packet.value=event.data;
+      leds->notify(nt); 
+   }
+  break; 
+
+    case MEM_ASK_00:
+    case MEM_ASK_01:
+    case MEM_ASK_02:
+    case MEM_ASK_03:
+    case MEM_ASK_04:
+    case MEM_ASK_05:
+    case MEM_ASK_06:
+    case MEM_ASK_07:
+    case MEM_ASK_08:
+    case MEM_ASK_09:
+    case MEM_ASK_10:
+    case MEM_ASK_11:
+    case MEM_ASK_12:
+    case MEM_ASK_13:
+    case MEM_ASK_14:
+    case MEM_ASK_15:
+    case MEM_ASK_16:
+      nt.title=event.button;
       mem->notify(nt);
-   break;
-   case 200://request packed in init from Mem
-      nt.title=200;
-      nt.packet.var=0;
-      nt.packet.value=0;
-      mem->notify(nt);
-   break;
-   case 201://reset and request packed reset
-      nt.title=201;
-      nt.packet.var=0;
-      nt.packet.value=0;
-      mem->notify(nt);
-   break;
-    case INITRELAYS://init relay devices from memory
-      nt.title=INITRELAYS;
-      nt.packet.var=0;
-      nt.packet.value=event.data & 0xF;
-      relay->notify(nt);
-   break;
-    case INITLEDS://init led`s devices from memory
-      nt.title=LEDSETPARAM1;
-      nt.packet.var=event.count & 0X000F;
-      nt.packet.value=event.data & 0x000000FF;
-      leds->notify(nt);
-      vTaskDelay(pdMS_TO_TICKS(100));
-      nt.title=LEDSETPARAM2;
-      nt.packet.var=event.data >> 4 & 0x000F;
-      nt.packet.value=event.data >> 8 & 0x000000FF;
-      leds->notify(nt);
-      vTaskDelay(pdMS_TO_TICKS(100));
-      nt.title=LEDSETPARAM3;
-      nt.packet.var=event.data   >> 8 & 0x000F;
-      nt.packet.value=event.data >> 16 & 0x000000FF;
-      leds->notify(nt);
-      vTaskDelay(pdMS_TO_TICKS(100));
-      nt.title=LEDSETPARAM4;
-      nt.packet.var=event.data   >> 12 & 0x000F;
-      nt.packet.value=event.data >> 24 & 0x000000FF;
-      //leds->notify(nt); not need for status diode
-   break;
+    break;
+
+    case MEM_READ_00:
+    case MEM_READ_01:
+    case MEM_READ_02:
+    case MEM_READ_03:
+    case MEM_READ_04:
+    case MEM_READ_05:
+    case MEM_READ_06:
+    case MEM_READ_07:
+    case MEM_READ_08:
+    case MEM_READ_09:
+    nt.title=ALARMSETFROMMEM;
+    nt.alarm=event.alarm;
+    rtc->notify(nt);
+    break;
+    case MEM_READ_10:
+    case MEM_READ_11:
+    case MEM_READ_12:
+    case MEM_READ_13:
+    nt.title=event.button;
+    nt.packet.value=event.data;
+    relay->notify(nt);
+    if (event.count==1){//инициатор память
+      nt.title=event.button+150;
+      http->notify(nt);
+    }
+
+    case MEM_READ_14:
+    case MEM_READ_15:
+    case MEM_READ_16:
+    nt.title=event.button;
+    nt.packet.value=event.data;
+    leds->notify(nt);
+    if (event.count==1){//инициатор память
+      nt.title=event.button+150;
+      http->notify(nt);
+    }
+    break;
+
   }
 
 }
