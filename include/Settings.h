@@ -1,7 +1,8 @@
 #ifndef _SETTINGS_h
 #define _SETTINGS_h
-//#include <driver/ledc.h>
-#define DEBUGG
+#include <Arduino.h>
+#include <GlobalSettings.h>
+//#define DEBUGG
 
 
 //#define LED     2
@@ -22,14 +23,14 @@
 
 //#define DISPLAY_1   67
 
-const uint8_t leds_pins[]={GPIO_NUM_23, GPIO_NUM_16, GPIO_NUM_15, GPIO_NUM_2};
-const uint8_t relays_pins[] = {GPIO_NUM_17, GPIO_NUM_5, GPIO_NUM_19, 0};
-const uint8_t IR_PIN = GPIO_NUM_4; // pin for IR receiver
+const uint8_t leds_pins[]={GPIO_NUM_23, GPIO_NUM_33, GPIO_NUM_15, GPIO_NUM_2};
+const uint8_t relays_pins[] = {GPIO_NUM_32, GPIO_NUM_5, GPIO_NUM_19, 0};
+const uint8_t IR_PIN = GPIO_NUM_34; // pin for IR receiver
 const uint8_t IR_DEVICE = 162;
 const uint8_t BMP280_ADDRESS=0x67;//BMP280 ADDRESS in I2C
-const int8_t ENCBTN = GPIO_NUM_13;//ENCODER BUTTON
-const int8_t ENCS1 = 0;//ENCODER A
-const int8_t ENCS2 = 0;//ENCODER B
+const gpio_num_t ENCBTN = GPIO_NUM_13;//ENCODER BUTTON
+const gpio_num_t ENCS1 = GPIO_NUM_NC;//ENCODER A
+const gpio_num_t ENCS2 = GPIO_NUM_NC;//ENCODER B
 const uint8_t AT24C32_ADDRESS = 0x57;
 const uint8_t AT24C32_OFFSET = 0x80;
 
@@ -62,6 +63,149 @@ const uint8_t AT24C32_OFFSET = 0x80;
 
 
 
+#define LEDS_COUNT 3
+#define RELAYS_COUNT 4
+struct __attribute__((__packed__)) SystemState_t
+{
+    uint8_t version : 8;
+    alarm_t alr[ALARMS_COUNT];
+    relState_t relays[RELAYS_COUNT];
+    led_state_t leds[LEDS_COUNT];
 
-//#define DISP_MESSAGE_LENGTH 120
+    uint8_t crc;
+	
+};
+
+static float uint_16_to_float(uint16_t value){
+return (value>>8 & 0x00FF)*1.0 + (value & 0x00FF)/100.0;
+}
+
+static uint16_t float_to_uint_16(float value){
+uint16_t i=(uint16_t)value;
+
+return  ((i<<8) & 0xFF00)|((int)((value-i)*100.0) & 0x00FF);
+}
+
+static void reset_default(SystemState_t * ss){
+		ss->version=VERSION;
+        uint8_t i;
+		for (i=0;i<ALARMS_COUNT;i++){
+			ss->alr[i].action=i;
+			ss->alr[i].active=false;
+			ss->alr[i].hour=0;
+			ss->alr[i].minute=0;
+			ss->alr[i].wday=0;
+			ss->alr[i].period=ONCE_ALARM;
+		}
+        for (i=0;i<RELAYS_COUNT;i++){
+			ss->relays[i].type=RELTYPE_SWICH;
+            ss->relays[i].armed=false;
+            ss->relays[i].ison=false;
+            ss->relays[i].level=HIGH;
+		}
+        for (i=0;i<LEDS_COUNT;i++){
+			ss->leds[i].stste=BLINK_OFF;
+            ss->leds[i].value=0;
+		}
+
+		ss->crc=crc8((uint8_t*)ss, sizeof(ss));
+	}
+
+
+
+static  uint32_t rel_state2uint32(relState_t rs){
+uint32_t res=((rs.ison & 0x1)<<7 | (rs.level & 1) << 6 | (rs.armed & 1) << 5 | (rs.type & 1) << 4) & 0x000000F0;
+return res;
+}
+
+static  relState_t  uint322rel_state(uint32_t ui){
+relState_t rs; 
+rs.ison = (ui >> 7 ) & 0x1;
+rs.level = (ui >> 6 ) & 0x1;
+rs.armed = (ui >> 5 ) & 0x1;
+rs.type = (rel_t)((ui >> 4 ) & 0x1);
+rs.dumm = 0;
+return rs;
+}
+
+
+static  uint32_t led_state2uint32(led_state_t ls){
+uint32_t res=((ls.value & 0xFF)<<8 | (uint8_t)(ls.state) & 0xFF)  & 0x0000FFFF;
+return res;
+}
+
+static  led_state_t  uint322led_state(uint32_t ui){
+led_state_t ls;
+ls.value = (ui >> 8 ) & 0xFF;
+ls.state = (blinkmode_t)(ui & 0xFF);
+return ls;
+}
+
+
+
+
+static uint8_t process_notify(SystemState_t * ss, event_t * event, notify_t nt){
+	uint8_t i;
+	
+switch (nt.title)
+	{
+		case MEM_ASK_00://timers
+		case MEM_ASK_01:
+		case MEM_ASK_02:
+		case MEM_ASK_03:
+		case MEM_ASK_04:
+		case MEM_ASK_05:
+		case MEM_ASK_06:
+		case MEM_ASK_07:
+		case MEM_ASK_08:
+		case MEM_ASK_09:
+			event->state=MEM_EVENT;
+			event->button=nt.title-50;//MEM_READ_XX
+			event->alarm=ss->alr[nt.title-MEM_ASK_00];
+		break;
+        case MEM_ASK_10://relay 1
+		case MEM_ASK_11://relay 2
+        case MEM_ASK_12://relay 3
+        case MEM_ASK_13://relay 4
+			event->state=MEM_EVENT;
+			event->button=nt.title-50;//MEM_READ_XX
+			event->data=rel_state2uint32(ss->relays[nt.title-MEM_READ_10]);
+		
+		case MEM_ASK_14://led1
+        case MEM_ASK_15://led2
+        case MEM_ASK_16://led3
+			event->state=MEM_EVENT;
+			event->button=nt.title-50;//MEM_READ_XX;
+			event->data=led_state2uint32(ss->leds[nt.title-MEM_READ_14]);
+		break;
+		
+		case MEM_SAVE_00:
+		case MEM_SAVE_01:
+		case MEM_SAVE_02:
+		case MEM_SAVE_03:
+		case MEM_SAVE_04:
+		case MEM_SAVE_05:
+		case MEM_SAVE_06:
+		case MEM_SAVE_07:
+		case MEM_SAVE_08:
+		case MEM_SAVE_09:
+			ss->alr[nt.title-MEM_SAVE_00]=nt.alarm;
+		break;
+		case MEM_SAVE_10:
+        case MEM_SAVE_11:
+        case MEM_SAVE_12:
+        case MEM_SAVE_13:
+			ss->relays[nt.title-MEM_SAVE_10]=uint322rel_state(nt.packet.value);
+		break;
+		case MEM_SAVE_14:
+        case MEM_SAVE_15:
+        case MEM_SAVE_16:
+			ss->leds[nt.title-MEM_SAVE_10]=uint322led_state(nt.packet.value);
+		break;
+    }
+	if (nt.title<MEM_ASK_00) return 1;//MEM_READ
+	if (nt.title<MEM_SAVE_00) return 2;//MEM_ASK
+	return 3;
+}
+const uint16_t SSTATE_LENGTH = sizeof(SystemState_t);
 #endif

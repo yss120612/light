@@ -40,7 +40,7 @@ MEMTask * mem;
 LEDTask * leds;
 WiFiTask * wifi;
 IRTask * ir;
-HTTPTask * http;
+HTTP2Task * http;
 DISPTask * display;
 RTCTask * rtc;
 RELTask * relay;
@@ -66,16 +66,21 @@ void setup() {
 #endif
 
 //SPIFFS.begin();
-mem= new MEMTask("Memory",2048,queue,alarm_messages,web_messages,VERSION,AT24C32_ADDRESS,AT24C32_OFFSET);  
+// mem= new MEMTask("Memory",2048,queue,alarm_messages,web_messages,VERSION,AT24C32_ADDRESS,AT24C32_OFFSET);  
+// mem->resume();
+mem=new MEMTask<SystemState_t>("MEM",2048,queue,reset_default,process_notify,web_messages,VERSION,AT24C32_ADDRESS,AT24C32_OFFSET);
 mem->resume();
+
 leds = new LEDTask("Leds",3072,queue,leds_pins, HIGH);
 leds->resume();
 wifi=new WiFiTask("WiFi",4096,queue,flags);
 wifi->resume();
 http = new HTTP2Task("http",4096,queue,flags,web_messages);
 http->resume();
-rtc = new RTCTask("Clock",2048,flags,queue, display_message,alarm_messages);  
-rtc->resume();
+//rtc = new RTCTask("Clock",2048,flags,queue, display_message,alarm_messages);  
+//rtc->resume();
+rtc=new RTCTask("RTC",2048,flags,queue,web_messages);
+  rtc->resume();
 display= new DISPTask("Display",2048, display_message);  
 display->resume();
 relay= new RELTask("Relay",3072,queue,relays_pins);  
@@ -87,10 +92,15 @@ relay->resume();
 ir= new IRTask("IRс",3072,queue,IR_PIN,IR_DEVICE);  
 ir->resume();
 
-btn = new ENCTask("Encoder",2048,queue,ENCBTN,ENCS1,ENCS2,HIGH);
+//btn = new ENCTask("Encoder",2048,queue,ENCBTN,ENCS1,ENCS2,HIGH);
+//btn->resume();
+
+btn = new ENCTask("Encoder",1024,queue,ENCBTN,ENCS1,ENCS2,HIGH);
 btn->resume();
 
-
+gpio_set_pull_mode(ENCBTN, GPIO_PULLDOWN_ONLY);
+gpio_set_pull_mode(ENCS1, GPIO_PULLDOWN_ONLY);
+gpio_set_pull_mode(ENCS2, GPIO_PULLDOWN_ONLY);
 
 }
 
@@ -306,6 +316,10 @@ void pult_event(event_t command)
    leds->notify(result);
    mess="ALifgt*is set to*ULTRA LOW";
    xMessageBufferSend(display_message,mess.c_str(),mess.length()>DISP_MESSAGE_LENGTH?DISP_MESSAGE_LENGTH:mess.length(),100);
+   result.title=RELAYSET3;
+   result.packet.value=1;
+   result.packet.var=0;//need to save
+   relay->notify(result);
   break;  
   case PULT_PAUSE: // low
    result.title=LEDBRIGHTNESSALL3;
@@ -314,6 +328,10 @@ void pult_event(event_t command)
    leds->notify(result);
    mess="ALifgt*is set to*LOW";
    xMessageBufferSend(display_message,mess.c_str(),mess.length()>DISP_MESSAGE_LENGTH?DISP_MESSAGE_LENGTH:mess.length(),100);
+   result.title=RELAYSET3;
+   result.packet.value=1;
+   result.packet.var=0;//need to save
+   relay->notify(result);
   break;
     case PULT_STOP: // middle
   result.title=LEDBRIGHTNESSALL3;
@@ -322,6 +340,10 @@ void pult_event(event_t command)
    mess="ALifgt*is set to*MIDDLE";
    xMessageBufferSend(display_message,mess.c_str(),mess.length()>DISP_MESSAGE_LENGTH?DISP_MESSAGE_LENGTH:mess.length(),100);
    leds->notify(result);
+   result.title=RELAYSET3;
+   result.packet.value=1;
+   result.packet.var=0;//need to save
+   relay->notify(result);
   break;
    case PULT_NEXT: // full
   result.title=LEDBRIGHTNESSALL3;
@@ -330,6 +352,10 @@ void pult_event(event_t command)
    leds->notify(result);
    mess="ALifgt*is set to*MAXIMUM";
    xMessageBufferSend(display_message,mess.c_str(),mess.length()>DISP_MESSAGE_LENGTH?DISP_MESSAGE_LENGTH:mess.length(),100);
+   result.title=RELAYSET3;
+   result.packet.value=1;
+   result.packet.var=0;//need to save
+   relay->notify(result);
   break;
     default:
   show_me = true;
