@@ -1,3 +1,8 @@
+//#define DEBUGG
+static const char * TAG="Light";
+
+#include <esp_log.h>
+#include <driver\i2c.h>
 #include <Arduino.h>
 #include "Settings.h"
 #include <SPIFFS.h>
@@ -9,8 +14,12 @@
 #include <RELTask.h>
 #include <DISPTask.h>
 #include <RTCTask.h>
-
-#include "HTTP2Task.h"
+//#include <RTCLib.h>
+//#include "HTTP2Task.h"
+#include "HTTPServer.h"
+#include "MAX7219Task.h"
+#include "WeatherTask.h"
+#include "TelegramTask.h"
 
 
 //AppData data;
@@ -28,81 +37,156 @@
 //extern boolean connect2WiFi();
 
 
+
 //HttpHelper * http_server;
 //MqttClient *mqtt;
 QueueHandle_t queue;
 SemaphoreHandle_t btn_semaphore;
 EventGroupHandle_t flags;
-MessageBufferHandle_t display_message,alarm_messages,web_messages;
+MessageBufferHandle_t display_message,tablo_messages,web_messages,telega_messages;
 
 //Blinker * blinker;
 MEMTask<SystemState_t> * mem;
 LEDTask * leds;
 WiFiTask * wifi;
 IRTask * ir;
-HTTP2Task * http;
+//HTTP2Task * http;
 DISPTask * display;
 RTCTask * rtc;
 RELTask * relay;
 //BANDTask * band;
 ENCTask * btn;
+HTTPServer * http;
+
+Max7219Task * max7219;
+WeatherTask * weather;
+TelegramTask * telega;
+
 //extern void init_networks();
 
-
+// StaticQueue_t queueBuffer;
+// uint8_t queueStorage[QUEUE_LENGTH * sizeof(event_t)];
 
 // static void WiFiTaskHandler(void *pvParam) {
 //   const uint32_t WIFI_TIMEOUT = 30000; // 30 sec.
 // }
+void all_leds_off()
+{
+  notify_t nt; 
+  nt.title=LEDALLOFF;
+  nt.packet.var=0;
+  nt.packet.value=0;
+  leds->notify(nt);
+ }
 
 void setup() {
- queue= xQueueCreate(16,sizeof(event_t));
- btn_semaphore=xSemaphoreCreateBinary();
+//vTaskDelay(pdMS_TO_TICKS(2000));
+
+ //queue= xQueueCreate(16,sizeof(event_t));
+ //queue= xQueueCreateStatic(QUEUE_LENGTH,sizeof(event_t),&queueStorage[0],&queueBuffer);
+ queue= xQueueCreate(QUEUE_LENGTH,sizeof(event_t));
+ //btn_semaphore=xSemaphoreCreateBinary();
  flags=xEventGroupCreate();
+ xEventGroupClearBits(flags,0xFFFF);
  display_message=xMessageBufferCreate(DISP_MESSAGE_LENGTH+4);
- alarm_messages=xMessageBufferCreate(SSTATE_LENGTH+4);//=length label
+ if (!display_message){
+  _LOG(TAG,"Error creating display message!");
+ }
+ telega_messages=xMessageBufferCreate(100+4);
+ if (!telega_messages){
+  _LOG(TAG,"Error creating telega_messages!");
+ }
+
+ tablo_messages=xMessageBufferCreate(sizeof(event_t)+4);//=length label
  web_messages=xMessageBufferCreate(SSTATE_LENGTH+4);
 #ifdef DEBUGG
    Serial.begin(115200);
 #endif
 
-//SPIFFS.begin();
-// mem= new MEMTask("Memory",2048,queue,alarm_messages,web_messages,VERSION,AT24C32_ADDRESS,AT24C32_OFFSET);  
-// mem->resume();
+ //esp_log_level_set("*",ESP_LOG_INFO);
+  
+  i2c_config_t i2c_config;
+	i2c_config.mode=I2C_MODE_MASTER;
+	i2c_config.scl_io_num=SCL;
+	i2c_config.sda_io_num=SDA;
+	i2c_config.scl_pullup_en=false;
+	i2c_config.sda_pullup_en=false;
+	i2c_config.master.clk_speed=100000;
+	i2c_config.clk_flags=I2C_SCLK_SRC_FLAG_FOR_NOMAL;
+
+	esp_err_t error=i2c_param_config(0,&i2c_config);
+	if (error!=ESP_OK){
+		_LOG(TAG,"Error config i2c");
+		return;
+	}
+	error=i2c_driver_install(0,I2C_MODE_MASTER,0,0,0);
+	if (error!=ESP_OK){
+		_LOG(TAG,"Error installing i2c");
+		return;
+	}
+
+
+  
+//vTaskDelay(pdMS_TO_TICKS(2000));
+
 mem=new MEMTask<SystemState_t>("MEM",2048,queue,reset_default,process_notify,web_messages,VERSION,AT24C32_ADDRESS,AT24C32_OFFSET);
 mem->resume();
 
-leds = new LEDTask("Leds",3072,queue,leds_pins, HIGH);
-leds->resume();
-wifi=new WiFiTask("WiFi",4096,queue,flags);
-wifi->resume();
-http = new HTTP2Task("http",4096,queue,flags,web_messages);
-http->resume();
-//rtc = new RTCTask("Clock",2048,flags,queue, display_message,alarm_messages);  
-//rtc->resume();
-rtc=new RTCTask("RTC",2048,flags,queue,web_messages);
-rtc->resume();
+//display= new DISPTask("Display",2048, display_message);  
 
-display= new DISPTask("Display",2048, display_message);  
-display->resume();
-relay= new RELTask("Relay",3072,queue,relays_pins);  
-relay->resume();
-// band= new BANDTask("Band",2048, queue,display_message, HIGH);  
-// band->resume();
-// btn= new BTNTask("Buttons",2048, queue);  
+ir= new IRTask("IRс",2048,queue,IR_PIN,IR_DEVICE);  
+
+
+// btn = new ENCTask("Encoder",2048,queue,ENCBTN,ENCS1,ENCS2,HIGH);
 // btn->resume();
-ir= new IRTask("IRс",3072,queue,IR_PIN,IR_DEVICE);  
+
+ wifi=new WiFiTask("WiFi",4096,queue,flags);
+
+//http = new HTTP2Task("http",4096,queue,flags,web_messages);
+//http->resume();
+
+http = new HTTPServer("http",4096,flags,queue);
+
+rtc=new RTCTask("RTC",2048,queue);
+
+relay= new RELTask("Relay",1024,queue,relays_pins);  
+
+leds = new LEDTask("Leds",1024,queue,leds_pins, HIGH);
+
+max7219= new Max7219Task("Watch",2048,flags,queue,tablo_messages);
+
+weather= new WeatherTask("Weather",1024*3,queue,flags);
+
+uint32_t rw=esp_random();
+bool run_weather=rw%2;
+
+if (run_weather){
+_LOG(TAG,"RUN TELEGRAM %d",rw);
+telega= new TelegramTask("Telegram",1024*4,queue,flags,telega_messages);
+
+}
+
+//gpio_set_pull_mode(ENCBTN, GPIO_PULLDOWN_ONLY);
+//gpio_set_pull_mode(ENCS1, GPIO_PULLDOWN_ONLY);
+//gpio_set_pull_mode(ENCS2, GPIO_PULLDOWN_ONLY);
+//ESP_LOGE(TAG,"size notify=%d uint32_t=%d",sizeof(notify_t),sizeof(uint32_t));
+//vTaskDelay(pdMS_TO_TICKS(2000));
+_LOG(TAG,"Ready!");
+
 ir->resume();
-
-//btn = new ENCTask("Encoder",2048,queue,ENCBTN,ENCS1,ENCS2,HIGH);
-//btn->resume();
-
-btn = new ENCTask("Encoder",1024,queue,ENCBTN,ENCS1,ENCS2,HIGH);
-btn->resume();
-
-gpio_set_pull_mode(ENCBTN, GPIO_PULLDOWN_ONLY);
-gpio_set_pull_mode(ENCS1, GPIO_PULLDOWN_ONLY);
-gpio_set_pull_mode(ENCS2, GPIO_PULLDOWN_ONLY);
-
+rtc->resume();
+relay->resume();
+leds->resume();
+wifi->resume();
+http->resume();
+//display->resume();
+max7219->resume();
+if (run_weather){
+weather->resume();
+}
+rtc->needWatch();//хочу часы
+//http->start();
+all_leds_off();
 }
 
 void web_event(event_t event){
@@ -144,7 +228,7 @@ void web_event(event_t event){
          notify.title=event.button;
          notify.packet.var=1;
          notify.packet.value=event.count;
-         leds->notify(notify);
+         //leds->notify(notify);
          mess="ABrightness ";
          mess+=(notify.title==LEDBRIGHTNESS1?"CW":notify.title==LEDBRIGHTNESS2?"NW":"WW");
          mess+=event.count?"*is set ":"is set ";
@@ -155,10 +239,9 @@ void web_event(event_t event){
   }
 }
 
-
-
 void mem_event(event_t event){
   notify_t nt;
+ 
   switch (event.button){
    case MEM_SAVE_00:  
    case MEM_SAVE_01:
@@ -182,7 +265,7 @@ void mem_event(event_t event){
    nt.packet.value=event.data;
    mem->notify(nt);
    if (event.count==1){//инициатор процесс
-      http->notify(nt);
+      //http->notify(nt);
    }else{//инициатор веб
       nt.title=event.button-150;
       nt.packet.value=event.data;
@@ -197,11 +280,11 @@ void mem_event(event_t event){
    nt.packet.value=event.data;
    mem->notify(nt);
    if (event.count==1){//инициатор процесс
-      http->notify(nt);
+      //http->notify(nt);
    }else{//инициатор веб
       nt.title=event.button-150;
       nt.packet.value=event.data;
-      leds->notify(nt); 
+      //leds->notify(nt); 
    }
   break; 
 
@@ -236,31 +319,32 @@ void mem_event(event_t event){
     case MEM_READ_07:
     case MEM_READ_08:
     case MEM_READ_09:
-    nt.title=ALARMSETFROMMEM;
-    nt.alarm=event.alarm;
-    rtc->notify(nt);
+     nt.title=ALARMSETFROMMEM;
+     nt.alarm=event.alarm;
+     rtc->notify(nt);
     break;
     case MEM_READ_10:
     case MEM_READ_11:
     case MEM_READ_12:
     case MEM_READ_13:
-    nt.title=event.button;
-    nt.packet.value=event.data;
-    relay->notify(nt);
-    if (event.count==1){//инициатор память
-      nt.title=event.button+150;
-      http->notify(nt);
-    }
+     nt.title=event.button;
+     nt.packet.value=event.data;
+     relay->notify(nt);
+     //_LOG(TAG,"Relay notify %d",nt.packet.value);
+     if (event.count==1){//инициатор память
+       nt.title=event.button+150;
+    //   http->notify(nt);
+     }
 
     case MEM_READ_14:
     case MEM_READ_15:
     case MEM_READ_16:
     nt.title=event.button;
     nt.packet.value=event.data;
-    leds->notify(nt);
+    //leds->notify(nt);
     if (event.count==1){//инициатор память
       nt.title=event.button+150;
-      http->notify(nt);
+     // http->notify(nt);
     }
     break;
 
@@ -278,15 +362,14 @@ void all_rel_off()
   relay->notify(nt);
 }
 
-void all_leds_off()
-{
-  notify_t nt; 
-  nt.title=LEDALLOFF;
-  nt.packet.var=0;
-  nt.packet.value=0;
-  leds->notify(nt);
- }
-
+// void all_leds_off()
+// {
+//   notify_t nt; 
+//   nt.title=LEDALLOFF;
+//   nt.packet.var=0;
+//   nt.packet.value=0;
+//   leds->notify(nt);
+//  }
 
 void pult_event(event_t command)
 {
@@ -298,33 +381,66 @@ void pult_event(event_t command)
     switch (command.button)
     {
     case PULT_1:
-    case PULT_2:
-    case PULT_3:
-    case PULT_4:
-     result.title = RELAYSWITCH1+command.button-PULT_1;
+     result.title = RELAYSWITCH1;
+     //+command.button-PULT_1;
      relay->notify(result);
-    mess="ARelay #";
-    mess+=command.button;
-    mess+="*SWITCHED*";
-    xMessageBufferSend(display_message,mess.c_str(),mess.length()>DISP_MESSAGE_LENGTH?DISP_MESSAGE_LENGTH:mess.length(),100);
+     //mess="ARelay #1*switched*";
+     //xMessageBufferSend(display_message,mess.c_str(),mess.length()>DISP_MESSAGE_LENGTH?DISP_MESSAGE_LENGTH:mess.length(),100);
+   break;
+    case PULT_2:
+     result.title = RELAYSWITCH2;
+     //+command.button-PULT_1;
+    relay->notify(result);
+    //mess="ARelay #2*switched!*";
+    //xMessageBufferSend(display_message,mess.c_str(),mess.length()>DISP_MESSAGE_LENGTH?DISP_MESSAGE_LENGTH:mess.length(),100);
+   break;
+    case PULT_3:
+     result.title = RELAYSWITCH3;
+     //+command.button-PULT_1;
+     relay->notify(result);
+     //mess="ARelay #3*switched!*";
+     //xMessageBufferSend(display_message,mess.c_str(),mess.length()>DISP_MESSAGE_LENGTH?DISP_MESSAGE_LENGTH:mess.length(),100);
+  break;
+    case PULT_4:
+     result.title = RELAYSWITCH4;
+     //+command.button-PULT_1;
+    relay->notify(result);
+    //mess="ARelay #4*switched!*";
+    //xMessageBufferSend(display_message,mess.c_str(),mess.length()>DISP_MESSAGE_LENGTH?DISP_MESSAGE_LENGTH:mess.length(),100);
   
   break;
   case PULT_5:
-  // pinMode(GPIO_NUM_2,OUTPUT);
-  // digitalWrite(GPIO_NUM_2,!digitalRead(GPIO_NUM_2));
-  //  result.title=LEDMODE4;
-  //  result.packet.value=BLINK_FADEINOUT;
-  //  result.packet.var=0; 
-  //  leds->notify(result);
-  //  vTaskDelay(pdMS_TO_TICKS(100));
-  //  result.title=LEDBRIGHTNESS4;
-  //  result.packet.value=128;
-  //  result.packet.var=0; 
-  //  leds->notify(result);
-   
-      //Serial.print("Mode");
-      
-  break;
+      result.title = LEDBRIGHTNESSALL3;
+      result.packet.value=128<<8 & 0xFF00;
+      result.packet.var=0;
+      //setLedBrightness(0, (nt.packet.value >> 8) & 0x00FF, 0);
+      //setLedBrightness(1, nt.packet.value & 0x00FF, 0);
+      //setLedBrightness(2, nt.packet.var, 0);
+      leds->notify(result);
+      break;
+case PULT_6:
+      result.title = LEDBRIGHTNESSALL3;
+      result.packet.value=128<<8 & 128;
+      result.packet.var=128;
+      //setLedBrightness(0, (nt.packet.value >> 8) & 0x00FF, 0);
+      //setLedBrightness(1, nt.packet.value & 0x00FF, 0);
+      //setLedBrightness(2, nt.packet.var, 0);
+      leds->notify(result);
+      break;
+case PULT_7:
+      result.title = LEDBRIGHTNESSALL3;
+      result.packet.value=255<<8 & 255;
+      result.packet.var=255;
+      //setLedBrightness(0, (nt.packet.value >> 8) & 0x00FF, 0);
+      //setLedBrightness(1, nt.packet.value & 0x00FF, 0);
+      //setLedBrightness(2, nt.packet.var, 0);
+      leds->notify(result);
+      break;
+
+  case PULT_9:
+      result.title = LEDALLOFF;
+      leds->notify(result);
+      break;
 
     case PULT_POWER: // all off
   all_rel_off();
@@ -339,9 +455,9 @@ void pult_event(event_t command)
    result.title=LEDBRIGHTNESSALL3;
    result.packet.value=8<<0 & 0xFF00|  0 & 0x00FF;
    result.packet.var=64; 
-   leds->notify(result);
+   //leds->notify(result);
    mess="ALifgt*is set to*ULTRA LOW";
-   xMessageBufferSend(display_message,mess.c_str(),mess.length()>DISP_MESSAGE_LENGTH?DISP_MESSAGE_LENGTH:mess.length(),100);
+   //xMessageBufferSend(display_message,mess.c_str(),mess.length()>DISP_MESSAGE_LENGTH?DISP_MESSAGE_LENGTH:mess.length(),100);
    result.title=RELAYSET3;
    result.packet.value=1;
    result.packet.var=0;//need to save
@@ -351,9 +467,9 @@ void pult_event(event_t command)
    result.title=LEDBRIGHTNESSALL3;
    result.packet.value=(0x40<<8) & 0xFF00 |  0x40 & 0x00FF;
    result.packet.var=0x40; 
-   leds->notify(result);
+   //leds->notify(result);
    mess="ALifgt*is set to*LOW";
-   xMessageBufferSend(display_message,mess.c_str(),mess.length()>DISP_MESSAGE_LENGTH?DISP_MESSAGE_LENGTH:mess.length(),100);
+   //xMessageBufferSend(display_message,mess.c_str(),mess.length()>DISP_MESSAGE_LENGTH?DISP_MESSAGE_LENGTH:mess.length(),100);
    result.title=RELAYSET3;
    result.packet.value=1;
    result.packet.var=0;//need to save
@@ -364,8 +480,8 @@ void pult_event(event_t command)
    result.packet.value=(0x80<<8) & 0xFF00 |  0x80 & 0x00FF;
    result.packet.var=0x80; 
    mess="ALifgt*is set to*MIDDLE";
-   xMessageBufferSend(display_message,mess.c_str(),mess.length()>DISP_MESSAGE_LENGTH?DISP_MESSAGE_LENGTH:mess.length(),100);
-   leds->notify(result);
+   //xMessageBufferSend(display_message,mess.c_str(),mess.length()>DISP_MESSAGE_LENGTH?DISP_MESSAGE_LENGTH:mess.length(),100);
+   //leds->notify(result);
    result.title=RELAYSET3;
    result.packet.value=1;
    result.packet.var=0;//need to save
@@ -375,9 +491,9 @@ void pult_event(event_t command)
   result.title=LEDBRIGHTNESSALL3;
    result.packet.value=0xFFFF;
    result.packet.var=0xFF; 
-   leds->notify(result);
+   //leds->notify(result);
    mess="ALifgt*is set to*MAXIMUM";
-   xMessageBufferSend(display_message,mess.c_str(),mess.length()>DISP_MESSAGE_LENGTH?DISP_MESSAGE_LENGTH:mess.length(),100);
+   //xMessageBufferSend(display_message,mess.c_str(),mess.length()>DISP_MESSAGE_LENGTH?DISP_MESSAGE_LENGTH:mess.length(),100);
    result.title=RELAYSET3;
    result.packet.value=1;
    result.packet.var=0;//need to save
@@ -390,7 +506,7 @@ void pult_event(event_t command)
       if ((command.count) != IR_DEVICE || show_me)
       {
         mess = "EDevice " + String(command.count) + (command.count == IR_DEVICE ? "(MY)" : "(ALIEN)") + "*Command " + String(command.button) + "*type " + String(command.data);
-        xMessageBufferSend(display_message, mess.c_str(), mess.length()>DISP_MESSAGE_LENGTH?DISP_MESSAGE_LENGTH:mess.length(), portMAX_DELAY);
+        //xMessageBufferSend(display_message, mess.c_str(), mess.length()>DISP_MESSAGE_LENGTH?DISP_MESSAGE_LENGTH:mess.length(), portMAX_DELAY);
       }
 }
 
@@ -409,13 +525,13 @@ switch (command.button)
       result.title=LEDMODE4;
       result.packet.value=(uint16_t)BLINK_FADEINOUT;
       result.packet.var=0; 
-      leds->notify(result);
+      //leds->notify(result);
       break;
     case LED_CONNECT_FAILED:
       result.title=LEDMODE4;
       result.packet.value=(uint16_t)BLINK_OFF;
       result.packet.var=0; 
-      leds->notify(result);
+      //leds->notify(result);
     break;
     }
     if (result.title){
@@ -423,7 +539,7 @@ switch (command.button)
       result.packet.value=128;
       result.packet.var=0; 
       vTaskDelay(pdMS_TO_TICKS(100));
-      leds->notify(result);
+      //leds->notify(result);
     }
 }
 
@@ -444,8 +560,8 @@ switch (command.button)
     
     break;
     case BTN_LONGCLICK:
-    Serial.print("Long click after ");
-    Serial.println(command.count);
+    //Serial.print("Long click after ");
+    //Serial.println(command.count);
     break;
     
     }
@@ -454,6 +570,61 @@ switch (command.button)
     break;
 }
 }
+
+void rtc_event(event_t event){
+  notify_t result;
+
+  switch (event.button)
+  {
+    case RTCTIMEADJUST:
+      result.title=RTCTIMEADJUST;
+      result.packet.var=0;
+      result.packet.value=(event.data>>16) & 0xFFFF;
+      rtc->notify(result);
+      vTaskDelay(pdMS_TO_TICKS(500));
+      result.packet.var=1;
+      result.packet.value=event.data  & 0xFFFF;
+      rtc->notify(result);
+    break;
+  }
+}
+
+void alarm_event(event_t event){
+  //uint8_t alr=event.button>>24 & 0xF;  
+event_t sevent;
+String s;
+switch(event.button)
+{
+    case 0:
+    break;
+    case 1:
+    break;
+    case 2:
+    break;
+    case 3:
+    break;
+    case 4:
+    break;
+    case 5:
+    break;
+    case 6:
+    break;
+    case 7:
+    break;
+    case 8:
+    break;
+    case 9:
+      xMessageBufferSend(tablo_messages,&event,sizeof(event_t),0);
+      s=String(event.alarm.minute);
+    break;
+    case 10:
+      event.button=2;
+      ESP_LOGE(TAG,"METEODATA=%X",event.data);
+      xMessageBufferSend(tablo_messages,&event,sizeof(event_t),0);
+    break;
+}
+}
+
 void display_event(event_t event){
   String mess;
   switch (event.button)
@@ -470,11 +641,11 @@ void display_event(event_t event){
     mess+=event.alarm.action<10?"0":"";
     mess+=event.alarm.action;
     mess+="*";
-    mess+=dayofweek[(event.alarm.wday*5)];
-    mess+=dayofweek[(event.alarm.wday*5)+1];
-    mess+=dayofweek[(event.alarm.wday*5)+2];
-    mess+=dayofweek[(event.alarm.wday*5)+3];
-    mess+=dayofweek[(event.alarm.wday*5)+4];
+    mess+=dayofweek[(event.alarm.wday*4)];
+    mess+=dayofweek[(event.alarm.wday*4)+1];
+    mess+=dayofweek[(event.alarm.wday*4)+2];
+    mess+=dayofweek[(event.alarm.wday*4)+3];
+    //mess+=dayofweek[(event.alarm.wday*7)+4];
     xMessageBufferSend(display_message, mess.c_str(), mess.length()>DISP_MESSAGE_LENGTH?DISP_MESSAGE_LENGTH:mess.length(), portMAX_DELAY);
     
     break;
@@ -488,14 +659,19 @@ void loop()
 {
 
 event_t command;
-if (xQueueReceive(queue,&command,portMAX_DELAY))
+if (xQueueReceive(queue,&command,portMAX_DELAY)==pdTRUE)
 {
   
 
+
+//return;
+  //_LOG(TAG,"loopI command=%d button=%d",command.state,command.button);
+  //ESP_LOGI(TAG,"loopE command=%d button=%d",command.state,command.button);
   switch(command.state)
   {
   case WEB_EVENT:
       web_event(command);
+      
   break;
   case BTN_CLICK:
   case BTN_LONGCLICK:
@@ -513,7 +689,16 @@ if (xQueueReceive(queue,&command,portMAX_DELAY))
   case PULT_BUTTON:
       pult_event(command);
   break;
+  case RTC_EVENT:
+      rtc_event(command);
+  break;
+  case ALARM_EVENT:
+      alarm_event(command);
+  break;
  }
 }//if queue
-
+else{
+  _LOG(TAG,"error receive queue");
+}
+vTaskDelay(pdMS_TO_TICKS(10));
 }

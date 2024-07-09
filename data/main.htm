@@ -23,7 +23,7 @@
 			  <a class="nav-link active"  aria-current="page" href="#">Main</a>
 			</li>
 			<li class="nav-item">
-			  <a class="nav-link" href="/upd">Update</a>
+			  <a class="nav-link" href="/upd.htm">Update</a>
 			</li>
 			<li class="nav-item">
 			  <a class="nav-link" href="/log">Log</a>
@@ -62,9 +62,12 @@
 							</label>
 						  </div>
 												
-						<div class="form-button">
-							<a type="button" class="btn btn-lg btn-success" id="REL4"><i class="fa fa-bed fa-2x pull-left">Sleep</i></a>
-						</div>
+						  <div class="form-check form-switch">
+							<input class="form-check-input" type="checkbox" value="" name="REL4" id="REL4">
+							<label class="form-check-label" for="REL4">
+							  Рэле 4
+							</label>
+						  </div>
 					</form>
 				</div>
 				
@@ -316,11 +319,11 @@
                 return false;  
 			});  
 			
-			$('#REL4').on('click',function(){  
+			$('#REL4').on('input',function(){  
 			$.ajax({  
                     type: "POST",  
                     url: "/post",  
-                    data: "page=main&REL4=true",  
+                    data: "page=main&REL4="+$('#REL4').prop("checked"),   
                     success: function(html){  
                     }  
 			}); 
@@ -387,6 +390,7 @@
 			$('#REL1').prop('checked', data['REL1']==1);
 			$('#REL2').prop('checked', data['REL2']==1);
 			$('#REL3').prop('checked', data['REL3']==1);
+			$('#REL4').prop('checked', data['REL4']==1);
 			$('#LIGHT_CW').prop('value', data['LIGHT_CW']);
 			$('#LIGHT_NW').prop('value', data['LIGHT_NW']);
 			$('#LIGHT_WW').prop('value', data['LIGHT_WW']);

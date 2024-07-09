@@ -2,7 +2,7 @@
 #include <Update.h>
 #include <Wire.h>
 #include "HTTP2Task.h"
-
+//#include "esp_http_server.h"
 
 void HTTP2Task::setup(){
 HTTPTask::setup();
@@ -15,6 +15,7 @@ server->begin();
 
 void HTTP2Task::loop(){
    delay(10); 
+  
    
 }
     
@@ -89,6 +90,11 @@ void HTTP2Task::var(String n, String v)
 	else if (n.equals("REL3"))
 	{
 		ev.button=RELAYSET3;
+		ev.count=v.equals(F("true"));
+	}
+	else if (n.equals("REL4"))
+	{
+		ev.button=RELAYSET4;
 		ev.count=v.equals(F("true"));
 	}
 	// else if (n.equals("REL4"))
@@ -179,17 +185,17 @@ void HTTP2Task::handleA2W(AsyncWebServerRequest * request)
 			str+=F("\"REL");
 			str+=String(i+1);
 			str+=F("\":\"");
-			str+=String(st.rel[i]?1:0);
+			str+=String(st.relays[i].ison?1:0);
 			str+=F("\",");
 		}
 		str+=F("\"LIGHT_CW\":\"");
-		str+=String(st.br[0].value);
+		str+=String(st.leds[0].value);
 		str+=F("\",");
 		str+=F("\"LIGHT_NW\":\"");
-		str+=String(st.br[1].value);
+		str+=String(st.leds[1].value);
 		str+=F("\",");
 		str+=F("\"LIGHT_WW\":\"");
-		str+=String(st.br[2].value);
+		str+=String(st.leds[2].value);
 		str+=F("\"");
 		for (uint8_t i=0;i<ALARMS_COUNT;i++)
 		{
