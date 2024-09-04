@@ -17,6 +17,12 @@ relay1 - переключить реле 1
 relay2 - переключить реле 2
 relay3 - переключить реле 3
 relay4 - переключить реле 4
+relayoff - отключить все рэле
+light1 - свет на 1
+light2 - свет на 2
+light3 - свет на 3
+lightoff - выключить свет
+
 */
 
 static const char telegram_cert[] PROGMEM = R"EOF(

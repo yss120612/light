@@ -186,7 +186,6 @@ const uint8_t Max7219Task::FONT[] PROGMEM = {
   0x48, 0x54, 0x34, 0x14, 0x7C, // 'я'
 };
 
-
 const uint8_t Max7219Task::CHAR_WIDTH[] PROGMEM = {
   3, // ' '
   1, // '!'
@@ -371,8 +370,6 @@ char Max7219Task::charNormalize(char c) {
   return c;
 }
 
-
-
 void Max7219Task::setup(){
 _timer = xTimerCreate("CubeTimer", pdMS_TO_TICKS(1000), pdTRUE, static_cast<void *>(this), onTick);
 watch[0].x=3;  watch[0].y=8-FONT_HEIGHT;
@@ -451,7 +448,7 @@ esp_err_t ret;
   sendCommand(0x0B, 7); // Scan Limit
   sendCommand(0x0F, 0); // Test OFF
   sendCommand(0x0C, 1); // Shutdown OFF
-
+  wait_display_end=false;
 }
 
 void Max7219Task::cleanup(){
@@ -492,6 +489,15 @@ bool Max7219Task::getPixel(uint8_t x, uint8_t y) {
   return (_bits[(x / 8) * 8 + y] >> (x % 8)) & 0x01;
 }
 
+void Max7219Task::save_screen(){
+  memcpy(saved_bits,_bits,WIDTH);
+}
+
+void Max7219Task::restore_screen(){
+  beginUpdate();
+  memcpy(_bits,saved_bits,WIDTH);
+  endUpdate();
+}
 
 void Max7219Task::setPixel(uint8_t x, uint8_t y, bool color) {
   if ((x < WIDTH) && (y < HEIGHT)) {
@@ -504,6 +510,7 @@ void Max7219Task::setPixel(uint8_t x, uint8_t y, bool color) {
     }
   }
 }
+
 void Max7219Task::repaint() {
   for (uint8_t i = 0; i < 8; ++i) {
     for (int8_t j = MATRIX_COUNT - 1; j >= 0; --j) {
@@ -636,6 +643,11 @@ void Max7219Task::printChar(element_t el) {
   drawPattern(el.x, el.y, charWidth(el.lett), FONT_HEIGHT, charPattern(el.lett));
 }
 
+void Max7219Task::printStrCenter(const char *str) {
+  uint8_t width=strWidth(str);
+  printStr(width>=WIDTH?0:(WIDTH-width)/2,0,str);
+}
+
 void Max7219Task::printStr(uint8_t x, uint8_t y, const char *str) {
   beginUpdate();
   while (pgm_read_byte(str) && (x < WIDTH)) {
@@ -649,13 +661,23 @@ void Max7219Task::printStr(uint8_t x, uint8_t y, const char *str) {
 }
 
 void Max7219Task::printClock(uint8_t hour, uint8_t min) {
-  
   char str[6];
   snprintf(str, sizeof(str), "%s%d:%02d",hour>9?"":"^",hour,min);
   scrollDigits(str,pdMS_TO_TICKS(100),SCR_RANDOM);
 }
 
 void Max7219Task::scrollDigits(char * newtime, uint32_t tempo, skind_t kind){
+  if (cmode==DISPLAY_MODE){
+    wait_display_end=true;
+    if (newtime){
+      watch[0].lett=newtime[0];
+    watch[1].lett=newtime[1];
+    watch[3].lett=newtime[3];
+    watch[4].lett=newtime[4];
+      
+    }
+    return;
+  }
   uint8_t x,y,w,h,n=0;
   if (kind==SCR_RANDOM) skind=(skind_t)(0 + rand() % (int(SCR_RIGHT) - 0 + 1));
   else skind=kind;
@@ -902,6 +924,26 @@ switch(cmode){
 
   return;
   break;
+  case DISPLAY_MODE:
+  if (display_period==0){
+    save_screen();
+    clear();
+    printStrCenter(disp);
+    xTimerChangePeriod(_timer,pdMS_TO_TICKS(1000),0);                        
+  }
+  display_period++;
+  if (display_period==3){
+    cmode=saved_mode==DISPLAY_MODE?WATCH_MODE:saved_mode;
+    xTimerChangePeriod(_timer,saved_period,0);
+    restore_screen();
+    if(wait_display_end){
+      wait_display_end=false;
+      scrollDigits(NULL,100,SCR_RANDOM);
+  
+    }
+    return;
+  }
+  break;
   case SCROLLCHAR_MODE:
   switch (skind){
     case SCR_DOWN:
@@ -959,6 +1001,7 @@ switch(cmode){
       noScroll();
       cmode=WATCH_MODE;
       xTimerChangePeriod(_timer,pdMS_TO_TICKS(1000),0);
+      
       break;
     }
   _scrolling.pos--;  
@@ -1004,12 +1047,55 @@ void Max7219Task::onTick(TimerHandle_t tm) {
   lct->onMyTick();  
 }
 
+void Max7219Task::prepareDisplay(){
+      saved_period=xTimerGetPeriod(_timer);
+      xTimerStop(_timer,0);
+      saved_mode=cmode;
+      display_period=0;
+      cmode=DISPLAY_MODE;
+      onMyTick();
+}
+
 void Max7219Task::loop(){
   event_t nt;
   if (xMessageBufferReceive(messages,&nt,sizeof(event_t),portMAX_DELAY)){
     //ESP_LOGE("TAG","SPI BUTTON IS %d",nt.button);
     switch (nt.button)
     {
+    case 1://пришел текст
+         if (cmode==DISPLAY_MODE) break;
+         memset(disp,0,sizeof(disp));
+         switch(nt.count){
+          case 1:
+            memcpy(disp,"rel-1",5);
+          break;
+          case 2:
+            memcpy(disp,"rel-2",5);
+          break;
+          case 3:
+            memcpy(disp,"rel-3",5);
+          break;
+          case 4:
+            memcpy(disp,"rel-4",5);
+          break;
+          case 5:
+            memcpy(disp,"-low-",5);
+          break;
+          case 6:
+            memcpy(disp,"-mid-",5);
+          break;
+          case 7:
+            memcpy(disp,"high.",5);
+          break;
+          case 8:
+            memcpy(disp,"rel--",5);
+          break;
+          case 9:
+            memcpy(disp,"dark.",5);
+          break;
+         }
+    prepareDisplay();
+    break;  
     case 9://пришло время
      year=nt.count & 0xFF;
      month=(uint8_t)nt.alarm.period;

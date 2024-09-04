@@ -70,14 +70,7 @@ TelegramTask * telega;
 // static void WiFiTaskHandler(void *pvParam) {
 //   const uint32_t WIFI_TIMEOUT = 30000; // 30 sec.
 // }
-void all_leds_off()
-{
-  notify_t nt; 
-  nt.title=LEDALLOFF;
-  nt.packet.var=0;
-  nt.packet.value=0;
-  leds->notify(nt);
- }
+
 
 void setup() {
 //vTaskDelay(pdMS_TO_TICKS(2000));
@@ -157,14 +150,14 @@ max7219= new Max7219Task("Watch",2048,flags,queue,tablo_messages);
 
 weather= new WeatherTask("Weather",1024*3,queue,flags);
 
-uint32_t rw=esp_random();
-bool run_weather=rw%2;
+// uint32_t rw=esp_random();
+// bool run_weather=rw%2;
 
-if (run_weather){
-_LOG(TAG,"RUN TELEGRAM %d",rw);
+//if (run_weather){
+//_LOG(TAG,"RUN TELEGRAM %d",rw);
 telega= new TelegramTask("Telegram",1024*4,queue,flags,telega_messages);
 
-}
+//}
 
 //gpio_set_pull_mode(ENCBTN, GPIO_PULLDOWN_ONLY);
 //gpio_set_pull_mode(ENCS1, GPIO_PULLDOWN_ONLY);
@@ -181,12 +174,12 @@ wifi->resume();
 http->resume();
 //display->resume();
 max7219->resume();
-if (run_weather){
+//if (run_weather){
 weather->resume();
-}
+//}
 rtc->needWatch();//хочу часы
 //http->start();
-all_leds_off();
+//all_leds_off();
 }
 
 void web_event(event_t event){
@@ -362,14 +355,15 @@ void all_rel_off()
   relay->notify(nt);
 }
 
-// void all_leds_off()
-// {
-//   notify_t nt; 
-//   nt.title=LEDALLOFF;
-//   nt.packet.var=0;
-//   nt.packet.value=0;
-//   leds->notify(nt);
-//  }
+void all_leds_off()
+{
+  notify_t nt; 
+  nt.title=LEDALLOFF;
+  nt.packet.var=0;
+  nt.packet.value=0;
+  leds->notify(nt);
+ }
+
 
 void pult_event(event_t command)
 {
@@ -384,6 +378,9 @@ void pult_event(event_t command)
      result.title = RELAYSWITCH1;
      //+command.button-PULT_1;
      relay->notify(result);
+     command.count=command.button;
+    command.button=1;
+    xMessageBufferSend(tablo_messages,&command,sizeof(event_t),0);
      //mess="ARelay #1*switched*";
      //xMessageBufferSend(display_message,mess.c_str(),mess.length()>DISP_MESSAGE_LENGTH?DISP_MESSAGE_LENGTH:mess.length(),100);
    break;
@@ -391,6 +388,9 @@ void pult_event(event_t command)
      result.title = RELAYSWITCH2;
      //+command.button-PULT_1;
     relay->notify(result);
+    command.count=command.button;
+    command.button=1;
+    xMessageBufferSend(tablo_messages,&command,sizeof(event_t),0);
     //mess="ARelay #2*switched!*";
     //xMessageBufferSend(display_message,mess.c_str(),mess.length()>DISP_MESSAGE_LENGTH?DISP_MESSAGE_LENGTH:mess.length(),100);
    break;
@@ -398,6 +398,9 @@ void pult_event(event_t command)
      result.title = RELAYSWITCH3;
      //+command.button-PULT_1;
      relay->notify(result);
+     command.count=command.button;
+    command.button=1;
+    xMessageBufferSend(tablo_messages,&command,sizeof(event_t),0);
      //mess="ARelay #3*switched!*";
      //xMessageBufferSend(display_message,mess.c_str(),mess.length()>DISP_MESSAGE_LENGTH?DISP_MESSAGE_LENGTH:mess.length(),100);
   break;
@@ -407,39 +410,64 @@ void pult_event(event_t command)
     relay->notify(result);
     //mess="ARelay #4*switched!*";
     //xMessageBufferSend(display_message,mess.c_str(),mess.length()>DISP_MESSAGE_LENGTH?DISP_MESSAGE_LENGTH:mess.length(),100);
-  
+    command.count=command.button;
+    command.button=1;
+    xMessageBufferSend(tablo_messages,&command,sizeof(event_t),0);
   break;
   case PULT_5:
       result.title = LEDBRIGHTNESSALL3;
-      result.packet.value=128<<8 & 0xFF00;
-      result.packet.var=0;
+      //LO value=WW  HI value=NW, var=CW
+
+
+      result.packet.value=0x0080;
+      result.packet.var=00;
       //setLedBrightness(0, (nt.packet.value >> 8) & 0x00FF, 0);
       //setLedBrightness(1, nt.packet.value & 0x00FF, 0);
       //setLedBrightness(2, nt.packet.var, 0);
       leds->notify(result);
+      command.count=command.button;
+    command.button=1;
+    xMessageBufferSend(tablo_messages,&command,sizeof(event_t),0);
       break;
 case PULT_6:
       result.title = LEDBRIGHTNESSALL3;
-      result.packet.value=128<<8 & 128;
-      result.packet.var=128;
+      result.packet.value=0x8080;
+      result.packet.var=0x80;
       //setLedBrightness(0, (nt.packet.value >> 8) & 0x00FF, 0);
       //setLedBrightness(1, nt.packet.value & 0x00FF, 0);
       //setLedBrightness(2, nt.packet.var, 0);
       leds->notify(result);
+      command.count=command.button;
+    command.button=1;
+    xMessageBufferSend(tablo_messages,&command,sizeof(event_t),0);
       break;
 case PULT_7:
       result.title = LEDBRIGHTNESSALL3;
-      result.packet.value=255<<8 & 255;
-      result.packet.var=255;
+      result.packet.value=0xFFFF;
+      result.packet.var=0xFF;
       //setLedBrightness(0, (nt.packet.value >> 8) & 0x00FF, 0);
       //setLedBrightness(1, nt.packet.value & 0x00FF, 0);
       //setLedBrightness(2, nt.packet.var, 0);
+      command.count=command.button;
+    command.button=1;
+    xMessageBufferSend(tablo_messages,&command,sizeof(event_t),0);
       leds->notify(result);
       break;
 
+case PULT_8:
+command.count=command.button;
+    command.button=1;
+    xMessageBufferSend(tablo_messages,&command,sizeof(event_t),0);
+      all_rel_off();
+     
+      break;
+
   case PULT_9:
-      result.title = LEDALLOFF;
-      leds->notify(result);
+  command.count=command.button;
+    command.button=1;
+    xMessageBufferSend(tablo_messages,&command,sizeof(event_t),0);
+      all_leds_off();
+
       break;
 
     case PULT_POWER: // all off
@@ -463,18 +491,22 @@ case PULT_7:
    result.packet.var=0;//need to save
    relay->notify(result);
   break;  
-  case PULT_PAUSE: // low
-   result.title=LEDBRIGHTNESSALL3;
-   result.packet.value=(0x40<<8) & 0xFF00 |  0x40 & 0x00FF;
-   result.packet.var=0x40; 
-   //leds->notify(result);
-   mess="ALifgt*is set to*LOW";
-   //xMessageBufferSend(display_message,mess.c_str(),mess.length()>DISP_MESSAGE_LENGTH?DISP_MESSAGE_LENGTH:mess.length(),100);
-   result.title=RELAYSET3;
-   result.packet.value=1;
-   result.packet.var=0;//need to save
-   relay->notify(result);
-  break;
+  // case PULT_9: // low
+  //  //result.title=LEDBRIGHTNESSALL3;
+  //  event_t ev;
+  //  ev.button=1;
+  //  xMessageBufferSend(tablo_messages,&ev,sizeof(event_t),0);
+  //  //result.packet.value=(0x40<<8) & 0xFF00 |  0x40 & 0x00FF;
+  //  //result.packet.var=0x40; 
+  //  //leds->notify(result);
+  //  //mess="ALifgt*is set to*LOW";
+  //  ////xMessageBufferSend(display_message,mess.c_str(),mess.length()>DISP_MESSAGE_LENGTH?DISP_MESSAGE_LENGTH:mess.length(),100);
+  //  //result.title=RELAYSET3;
+  //  //result.packet.value=1;
+  //  //result.packet.var=0;//need to save
+  //  //relay->notify(result);
+   
+  // break;
     case PULT_STOP: // middle
   result.title=LEDBRIGHTNESSALL3;
    result.packet.value=(0x80<<8) & 0xFF00 |  0x80 & 0x00FF;
@@ -615,11 +647,11 @@ switch(event.button)
     break;
     case 9:
       xMessageBufferSend(tablo_messages,&event,sizeof(event_t),0);
-      s=String(event.alarm.minute);
+      //s=String(event.alarm.minute);
     break;
     case 10:
       event.button=2;
-      ESP_LOGE(TAG,"METEODATA=%X",event.data);
+      ESP_LOGI(TAG,"METEODATA=%X",event.data);
       xMessageBufferSend(tablo_messages,&event,sizeof(event_t),0);
     break;
 }

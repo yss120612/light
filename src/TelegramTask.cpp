@@ -153,6 +153,26 @@ void TelegramTask::telegram_recv()
           event.button=PULT_4;
           xQueueSend(que,&event,0);
            ESP_LOGE(TAG, "RELAY=%d", 4);
+        }else if (strncmp("/relayoff",txt,9)==0){
+          event.button=PULT_8;
+          xQueueSend(que,&event,0);
+           ESP_LOGE(TAG, "RELAYOFF");
+        }else if (strncmp("/light1",txt,7)==0){
+          event.button=PULT_5;
+          xQueueSend(que,&event,0);
+           ESP_LOGE(TAG, "LIGHT=%d", 1);
+        }else if (strncmp("/light2",txt,7)==0){
+          event.button=PULT_6;
+          xQueueSend(que,&event,0);
+           ESP_LOGE(TAG, "LIGHT=%d", 2);
+        }else if (strncmp("/light3",txt,7)==0){
+          event.button=PULT_7;
+          xQueueSend(que,&event,0);
+           ESP_LOGE(TAG, "LIGHT=%d", 7);
+        }else if (strncmp("/lightoff",txt,9)==0){
+          event.button=PULT_9;
+          xQueueSend(que,&event,0);
+           ESP_LOGE(TAG, "LIGHTOFF");
         }
         free(txt);
         i++;

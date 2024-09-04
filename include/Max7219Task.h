@@ -15,7 +15,7 @@
 #define MAX7219_MAX_CLOCK_SPEED_HZ (10000000) // 10 MHz
 
 
-enum clockmode_t : uint8_t {NONE_MODE, WATCH_MODE,SCROLLCHAR_MODE, DAY_MODE,INFO_MODE};
+enum clockmode_t : uint8_t {NONE_MODE, WATCH_MODE,SCROLLCHAR_MODE, DAY_MODE,INFO_MODE, DISPLAY_MODE};
 enum skind_t : uint8_t {SCR_UP, SCR_DOWN,SCR_OPEN,SCR_CLOSE, SCR_LEFT, SCR_RIGHT,SCR_RANDOM};
 
 struct __attribute__((__packed__)) element_t {
@@ -59,11 +59,15 @@ class Max7219Task : public Task{
     void printChar(uint8_t x, uint8_t y, char c);
     void printChar(element_t el);
     void printStr(uint8_t x, uint8_t y, const char *str);
+    void printStrCenter(const char *str);
     void printClock(uint8_t hour, uint8_t min);
     void scrollDigits(char * newtime, uint32_t tempo, skind_t kind);
     void scroll2center(const char *str, uint32_t tempo);
     void scroll(const char *str, uint32_t tempo);
     void noScroll();
+    void prepareDisplay();
+    void save_screen();
+    void restore_screen();
     inline void noAnimate() {noScroll();};
     void animate(uint8_t x, uint8_t y, uint8_t w, uint8_t h, uint8_t frames, const uint8_t *patterns, uint32_t tempo);
     uint8_t  charWidth(char c);
@@ -80,6 +84,7 @@ class Max7219Task : public Task{
     static const char WEEKDAYS[7][3] PROGMEM;
     static const char MONTH[12][9] PROGMEM;
     uint8_t _bits[WIDTH];
+    
     element_t watch[5];
 
     scrolling_t _scrolling;
@@ -88,6 +93,8 @@ class Max7219Task : public Task{
     bool _anim : 1;
         
     clockmode_t cmode;
+    
+
     skind_t skind;
     uint8_t second;
     int8_t temp;
@@ -102,5 +109,12 @@ class Max7219Task : public Task{
     QueueHandle_t queue;
     TimerHandle_t _timer;
     MessageBufferHandle_t messages;
+
+    uint8_t display_period;
+    TickType_t saved_period;
+    clockmode_t saved_mode;
+    uint8_t saved_bits[WIDTH];
+    bool wait_display_end;
+    char disp[6];
 };
 #endif
