@@ -1093,6 +1093,11 @@ void Max7219Task::loop(){
           case 9:
             memcpy(disp,"dark.",5);
           break;
+          case 21:
+           utoa(nt.data>>8 & 0xFF, disp, HEX);
+           memcpy(disp+2,"%",1);
+           utoa(nt.data & 0xFF, disp+3, HEX);
+          break;
          }
     prepareDisplay();
     break;  
@@ -1108,6 +1113,19 @@ void Max7219Task::loop(){
      hum=(nt.data>>24) & 0xFF;
      temp=(nt.data>>16) & 0xFF;
      press=nt.data & 0xFFFF; 
+     break;
+     case 10://регулировка яркости
+      switch (nt.count){
+        case 1://default brightness
+        setBrightness(1);
+        break;
+        case 2://brightness ++
+        if (getBrightness()<0x0F) setBrightness(getBrightness()+1);
+        break;
+        case 3://brightness --
+        if (getBrightness()>0) setBrightness(getBrightness()-1);
+        break;
+      }
      break;
     }
   }

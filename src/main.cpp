@@ -40,6 +40,7 @@ static const char * TAG="Light";
 
 //HttpHelper * http_server;
 //MqttClient *mqtt;
+State state;
 QueueHandle_t queue;
 SemaphoreHandle_t btn_semaphore;
 EventGroupHandle_t flags;
@@ -51,7 +52,7 @@ LEDTask * leds;
 WiFiTask * wifi;
 IRTask * ir;
 //HTTP2Task * http;
-DISPTask * display;
+Display * display;
 RTCTask * rtc;
 RELTask * relay;
 //BANDTask * band;
@@ -73,6 +74,10 @@ TelegramTask * telega;
 
 
 void setup() {
+  
+  	
+  
+
 //vTaskDelay(pdMS_TO_TICKS(2000));
 
  //queue= xQueueCreate(16,sizeof(event_t));
@@ -91,7 +96,7 @@ void setup() {
  }
 
  tablo_messages=xMessageBufferCreate(sizeof(event_t)+4);//=length label
- web_messages=xMessageBufferCreate(SSTATE_LENGTH+4);
+ //web_messages=xMessageBufferCreate(SSTATE_LENGTH+4);
 #ifdef DEBUGG
    Serial.begin(115200);
 #endif
@@ -122,7 +127,7 @@ void setup() {
   
 //vTaskDelay(pdMS_TO_TICKS(2000));
 
-mem=new MEMTask<SystemState_t>("MEM",2048,queue,reset_default,process_notify,web_messages,VERSION,AT24C32_ADDRESS,AT24C32_OFFSET);
+mem=new MEMTask<SystemState_t>("MEM",2048,queue,reset_default,process_notify,&(state.st),VERSION,AT24C32_ADDRESS,AT24C32_OFFSET);
 mem->resume();
 
 //display= new DISPTask("Display",2048, display_message);  
@@ -138,7 +143,7 @@ ir= new IRTask("IRс",2048,queue,IR_PIN,IR_DEVICE);
 //http = new HTTP2Task("http",4096,queue,flags,web_messages);
 //http->resume();
 
-http = new HTTPServer("http",4096,flags,queue);
+http = new HTTPServer("http",4096,flags,queue,&(state.st));
 
 rtc=new RTCTask("RTC",2048,queue);
 
@@ -180,16 +185,19 @@ weather->resume();
 rtc->needWatch();//хочу часы
 //http->start();
 //all_leds_off();
+ //state.relays[3].ison=true;
 }
 
 void web_event(event_t event){
   notify_t notify;
-  String mess;
+  //String mess;
+   
   switch (event.button){
     case ALARMSETUP://set alarm from web
      notify.title=event.button;
      notify.alarm=event.alarm;
      rtc->notify(notify);
+    
   break;
 
   case ALARMSPRINT://print all alarms
@@ -209,10 +217,13 @@ void web_event(event_t event){
     notify.packet.var=0;//0 save 1 dont save
     notify.packet.value=event.count;
     relay->notify(notify);
-    mess="ARelay #";
-    mess+=event.button-RELAYSET1-1;
-    mess+=event.count?"*is set ON*":"*is set OFF*";
-    xMessageBufferSend(display_message,mess.c_str(),mess.length()>DISP_MESSAGE_LENGTH?DISP_MESSAGE_LENGTH:mess.length(),100);
+    event.count = event.button-RELAYSET1+1;
+    event.button = 1;
+    xMessageBufferSend(tablo_messages, &event, sizeof(event_t), 0);
+    // mess="ARelay #";
+    // mess+=event.button-RELAYSET1-1;
+    // mess+=event.count?"*is set ON*":"*is set OFF*";
+    // xMessageBufferSend(display_message,mess.c_str(),mess.length()>DISP_MESSAGE_LENGTH?DISP_MESSAGE_LENGTH:mess.length(),100);
   break;
       
       case LEDBRIGHTNESS1:
@@ -221,13 +232,13 @@ void web_event(event_t event){
          notify.title=event.button;
          notify.packet.var=1;
          notify.packet.value=event.count;
-         //leds->notify(notify);
-         mess="ABrightness ";
-         mess+=(notify.title==LEDBRIGHTNESS1?"CW":notify.title==LEDBRIGHTNESS2?"NW":"WW");
-         mess+=event.count?"*is set ":"is set ";
-         mess+=event.count;
-         mess+="*";
-        xMessageBufferSend(display_message,mess.c_str(),mess.length()>DISP_MESSAGE_LENGTH?DISP_MESSAGE_LENGTH:mess.length(),100);
+         leds->notify(notify);
+        //  mess="ABrightness ";
+        //  mess+=(notify.title==LEDBRIGHTNESS1?"CW":notify.title==LEDBRIGHTNESS2?"NW":"WW");
+        //  mess+=event.count?"*is set ":"is set ";
+        //  mess+=event.count;
+        //  mess+="*";
+        // xMessageBufferSend(display_message,mess.c_str(),mess.length()>DISP_MESSAGE_LENGTH?DISP_MESSAGE_LENGTH:mess.length(),100);
       break;
   }
 }
@@ -236,6 +247,10 @@ void mem_event(event_t event){
   notify_t nt;
  
   switch (event.button){
+   case ASK_ALL:
+    nt.title=event.button;
+    mem->notify(nt);
+   break; 
    case MEM_SAVE_00:  
    case MEM_SAVE_01:
    case MEM_SAVE_02:
@@ -324,21 +339,19 @@ void mem_event(event_t event){
      nt.packet.value=event.data;
      relay->notify(nt);
      //_LOG(TAG,"Relay notify %d",nt.packet.value);
-     if (event.count==1){//инициатор память
-       nt.title=event.button+150;
-    //   http->notify(nt);
-     }
+    //  if (event.count==1){//инициатор память
+    //    nt.title=event.button+150;
+    //  }
 
     case MEM_READ_14:
     case MEM_READ_15:
     case MEM_READ_16:
     nt.title=event.button;
     nt.packet.value=event.data;
-    //leds->notify(nt);
-    if (event.count==1){//инициатор память
-      nt.title=event.button+150;
-     // http->notify(nt);
-    }
+    leds->notify(nt);
+    // if (event.count==1){//инициатор память
+    //   nt.title=event.button+150;
+    // }
     break;
 
   }
@@ -364,183 +377,132 @@ void all_leds_off()
   leds->notify(nt);
  }
 
+ void pult_event(event_t command)
+ {
+   notify_t result;
+   bool show_me = false;
+   String mess;
+   // if ((command.count) == IR_DEVICE)
+   if ((command.count) > 0)
+   {
+     switch (command.button)
+     {
+     case PULT_1:
+       result.title = RELAYSWITCH1;
+       relay->notify(result);
+       command.count = command.button;
+       command.button = 1;
+       xMessageBufferSend(tablo_messages, &command, sizeof(event_t), 0);
+       break;
+     case PULT_2:
+       result.title = RELAYSWITCH2;
+       relay->notify(result);
+       command.count = command.button;
+       command.button = 1;
+       xMessageBufferSend(tablo_messages, &command, sizeof(event_t), 0);
+       break;
+     case PULT_3:
+       result.title = RELAYSWITCH3;
+       relay->notify(result);
+       command.count = command.button;
+       command.button = 1;
+       xMessageBufferSend(tablo_messages, &command, sizeof(event_t), 0);
+       break;
+     case PULT_4:
+       result.title = RELAYSWITCH4;
+       relay->notify(result);
+       command.count = command.button;
+       command.button = 1;
+       xMessageBufferSend(tablo_messages, &command, sizeof(event_t), 0);
+       break;
+     case PULT_5:
+       result.title = LEDBRIGHTNESSALL3;
+       // LO value=WW  HI value=NW, var=CW
+       result.packet.value = 0x0080;
+       result.packet.var = 00;
+       leds->notify(result);
+       command.count = command.button;
+       command.button = 1;
+       xMessageBufferSend(tablo_messages, &command, sizeof(event_t), 0);
+       break;
+     case PULT_6:
+       result.title = LEDBRIGHTNESSALL3;
+       result.packet.value = 0x8080;
+       result.packet.var = 0x80;
+       leds->notify(result);
+       command.count = command.button;
+       command.button = 1;
+       xMessageBufferSend(tablo_messages, &command, sizeof(event_t), 0);
+       break;
+     case PULT_7:
+       result.title = LEDBRIGHTNESSALL3;
+       result.packet.value = 0xFFFF;
+       result.packet.var = 0xFF;
+       command.count = command.button;
+       command.button = 1;
+       xMessageBufferSend(tablo_messages, &command, sizeof(event_t), 0);
+       leds->notify(result);
+       break;
 
-void pult_event(event_t command)
-{
-      notify_t result;
-      bool show_me = false;
-      String mess;
-    if ((command.count) == IR_DEVICE)
-    {
-    switch (command.button)
-    {
-    case PULT_1:
-     result.title = RELAYSWITCH1;
-     //+command.button-PULT_1;
-     relay->notify(result);
-     command.count=command.button;
-    command.button=1;
-    xMessageBufferSend(tablo_messages,&command,sizeof(event_t),0);
-     //mess="ARelay #1*switched*";
-     //xMessageBufferSend(display_message,mess.c_str(),mess.length()>DISP_MESSAGE_LENGTH?DISP_MESSAGE_LENGTH:mess.length(),100);
-   break;
-    case PULT_2:
-     result.title = RELAYSWITCH2;
-     //+command.button-PULT_1;
-    relay->notify(result);
-    command.count=command.button;
-    command.button=1;
-    xMessageBufferSend(tablo_messages,&command,sizeof(event_t),0);
-    //mess="ARelay #2*switched!*";
-    //xMessageBufferSend(display_message,mess.c_str(),mess.length()>DISP_MESSAGE_LENGTH?DISP_MESSAGE_LENGTH:mess.length(),100);
-   break;
-    case PULT_3:
-     result.title = RELAYSWITCH3;
-     //+command.button-PULT_1;
-     relay->notify(result);
-     command.count=command.button;
-    command.button=1;
-    xMessageBufferSend(tablo_messages,&command,sizeof(event_t),0);
-     //mess="ARelay #3*switched!*";
-     //xMessageBufferSend(display_message,mess.c_str(),mess.length()>DISP_MESSAGE_LENGTH?DISP_MESSAGE_LENGTH:mess.length(),100);
-  break;
-    case PULT_4:
-     result.title = RELAYSWITCH4;
-     //+command.button-PULT_1;
-    relay->notify(result);
-    //mess="ARelay #4*switched!*";
-    //xMessageBufferSend(display_message,mess.c_str(),mess.length()>DISP_MESSAGE_LENGTH?DISP_MESSAGE_LENGTH:mess.length(),100);
-    command.count=command.button;
-    command.button=1;
-    xMessageBufferSend(tablo_messages,&command,sizeof(event_t),0);
-  break;
-  case PULT_5:
-      result.title = LEDBRIGHTNESSALL3;
-      //LO value=WW  HI value=NW, var=CW
+     case PULT_8:
+       command.count = command.button;
+       command.button = 1;
+       xMessageBufferSend(tablo_messages, &command, sizeof(event_t), 0);
+       all_rel_off();
+       break;
 
-
-      result.packet.value=0x0080;
-      result.packet.var=00;
-      //setLedBrightness(0, (nt.packet.value >> 8) & 0x00FF, 0);
-      //setLedBrightness(1, nt.packet.value & 0x00FF, 0);
-      //setLedBrightness(2, nt.packet.var, 0);
-      leds->notify(result);
-      command.count=command.button;
-    command.button=1;
-    xMessageBufferSend(tablo_messages,&command,sizeof(event_t),0);
-      break;
-case PULT_6:
-      result.title = LEDBRIGHTNESSALL3;
-      result.packet.value=0x8080;
-      result.packet.var=0x80;
-      //setLedBrightness(0, (nt.packet.value >> 8) & 0x00FF, 0);
-      //setLedBrightness(1, nt.packet.value & 0x00FF, 0);
-      //setLedBrightness(2, nt.packet.var, 0);
-      leds->notify(result);
-      command.count=command.button;
-    command.button=1;
-    xMessageBufferSend(tablo_messages,&command,sizeof(event_t),0);
-      break;
-case PULT_7:
-      result.title = LEDBRIGHTNESSALL3;
-      result.packet.value=0xFFFF;
-      result.packet.var=0xFF;
-      //setLedBrightness(0, (nt.packet.value >> 8) & 0x00FF, 0);
-      //setLedBrightness(1, nt.packet.value & 0x00FF, 0);
-      //setLedBrightness(2, nt.packet.var, 0);
-      command.count=command.button;
-    command.button=1;
-    xMessageBufferSend(tablo_messages,&command,sizeof(event_t),0);
-      leds->notify(result);
-      break;
-
-case PULT_8:
-command.count=command.button;
-    command.button=1;
-    xMessageBufferSend(tablo_messages,&command,sizeof(event_t),0);
-      all_rel_off();
+     case PULT_9:
+       command.count = command.button;
+       command.button = 1;
+       xMessageBufferSend(tablo_messages, &command, sizeof(event_t), 0);
+       all_leds_off();
+       break;
+    case PULT_PREV:
+       result.title = LEDBRIGHTNESS1;
+       result.packet.value = 0xFF;
+       result.packet.var = 0;
+       leds->notify(result);
+       break;
+       case PULT_PAUSE:
+       result.title = LEDBRIGHTNESS2;
+       result.packet.value = 0xFF;
+       result.packet.var = 0;
+       leds->notify(result);
+       break;
+       case PULT_STOP:
+       result.title = LEDBRIGHTNESS3;
+       result.packet.value = 0xFF;
+       result.packet.var = 0;
+       leds->notify(result);
+       break;
+     case PULT_FASTBACK:
+       command.count = 3; // brightness ++
+       command.button = 10;
+       xMessageBufferSend(tablo_messages, &command, sizeof(event_t), 0);
+       break;
+     case PULT_PLAY:
+       command.count = 1; // brightness default
+       command.button = 10;
+       xMessageBufferSend(tablo_messages, &command, sizeof(event_t), 0);
+       break;
+     case PULT_FASTFORWARD:
+       command.count = 2; // brightness --
+       command.button = 10;
+       xMessageBufferSend(tablo_messages, &command, sizeof(event_t), 0);
+       break;
+     default:
+       show_me = true;
+     }
+   }
+   if ((command.count) != IR_DEVICE || show_me)
+   {
      
-      break;
-
-  case PULT_9:
-  command.count=command.button;
-    command.button=1;
-    xMessageBufferSend(tablo_messages,&command,sizeof(event_t),0);
-      all_leds_off();
-
-      break;
-
-    case PULT_POWER: // all off
-  all_rel_off();
-  break;
-
-  case PULT_FASTBACK:
-  result.title = RTCGETTIME;
-  rtc->notify(result);
-  break;
-
-  case PULT_PREV: // ultra low
-   result.title=LEDBRIGHTNESSALL3;
-   result.packet.value=8<<0 & 0xFF00|  0 & 0x00FF;
-   result.packet.var=64; 
-   //leds->notify(result);
-   mess="ALifgt*is set to*ULTRA LOW";
-   //xMessageBufferSend(display_message,mess.c_str(),mess.length()>DISP_MESSAGE_LENGTH?DISP_MESSAGE_LENGTH:mess.length(),100);
-   result.title=RELAYSET3;
-   result.packet.value=1;
-   result.packet.var=0;//need to save
-   relay->notify(result);
-  break;  
-  // case PULT_9: // low
-  //  //result.title=LEDBRIGHTNESSALL3;
-  //  event_t ev;
-  //  ev.button=1;
-  //  xMessageBufferSend(tablo_messages,&ev,sizeof(event_t),0);
-  //  //result.packet.value=(0x40<<8) & 0xFF00 |  0x40 & 0x00FF;
-  //  //result.packet.var=0x40; 
-  //  //leds->notify(result);
-  //  //mess="ALifgt*is set to*LOW";
-  //  ////xMessageBufferSend(display_message,mess.c_str(),mess.length()>DISP_MESSAGE_LENGTH?DISP_MESSAGE_LENGTH:mess.length(),100);
-  //  //result.title=RELAYSET3;
-  //  //result.packet.value=1;
-  //  //result.packet.var=0;//need to save
-  //  //relay->notify(result);
-   
-  // break;
-    case PULT_STOP: // middle
-  result.title=LEDBRIGHTNESSALL3;
-   result.packet.value=(0x80<<8) & 0xFF00 |  0x80 & 0x00FF;
-   result.packet.var=0x80; 
-   mess="ALifgt*is set to*MIDDLE";
-   //xMessageBufferSend(display_message,mess.c_str(),mess.length()>DISP_MESSAGE_LENGTH?DISP_MESSAGE_LENGTH:mess.length(),100);
-   //leds->notify(result);
-   result.title=RELAYSET3;
-   result.packet.value=1;
-   result.packet.var=0;//need to save
-   relay->notify(result);
-  break;
-   case PULT_NEXT: // full
-  result.title=LEDBRIGHTNESSALL3;
-   result.packet.value=0xFFFF;
-   result.packet.var=0xFF; 
-   //leds->notify(result);
-   mess="ALifgt*is set to*MAXIMUM";
-   //xMessageBufferSend(display_message,mess.c_str(),mess.length()>DISP_MESSAGE_LENGTH?DISP_MESSAGE_LENGTH:mess.length(),100);
-   result.title=RELAYSET3;
-   result.packet.value=1;
-   result.packet.var=0;//need to save
-   relay->notify(result);
-  break;
-    default:
-  show_me = true;
-    }
-      }
-      if ((command.count) != IR_DEVICE || show_me)
-      {
-        mess = "EDevice " + String(command.count) + (command.count == IR_DEVICE ? "(MY)" : "(ALIEN)") + "*Command " + String(command.button) + "*type " + String(command.data);
-        //xMessageBufferSend(display_message, mess.c_str(), mess.length()>DISP_MESSAGE_LENGTH?DISP_MESSAGE_LENGTH:mess.length(), portMAX_DELAY);
-      }
-}
+     command.data=(command.count << 8) & 0xFF00 | command.button & 0xFF;
+     command.count = 21;
+     command.button = 1;
+     xMessageBufferSend(tablo_messages, &command, sizeof(event_t), 0);
+   }
+ }
 
 void led_event(event_t command){
 notify_t result;
@@ -630,6 +592,7 @@ switch(event.button)
     case 0:
     break;
     case 1:
+     all_leds_off();
     break;
     case 2:
     break;
@@ -662,23 +625,23 @@ void display_event(event_t event){
   switch (event.button)
   {
   case SHOWTIME:
-    mess="QTime:";
-    mess+=event.alarm.hour;
-    mess+=":";
-    mess+=event.alarm.minute<10?"0":"";
-    mess+=event.alarm.minute;
-    mess+="*Date:";
-    mess+=(uint8_t)event.alarm.period;
-    mess+="/";
-    mess+=event.alarm.action<10?"0":"";
-    mess+=event.alarm.action;
-    mess+="*";
-    mess+=dayofweek[(event.alarm.wday*4)];
-    mess+=dayofweek[(event.alarm.wday*4)+1];
-    mess+=dayofweek[(event.alarm.wday*4)+2];
-    mess+=dayofweek[(event.alarm.wday*4)+3];
-    //mess+=dayofweek[(event.alarm.wday*7)+4];
-    xMessageBufferSend(display_message, mess.c_str(), mess.length()>DISP_MESSAGE_LENGTH?DISP_MESSAGE_LENGTH:mess.length(), portMAX_DELAY);
+    // mess="QTime:";
+    // mess+=event.alarm.hour;
+    // mess+=":";
+    // mess+=event.alarm.minute<10?"0":"";
+    // mess+=event.alarm.minute;
+    // mess+="*Date:";
+    // mess+=(uint8_t)event.alarm.period;
+    // mess+="/";
+    // mess+=event.alarm.action<10?"0":"";
+    // mess+=event.alarm.action;
+    // mess+="*";
+    // mess+=dayofweek[(event.alarm.wday*4)];
+    // mess+=dayofweek[(event.alarm.wday*4)+1];
+    // mess+=dayofweek[(event.alarm.wday*4)+2];
+    // mess+=dayofweek[(event.alarm.wday*4)+3];
+    // //mess+=dayofweek[(event.alarm.wday*7)+4];
+    // xMessageBufferSend(display_message, mess.c_str(), mess.length()>DISP_MESSAGE_LENGTH?DISP_MESSAGE_LENGTH:mess.length(), portMAX_DELAY);
     
     break;
   

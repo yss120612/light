@@ -10,6 +10,7 @@ const char * HTAG="HTTPTAG";
  void HTTPServer::setup(){
     
     server = NULL;
+   
  }
 
  void HTTPServer::start(){
@@ -17,6 +18,8 @@ const char * HTAG="HTTPTAG";
     ESP_LOGI(HTAG, "Starting webserver");
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
     config.uri_match_fn = httpd_uri_match_wildcard;
+    config.max_uri_handlers=18; 
+
     httpd_uri_t uri_index = {
     .uri = "/",
     .method = HTTP_GET,
@@ -27,7 +30,21 @@ const char * HTAG="HTTPTAG";
     .method = HTTP_GET,
     .user_ctx = this};
 
-    
+ httpd_uri_t uri_main = {
+    .uri = "/main.htm",
+    .method = HTTP_GET,
+    .user_ctx = this};
+
+    httpd_uri_t uri_post = {
+    .uri = "/post",
+    .method = HTTP_POST,
+    .user_ctx = this};
+
+ httpd_uri_t uri_getdata = {
+    .uri = "/getdata",
+    .method = HTTP_GET,
+    .user_ctx = this};
+
     httpd_uri_t uri_upd = {
     .uri = "/upd.htm",
     .method = HTTP_GET,
@@ -67,6 +84,7 @@ const char * HTAG="HTTPTAG";
     //callback my_cb= [this](httpd_req_t* req)->esp_err_t {return this->send_web_page(req);};
     uri_index.handler = &send_web_page_static;
     uri_index_2.handler = &send_web_page_static;
+    uri_main.handler = &send_web_page_static;
     uri_upd.handler = &send_web_page_static;
     uri_bootstrap_css.handler = &send_web_page_static;
     uri_bootstrap_js.handler = &send_web_page_static;
@@ -76,12 +94,15 @@ const char * HTAG="HTTPTAG";
     uri_reboot.handler = &send_web_page_static;
     uri_upload.handler = &send_web_page_static;//POST request
     uri_upd.handler = &send_web_page_static;
+    uri_post.handler = &post_data_static;
+    uri_getdata.handler = &send_data_static;
 
     if (httpd_start(&server, &config) == ESP_OK)    {
       xEventGroupSetBits(flags,FLAG_HTTP);  
       //ESP_LOGE(HTAG, "Registering URI handlers");
       httpd_register_uri_handler(server, &uri_index);
       httpd_register_uri_handler(server, &uri_index_2);
+      httpd_register_uri_handler(server, &uri_main);
       httpd_register_uri_handler(server, &uri_upd);
       httpd_register_uri_handler(server, &uri_upload);
       httpd_register_uri_handler(server, &uri_reboot);
@@ -89,6 +110,8 @@ const char * HTAG="HTTPTAG";
       httpd_register_uri_handler(server, &uri_bootstrap_js);
       httpd_register_uri_handler(server, &uri_jquery_js);
       httpd_register_uri_handler(server, &uri_timepicker_js);
+      httpd_register_uri_handler(server, &uri_post);
+      httpd_register_uri_handler(server, &uri_getdata);
            
     }else{
         ESP_LOGI(HTAG, "Failed start http server");
@@ -111,9 +134,23 @@ const char * HTAG="HTTPTAG";
     ESP_LOGI(HTAG, "esp vfs spiffs register");
 
     ESP_ERROR_CHECK(esp_vfs_spiffs_register(&spiffs_conf));
-    
+   
      
  }
+
+esp_err_t HTTPServer::post_data_static(httpd_req_t *req)
+{
+    HTTPServer *hts = static_cast<HTTPServer *>(req->user_ctx);
+    req->user_ctx = NULL;
+    return hts->post_data(req);
+}
+
+esp_err_t HTTPServer::send_data_static(httpd_req_t *req)
+{
+     HTTPServer *hts = static_cast<HTTPServer *>(req->user_ctx);
+    req->user_ctx = NULL;
+    return hts->send_data(req);
+}
 
 esp_err_t HTTPServer::send_web_page(httpd_req_t *req)
 {
@@ -194,15 +231,13 @@ esp_err_t HTTPServer::send_web_page_static(httpd_req_t *req)
 //         ESP_LOGE(HTAG, "%s not found",name);
 //         return;
 //     }
-
 //     FILE *fp = fopen(name, "r");
-    
-//     if (fread(buffer, st.st_size, 1, fp) == 0)
+//     if (fread(buffer, state.st_size, 1, fp) == 0)
 //     {
 //         ESP_LOGE(HTAG, "fread failed");
 //     }
 //     fclose(fp);
-//     ESP_LOGE(HTAG, "fread %s success %d bytes!",name,st.st_size);
+//     ESP_LOGE(HTAG, "fread %s success %d bytes!",name,state.st_size);
 // }    
 
  void HTTPServer::cleanup(){
@@ -214,7 +249,6 @@ esp_err_t HTTPServer::send_web_page_static(httpd_req_t *req)
       server = NULL;
   }
  }
-
 
 void HTTPServer::loop(){
     int fl=xEventGroupGetBits(flags);
@@ -263,8 +297,6 @@ esp_err_t HTTPServer::upload(httpd_req_t *req){
     return ESP_OK;
 }
 
-
-
 static int getHeaderEnd(char * buff, int len){
     int pos=0;
     bool check=false;
@@ -298,7 +330,6 @@ static int getDataEnd(char * buff, int len){
     }
     return -1;
 }
-
 
 esp_err_t HTTPServer::upload_www(httpd_req_t *req){
     FILE *fp = NULL;
@@ -534,11 +565,8 @@ esp_err_t HTTPServer::upload_www(httpd_req_t *req){
 
 }
 
-
-
 esp_err_t HTTPServer::upload_bin(httpd_req_t *req){
-
-const esp_partition_t *partition;
+    const esp_partition_t *partition;
     esp_ota_handle_t ota_handle;
     esp_err_t ret = ESP_OK;
 
@@ -742,3 +770,220 @@ const esp_partition_t *partition;
 
     return ESP_OK;
 }
+
+esp_err_t HTTPServer::post_data(httpd_req_t *req)
+{
+    int len = req->content_len > 2048 ? 2048 : req->content_len;
+    char *content;
+    content = (char *)malloc(len + 1);
+
+    if (!content)
+    {
+        ESP_LOGE(HTAG, "ERROR allocate mrmory");
+        return ESP_ERR_NO_MEM;
+    }
+    memset(content, 0, len + 1);
+    int ret = httpd_req_recv(req, content, len);
+    // ESP_LOGE(HTAG,"CONTENT=%s len=%d, content_len=%d",(const char *)content, ret, len);
+    String cont = content;
+    free(content);
+    String param, pname, pvalue;
+    int idx = 0, idx2 = 0;
+    bool is_my = false;
+    while (idx >= 0)
+    {
+        idx = cont.indexOf('&', 0);
+        if (idx < 0)
+        {
+            param = cont;
+        }
+        else
+        {
+            param = cont.substring(0, idx);
+            cont = cont.substring(idx + 1);
+        }
+        idx2 = param.indexOf('=', 0);
+        if (idx2 > 0)
+        {
+            pname = param.substring(0, idx2);
+            pvalue = param.substring(idx2 + 1);
+            if (pname.equals("page") && (pvalue.equals("main")))
+            {
+                is_my = true;
+                continue;
+            }
+            if (is_my)
+                var(pname, pvalue);
+            // ESP_LOGE(HTAG,"name=%s, value=%s",pname.c_str(),pvalue.c_str());
+        }
+    }
+    return ESP_OK;
+}
+
+void HTTPServer::var(String n, String v)
+{
+     event_t ev;
+     ev.state=WEB_EVENT;
+	uint8_t h=9,m=50,d=3,nn=0;
+   
+	
+	if (n.equals("BTN1"))
+	{
+		ev.button=ALARMSETUP;
+		//Serial.println(v);
+		h=v.substring(0,v.indexOf(':')).toInt();
+		m=v.substring(v.indexOf(':')+1,v.indexOf('*')).toInt();
+		d=v.substring(v.indexOf('*')+1,v.indexOf('-')).toInt();
+		nn=v.substring(v.indexOf('-')+1).toInt();
+		ev.alarm.hour=h;
+		ev.alarm.minute=m;
+		ev.alarm.period=(period_t)d;
+		ev.alarm.action=nn;
+        
+	}
+	else if (n.equals("BTN2"))
+	{
+		ev.button=ALARMSPRINT;
+		
+	}
+	else if (n.equals("BTN3"))
+	{
+		ev.button=ALARMACTIVEPRINT;
+		
+	}
+	else if (n.equals("BTN4"))
+	{
+		ev.button=ALARMSRESET;
+		
+	}
+	else if (n.equals("REL1"))
+	{
+		ev.button=RELAYSET1;
+		ev.count=v.equals(F("true"));
+	}
+	else if (n.equals("REL2"))
+	{
+		ev.button=RELAYSET2;
+		ev.count=v.equals(F("true"));
+	}
+	else if (n.equals("REL3"))
+	{
+		ev.button=RELAYSET3;
+		ev.count=v.equals(F("true"));
+	}
+	else if (n.equals("REL4"))
+	{
+		ev.button=RELAYSET4;
+		ev.count=v.equals(F("true"));
+	}
+	// else if (n.equals("REL4"))
+	// {
+	// 	ev.button=RELAYSET4;
+	// 	ev.count=v.equals(F("true"));
+	// }
+	else if (n.equals("FUNC1"))
+	{
+		ev.state=PULT_BUTTON;
+		ev.button=PULT_STOP;
+		ev.count=IR_DEVICE;
+		
+	}
+	else if (n.equals("LIGHT_CW"))
+	{
+		
+		ev.button=LEDBRIGHTNESS1;
+		ev.count=v.toInt();
+		
+	}
+	else if (n.equals("LIGHT_NW"))
+	{
+		
+		ev.button=LEDBRIGHTNESS2;
+		ev.count=v.toInt();
+	}
+	else if (n.equals("LIGHT_WW"))
+	{
+		
+		ev.button=LEDBRIGHTNESS3;
+		ev.count=v.toInt();
+	};
+	 xQueueSend(queue,&ev,portMAX_DELAY);
+}
+
+esp_err_t HTTPServer::send_data(httpd_req_t *req)
+{
+    int len = strlen(req->uri);
+    String rq=req->uri;
+  
+    
+    int idx = rq.indexOf("page=", 0);
+    if (idx<0) {
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Page parametr not Found");
+        ESP_LOGE(HTAG,"Error request");
+        return ESP_FAIL;
+    }
+    //ESP_LOGE("http","Tuta version=%d relay4=%d",st->version,st->relays[3].ison);
+    rq=rq.substring(idx + strlen("page="));
+ //    ESP_LOGE(HTAG,"ask=%s",rq.c_str());
+    String str="{";
+	if (rq.equals("main")){
+		for (uint8_t i=0;i<RELAYS_COUNT;i++)
+		{
+			str+=F("\"REL");
+			str+=String(i+1);
+			str+=F("\":\"");
+			str+=String(st->relays[i].ison?1:0);
+			str+=F("\",");
+		}
+		str+=F("\"LIGHT_CW\":\"");
+		str+=String(st->leds[0].value);
+		str+=F("\",");
+		str+=F("\"LIGHT_NW\":\"");
+		str+=String(st->leds[1].value);
+		str+=F("\",");
+		str+=F("\"LIGHT_WW\":\"");
+		str+=String(st->leds[2].value);
+		str+=F("\"");
+		for (uint8_t i=0;i<ALARMS_COUNT;i++)
+		{
+    		str+=(",\"ALRM");
+			str+=String(i+1);
+			str+=("\":\"");
+			if (st->alr[i].active)
+			{
+			 str+=(st->alr[i].hour>9?String(st->alr[i].hour):"0"+String(st->alr[i].hour));
+			 str+=("-");
+			 str+=(st->alr[i].minute>9?String(st->alr[i].minute):"0"+String(st->alr[i].minute));
+			 str+=(" Per=");
+			 str+=String(st->alr[i].period);
+			 str+=(" WD=");
+			 str+=String(st->alr[i].wday);
+			}
+			else{
+			 str+=("NONE");
+			}
+			str+=("\"");
+		}
+        str+=",\"LOGSHOW\":\"";
+        str+=st->version;
+        str+="\"";
+        str+=",\"RASMER\":\"";
+        str+=sizeof(SystemState_t);
+        str+="\"";
+		str+=F("}");
+	}else if (rq.equals("rectify")){
+		
+	}
+	if (!str.isEmpty()){
+        httpd_resp_set_type(req, "text/json");
+        httpd_resp_send(req,str.c_str(),str.length());
+    }else{
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Page not Found");
+        return ESP_FAIL;
+    }
+    return ESP_OK;
+}
+
+
+
+

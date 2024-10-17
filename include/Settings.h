@@ -2,28 +2,9 @@
 #define _SETTINGS_h
 #include <Arduino.h>
 #include <GlobalSettings.h>
-//#define DEBUGG
+#include "State.h"
 
-
-//#define LED     2
-//#define IRPIN   4
-// #define RELAY1  17
-// #define RELAY2  5
-// #define RELAY3  19
-// //#define RELAY4  18
-// #define RELAY4  0
-
-//#define BUTTON_1 13
-
-// #define PULT_1      0x58A7EA15
-// #define PULT_2      0x58A7827D
-// #define PULT_3      0x58A7629D
-// #define PULT_4      0x58A7906F
-// #define PULT_POWER  0x58A728D7
-
-//#define DISPLAY_1   67
-
-const uint8_t leds_pins[]={GPIO_NUM_18, GPIO_NUM_23, GPIO_NUM_19, GPIO_NUM_5};
+const uint8_t leds_pins[]={GPIO_NUM_19, GPIO_NUM_18, GPIO_NUM_23, GPIO_NUM_5};
 const uint8_t relays_pins[] = {GPIO_NUM_32, GPIO_NUM_33, GPIO_NUM_14, GPIO_NUM_27};
 const uint8_t IR_PIN = GPIO_NUM_35; // pin for IR receiver
 const uint8_t IR_DEVICE = 162;
@@ -32,9 +13,7 @@ const gpio_num_t ENCBTN = GPIO_NUM_34;//ENCODER BUTTON
 const gpio_num_t ENCS1 = GPIO_NUM_NC;//ENCODER A
 const gpio_num_t ENCS2 = GPIO_NUM_NC;//ENCODER B
 const uint8_t AT24C32_ADDRESS = 0x57;
-const uint8_t AT24C32_OFFSET = 0x100;
-
-#define VERSION 9
+const int AT24C32_OFFSET = 0x100;
 
 #define PULT_1      1
 #define PULT_2      2
@@ -57,26 +36,8 @@ const uint8_t AT24C32_OFFSET = 0x100;
 #define PULT_STOP  22
 #define PULT_PAUSE  24
 
-
-// #define WEB_CANNEL_CW   100
-// #define WEB_CANNEL_NW   101
-// #define WEB_CANNEL_WW   102
-
-
-
 #define LEDS_COUNT 4
 #define RELAYS_COUNT 4
-
-struct __attribute__((__packed__)) SystemState_t
-{
-    uint8_t version : (uint8_t)VERSION;
-    alarm_t alr[ALARMS_COUNT];
-    relState_t relays[RELAYS_COUNT];
-    led_state_t leds[LEDS_COUNT];
-
-    uint8_t crc;
-	
-};
 
 static void reset_default(SystemState_t * ss){
 		ss->version=VERSION;
@@ -100,11 +61,17 @@ static void reset_default(SystemState_t * ss){
             ss->leds[i].value=0;
 		}
 		ss->crc=crc8((uint8_t*)ss, sizeof(ss));
+		//memcpy((void *)(&state),(const void *)ss,sizeof(SystemState_t));
+		// memcpy((void *)(stt.relays),(const void *)ss->relays,RELAYS_COUNT*sizeof(relState_t));
+		// memcpy((void *)(stt.leds),(const void *)ss->leds,LEDS_COUNT*sizeof(led_state_t));
+		// memcpy((void *)(stt.alr),(const void *)ss->alr,ALARMS_COUNT*sizeof(alarm_t));
+		// stt.version=ss->version;
+		//get_ss(ss,true);
 	}
 
 static uint8_t process_notify(SystemState_t * ss, event_t * event, notify_t nt){
-	uint8_t i;
-	
+uint8_t i;
+
 switch (nt.title)
 	{
 		case MEM_ASK_00://timers
@@ -118,7 +85,7 @@ switch (nt.title)
 		case MEM_ASK_08:
 		case MEM_ASK_09:
 			event->state=MEM_EVENT;
-			event->button=nt.title-50;//MEM_READ_XX
+			event->button=MEM_READ_00+(nt.title-MEM_ASK_00);//MEM_READ_XX
 			event->alarm=ss->alr[nt.title-MEM_ASK_00];
 		break;
         case MEM_ASK_10://relay 1
@@ -126,12 +93,13 @@ switch (nt.title)
         case MEM_ASK_12://relay 3
         case MEM_ASK_13://relay 4
 			event->state=MEM_EVENT;
-			event->button=nt.title-50;//MEM_READ_XX
+			event->button=MEM_READ_00+(nt.title-MEM_ASK_00);//MEM_READ_XX
 			event->data=rel_state2uint32(ss->relays[nt.title-MEM_ASK_10]);
 		break;
 		case MEM_ASK_14://led1
         case MEM_ASK_15://led2
         case MEM_ASK_16://led3
+		case MEM_ASK_17://led4
 			event->state=MEM_EVENT;
 			event->button=nt.title-50;//MEM_READ_XX;
 			event->data=led_state2uint32(ss->leds[nt.title-MEM_ASK_14]);
@@ -158,14 +126,25 @@ switch (nt.title)
 		case MEM_SAVE_14:
         case MEM_SAVE_15:
         case MEM_SAVE_16:
+		case MEM_SAVE_17:
 			ss->leds[nt.title-MEM_SAVE_14]=uint322led_state(nt.packet.value);
 		break;
     }
-	if (nt.title==199) return 4;
+
+	// if (nt.title<MEM_ASK_00 || nt.title>=MEM_SAVE_00)
+	// {
+	// //ESP_LOGE("LOC","Tuta version=%d relay4=%d [%d]",stt.version,stt.relays[3].ison,ss->relays[3].ison);	
+	// get_ss(ss,true);
+	
+	// }
+	//memcpy((void *)(&state),(const void *)ss,sizeof(SystemState_t));
+
+	if (nt.title==ASK_ALL) return 4;
 	if (nt.title<MEM_ASK_00) return 1;//MEM_READ
 	if (nt.title<MEM_SAVE_00) return 2;//MEM_ASK
 	return 3;
 }
+
 const uint16_t SSTATE_LENGTH = sizeof(SystemState_t);
 static const uint8_t QUEUE_LENGTH = 20;
 #define _LOG ESP_LOGE
