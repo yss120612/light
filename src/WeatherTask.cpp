@@ -103,6 +103,8 @@ void WeatherTask::sent()
 
   if (!doc.isNull())
   {
+    if (doc.containsKey("main"))
+    {
     int8_t temp = rint((double)doc["main"]["temp"]);
     uint8_t hum = doc["main"]["humidity"];
     uint16_t press = doc["main"]["pressure"];
@@ -110,6 +112,7 @@ void WeatherTask::sent()
     ev.state = ALARM_EVENT;
     ev.data = (hum << 24) & 0xFF000000 | (temp << 16) & 0x00FF0000 | press & 0xFFFF;
     xQueueSend(que, &ev, 0);
+    }
     // xMessageBufferSend(_mess, &ev, sizeof(event_t), portMAX_DELAY);
   }
   doc.clear();

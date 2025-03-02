@@ -4,7 +4,7 @@
 #include <GlobalSettings.h>
 #include "State.h"
 
-const uint8_t leds_pins[]={GPIO_NUM_19, GPIO_NUM_18, GPIO_NUM_23, GPIO_NUM_5};
+const int8_t leds_pins[]={GPIO_NUM_19, GPIO_NUM_18, GPIO_NUM_23, GPIO_NUM_5};
 const uint8_t relays_pins[] = {GPIO_NUM_32, GPIO_NUM_33, GPIO_NUM_14, GPIO_NUM_27};
 const uint8_t IR_PIN = GPIO_NUM_35; // pin for IR receiver
 const uint8_t IR_DEVICE = 162;
@@ -148,4 +148,71 @@ switch (nt.title)
 const uint16_t SSTATE_LENGTH = sizeof(SystemState_t);
 static const uint8_t QUEUE_LENGTH = 20;
 #define _LOG ESP_LOGE
+#define CMD_BUF_LEN      1020
+
+static int getVal(char c){
+    switch (c){
+        case '1':;
+        case '2':;
+        case '3':;
+        case '4':;
+        case '5':;
+        case '6':;
+        case '7':;
+        case '8':;
+        case '9':;
+		return c-'0';
+        case 'A':;
+		case 'B':;
+		case 'C':;
+		case 'D':;
+		case 'E':;
+		case 'F':;
+		return 10+c-'A';
+		break;
+        case 'a':;
+        case 'b':;
+        case 'c':;
+        case 'd':;
+        case 'e':;
+        case 'f':
+		return 10+c-'a';
+        }
+        return 0;
+}
+
+static void make_command(uint8_t *bf,char separator,char str_mark, String source){
+String digit;
+int pos=0,cpos=0;
+int i=0,d;
+bf[i++]=0xAA;
+bf[i++]=0;
+do{
+	cpos=source.indexOf(str_mark);
+	if (pos<0 && cpos>=0){//строка последняя в комманде ограничена с обоих сторон str_mark
+		while (source[++cpos]!=str_mark){
+			bf[i++]=source[cpos];
+		}
+		break;
+	}
+    pos=source.indexOf(separator);
+    if (pos>0){
+        digit=source.substring(0,pos);
+        source.remove(0,pos+1);
+    }else{
+        digit=source.substring(0,2);
+		source.remove(0,2);
+    }
+    //if (digit.length()==2) 
+	bf[i++]=getVal(digit[0])*16+getVal(digit[1]);
+	//ESP_LOGE("SETT","pos=%d SDIG=%s SRC=%s DDIG=%d",pos,digit,source,bf[i-1]);
+}while (pos>0 || cpos>=0);
+bf[i++]=0x0A;
+bf[1]=i-2;
+//ESP_LOGE("SETT","Length=%d",bf[1]);
+}
+
+
+
+
 #endif

@@ -387,6 +387,9 @@ cmode=WATCH_MODE;
 xTimerStart(_timer,pdMS_TO_TICKS(1000));
 srand(time(NULL));
 hum=0;
+temp=0;
+press=0;
+
 _scrolling.canvas = NULL;
 
 esp_err_t ret;

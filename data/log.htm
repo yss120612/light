@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>Система автоматики Yss</title>
+    <title>Voice monitor</title>
     <meta name="description" content="Версия 0.1">
     <meta name="author" content="Yss">
     <link href="/css/bootstrap.min.css" type="text/css" rel="stylesheet" />
@@ -12,19 +12,16 @@
 <body>
 	<nav class="navbar navbar-light bg-light navbar-expand-lg">
 		<div class="container-fluid">
-			<a class="navbar-brand" href="#">Лог системы</a>
+			
 		<ul class="nav nav-pills">
 			<li class="nav-item">
 			  <a class="nav-link" href="/">Home</a>
 			</li>
 			<li class="nav-item">
-			  <a class="nav-link" href="/main">Main</a>
+			  <a class="nav-link" href="/main.htm">Main</a>
 			</li>
 			<li class="nav-item">
-			  <a class="nav-link" href="/upd">Update</a>
-			</li>
-			<li class="nav-item">
-			  <a class="nav-link active"  aria-current="page" href="#">Log</a>
+			  <a class="nav-link" href="/upd.htm">Update</a>
 			</li>
 			<li class="nav-item">
 			  <a class="nav-link" href="/reboot">Reboot</a>
@@ -36,12 +33,15 @@
 	
 	<div class="row">
 			<div class="col-md-offset-1 col-md-10">
-			<input type="submit" class="btn btn-success" value="clear" onclick="clearlog()">
+			<input type="text" id ="FORCOMMAND" />	
+			<input type="button" id="B1" class="btn btn-success" value="Send" onclick="sendcommand()"/>
+			<input type="button" id="B2" class="btn btn-success" value="Clear" onclick="clr()"/>
 			</div>
 
 		<div class="col-md-offset-1 col-md-10">
-			<h3>Последние события</h3>
-			<div id="Textarea1"></div>		
+			<h5 id="SHOWCOMMAND"></h5>
+			<h5>Ответ модуля</h5>
+			<textarea id="TEXTAREA1"></textarea>	
 		</div>
 	</div>
 	</div>
@@ -56,20 +56,32 @@
 		"/getdata",
 		{page:'log'},
 		function(data){
-		$('#Textarea1').html(data['logdata']);
+			
+		if (data['changed']=='1'){	
+				$("#TEXTAREA1").val($.trim($("#TEXTAREA1").val() + '\n' + data['logdata']));
+				
+			}
 		});
-		setTimeout('process()',3000);
+		setTimeout('process()',1000);
 	}
-	function clearlog(){
+
+	function sendcommand(){
 		$.ajax({  
                     type: "POST",  
                     url: "/post",  
-                    data: "page=log&ACTION=clear",  
+                    data: "page=log&VCOMMAND="+$("#FORCOMMAND").val(),  
                     success: function(html){  
+						$("#SHOWCOMMAND").html($("#FORCOMMAND").val());
+						$("#FORCOMMAND").val("");
                     }  
 			}); 
-		process();
+		
 	}
 
+	function clr(){
+	
+		$("#TEXTAREA1").val('');
+		$("#SHOWCOMMAND").html('');
+	}
 	</script>
 </html>

@@ -4,6 +4,7 @@
 #include <string.h>
 #include "esp_https_ota.h"
 #include "esp_ota_ops.h"
+#include "driver/uart.h"
 
 const char * HTAG="HTTPTAG";
 
@@ -32,6 +33,11 @@ const char * HTAG="HTTPTAG";
 
  httpd_uri_t uri_main = {
     .uri = "/main.htm",
+    .method = HTTP_GET,
+    .user_ctx = this};
+
+httpd_uri_t uri_log = {
+    .uri = "/log.htm",
     .method = HTTP_GET,
     .user_ctx = this};
 
@@ -85,6 +91,7 @@ const char * HTAG="HTTPTAG";
     uri_index.handler = &send_web_page_static;
     uri_index_2.handler = &send_web_page_static;
     uri_main.handler = &send_web_page_static;
+    uri_log.handler = &send_web_page_static;
     uri_upd.handler = &send_web_page_static;
     uri_bootstrap_css.handler = &send_web_page_static;
     uri_bootstrap_js.handler = &send_web_page_static;
@@ -103,6 +110,7 @@ const char * HTAG="HTTPTAG";
       httpd_register_uri_handler(server, &uri_index);
       httpd_register_uri_handler(server, &uri_index_2);
       httpd_register_uri_handler(server, &uri_main);
+      httpd_register_uri_handler(server, &uri_log);
       httpd_register_uri_handler(server, &uri_upd);
       httpd_register_uri_handler(server, &uri_upload);
       httpd_register_uri_handler(server, &uri_reboot);
@@ -135,6 +143,8 @@ const char * HTAG="HTTPTAG";
 
     ESP_ERROR_CHECK(esp_vfs_spiffs_register(&spiffs_conf));
    
+   voice_changed=false;
+   voice_info="";
      
  }
 
@@ -255,7 +265,18 @@ void HTTPServer::loop(){
     if ( fl & FLAG_WIFI && !(fl & FLAG_HTTP)){
         start();
     }
-    vTaskDelay(3000);
+    memset(voice_buffer,0,CMD_BUF_LEN);
+    int len=xMessageBufferReceive(message,voice_buffer,CMD_BUF_LEN,3000);
+    if (len)
+    {
+        if (!voice_changed){
+            voice_info=String(voice_buffer,len);
+        }else{
+            voice_info+=String(voice_buffer,len);
+        }
+        voice_changed=true;
+    }
+    vTaskDelay(10);
 }
 
 esp_err_t HTTPServer::reboot(httpd_req_t *req)
@@ -807,13 +828,14 @@ esp_err_t HTTPServer::post_data(httpd_req_t *req)
         {
             pname = param.substring(0, idx2);
             pvalue = param.substring(idx2 + 1);
-            if (pname.equals("page") && (pvalue.equals("main")))
+            if (pname.equals("page") && ((pvalue.equals("main"))||(pvalue.equals("log"))))
             {
                 is_my = true;
                 continue;
             }
             if (is_my)
                 var(pname, pvalue);
+                httpd_resp_send(req,NULL,0);
             // ESP_LOGE(HTAG,"name=%s, value=%s",pname.c_str(),pvalue.c_str());
         }
     }
@@ -824,8 +846,8 @@ void HTTPServer::var(String n, String v)
 {
      event_t ev;
      ev.state=WEB_EVENT;
-	uint8_t h=9,m=50,d=3,nn=0;
-   
+	uint8_t h=9,m=50,d=3,nn=0,i;
+    //vbuffer uint8_t [10];
 	
 	if (n.equals("BTN1"))
 	{
@@ -841,7 +863,92 @@ void HTTPServer::var(String n, String v)
 		ev.alarm.action=nn;
         
 	}
-	else if (n.equals("BTN2"))
+    else if (n.equals("VCOMMAND"))
+	{
+		ev.button=VOICECOMMAND;
+        v.toUpperCase();
+        //Serial.write(v.c_str(),v.length());
+        //u_int8_t a[]={0xAA,0x02,0x00,0xAA};
+        if (v.equals("S"))
+        {
+        u_int8_t a[]={0xAA,0x02,0x00,0x0A};
+        i=uart_write_bytes(UART_NUM_2,(const char*)a,4);
+        }
+        else if(v.equals("R")){
+        u_int8_t a[]={0xAA,0x02,0x01,0x0A};
+        i=uart_write_bytes(UART_NUM_2,(const char*)a,4);
+        }
+        else if(v[0]=='C'){//проверка ячейки памяти 0..79
+        v.remove(0,1);
+        uint8_t cl=v.toInt();    
+        u_int8_t a[]={0xAA,0x03,0x02,cl,0x0A};
+        i=uart_write_bytes(UART_NUM_2,(const char*)a,sizeof(a));
+        }
+         else if(v[0]=='D'){//подпись ячейки памяти 0..79
+        v.remove(0,1);
+        uint8_t cl=v.toInt();    
+        u_int8_t a[]={0xAA,0x03,0x03,cl,0x0A};
+        i=uart_write_bytes(UART_NUM_2,(const char*)a,sizeof(a));
+        }
+        else if(v.equals("RESET")){
+        u_int8_t a[]={0xAA,0x02,0x10,0x0A};
+        i=uart_write_bytes(UART_NUM_2,(const char*)a,4);
+        }
+        else if(v[0]=='M'){
+            /*режим выходов
+                00 – Импульсный режим.
+                01 – Режим триггера.
+                02 – Режим установки.
+                03 – Режим сброса.
+            */
+        v.remove(0,1);
+        uint8_t cl=v.toInt();    
+        u_int8_t a[]={0xAA,0x03,0x12,cl,0x0A};
+        i=uart_write_bytes(UART_NUM_2,(const char*)a,sizeof(a));
+        }
+       
+        else if(v[0]=='T'){//период импульса в импульсном режиме 
+         /*
+            00 – 10 миллисекунд.
+            01 – 15 миллисекунд.
+            02 – 20 миллисекунд.
+            03 – 25 миллисекунд.
+            04 – 30 миллисекунд.
+            05 – 35 миллисекунд.
+            06 – 40 миллисекунд.
+            07 – 45 миллисекунд.
+            08 – 50 миллисекунд.
+            09 – 75 миллисекунд.
+            0A(10) – 0,1 секунд.
+            0B(11) – 0,2 секунд.
+            0C(12) – 0,3 секунд.
+            0D(13) – 0,4 секунд.
+            0E(14) – 0,5 секунд.
+            0F(15) – 1 секунда.
+        */
+        v.remove(0,1);
+        uint8_t cl=v.toInt();    
+        u_int8_t a[]={0xAA,0x03,0x13,cl,0x0A};
+        i=uart_write_bytes(UART_NUM_2,(const char*)a,sizeof(a));
+       
+	}
+	else if(v[0]=='F'){//command in free format
+        v.remove(0,1);
+        //uint8_t cl=v.toInt();    
+        u_int8_t a[20];
+        
+        make_command(a,':','+',v);
+        i=uart_write_bytes(UART_NUM_2,(const char*)a,a[1]+2);
+        //voice_changed=true;
+        //voice_info="";
+        //for (i=0;i<a[1]+2;i++){
+        //voice_info+=String(a[i],HEX);
+        //voice_info+=" ";
+        //}
+    }
+    return;
+}
+    else if (n.equals("BTN2"))
 	{
 		ev.button=ALARMSPRINT;
 		
@@ -910,6 +1017,7 @@ void HTTPServer::var(String n, String v)
 	 xQueueSend(queue,&ev,portMAX_DELAY);
 }
 
+
 esp_err_t HTTPServer::send_data(httpd_req_t *req)
 {
     int len = strlen(req->uri);
@@ -971,11 +1079,19 @@ esp_err_t HTTPServer::send_data(httpd_req_t *req)
         str+=sizeof(SystemState_t);
         str+="\"";
 		str+=F("}");
-	}else if (rq.equals("rectify")){
-		
+	}else if (rq.equals("log")){
+         str+="\"changed\":\"";
+         str+=voice_changed?1:0;
+		 str+="\"";
+         str+=",\"logdata\":\"";
+         str+=(voice_changed?voice_info:"");
+		 str+="\"";
+		 str+=F("}");
+         voice_changed=false;
 	}
 	if (!str.isEmpty()){
-        httpd_resp_set_type(req, "text/json");
+        httpd_resp_set_type(req, "application/json");
+      // httpd_resp_set_status(req,"200 OK");
         httpd_resp_send(req,str.c_str(),str.length());
     }else{
         httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Page not Found");

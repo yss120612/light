@@ -17,6 +17,7 @@ static const char * TAG="Light";
 //#include <RTCLib.h>
 //#include "HTTP2Task.h"
 #include "HTTPServer.h"
+#include "VoiceTask.h"
 #include "MAX7219Task.h"
 #include "WeatherTask.h"
 #include "TelegramTask.h"
@@ -44,7 +45,7 @@ State state;
 QueueHandle_t queue;
 SemaphoreHandle_t btn_semaphore;
 EventGroupHandle_t flags;
-MessageBufferHandle_t display_message,tablo_messages,web_messages,telega_messages;
+MessageBufferHandle_t voice_message,tablo_messages,web_messages,telega_messages;
 
 //Blinker * blinker;
 MEMTask<SystemState_t> * mem;
@@ -62,7 +63,7 @@ HTTPServer * http;
 Max7219Task * max7219;
 WeatherTask * weather;
 TelegramTask * telega;
-
+VoiceTask * voice;
 //extern void init_networks();
 
 // StaticQueue_t queueBuffer;
@@ -86,8 +87,8 @@ void setup() {
  //btn_semaphore=xSemaphoreCreateBinary();
  flags=xEventGroupCreate();
  xEventGroupClearBits(flags,0xFFFF);
- display_message=xMessageBufferCreate(DISP_MESSAGE_LENGTH+4);
- if (!display_message){
+ voice_message=xMessageBufferCreate(CMD_BUF_LEN+4);
+ if (!voice_message){
   _LOG(TAG,"Error creating display message!");
  }
  telega_messages=xMessageBufferCreate(100+4);
@@ -97,9 +98,9 @@ void setup() {
 
  tablo_messages=xMessageBufferCreate(sizeof(event_t)+4);//=length label
  //web_messages=xMessageBufferCreate(SSTATE_LENGTH+4);
-#ifdef DEBUGG
+//#ifdef DEBUGG
    Serial.begin(115200);
-#endif
+//#endif
 
  //esp_log_level_set("*",ESP_LOG_INFO);
   
@@ -143,7 +144,7 @@ ir= new IRTask("IRс",2048,queue,IR_PIN,IR_DEVICE);
 //http = new HTTP2Task("http",4096,queue,flags,web_messages);
 //http->resume();
 
-http = new HTTPServer("http",4096,flags,queue,&(state.st));
+http = new HTTPServer("http",4096,flags,queue,voice_message,&(state.st));
 
 rtc=new RTCTask("RTC",2048,queue);
 
@@ -162,6 +163,7 @@ weather= new WeatherTask("Weather",1024*3,queue,flags);
 //_LOG(TAG,"RUN TELEGRAM %d",rw);
 telega= new TelegramTask("Telegram",1024*4,queue,flags,telega_messages);
 
+voice=new VoiceTask("Voice",3096,queue,voice_message);
 //}
 
 //gpio_set_pull_mode(ENCBTN, GPIO_PULLDOWN_ONLY);
@@ -181,6 +183,7 @@ http->resume();
 max7219->resume();
 //if (run_weather){
 weather->resume();
+voice->resume();
 //}
 rtc->needWatch();//хочу часы
 //http->start();

@@ -18,11 +18,12 @@
 class HTTPServer : public Task{
 
     public:
-    HTTPServer(const char *name, uint32_t stack,EventGroupHandle_t f,QueueHandle_t q,SystemState_t * ss):Task(name, stack){
+    HTTPServer(const char *name, uint32_t stack,EventGroupHandle_t f,QueueHandle_t q,MessageBufferHandle_t voice_message,SystemState_t * ss):Task(name, stack){
 
         flags = f;
         queue=q;
         st=ss;
+        message=voice_message;
     }
     void start();
     protected:
@@ -50,7 +51,11 @@ class HTTPServer : public Task{
     EventGroupHandle_t flags;
     QueueHandle_t queue;
     char buffer[BUF_LEN];
+    uint8_t voice_buffer[CMD_BUF_LEN];
     esp_vfs_spiffs_conf_t spiffs_conf;
     SystemState_t * st;
+    bool voice_changed;
+    String voice_info;
+    MessageBufferHandle_t message;
 };
 #endif
